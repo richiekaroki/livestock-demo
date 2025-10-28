@@ -1,0 +1,26 @@
+/* Global styles and Tailwind import */
+@import "tailwindcss";
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary, #1a1a1a);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-tertiary, #404040);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary, #505050);
+}
+
+/* Smooth transitions for theme switching */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
+}
