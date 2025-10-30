@@ -1,38 +1,33 @@
-// src/pages/Dashboard.tsx
-
 import { useEffect, useState } from "react";
-import { AddAnimalForm } from "../components/AddAnimalForm";
-import FilterBar from "../components/FilterBar"; // Add this import
-import { LivestockList } from "../components/LivestockList"; // Add this import
-import { useLiveData } from "../hooks/useLiveData";
+import AnimalList from "../components/animals/AnimalList";
+import RegistrationForm from "../components/animals/RegistrationForm";
+import StatisticsCards from "../components/dashboard/StatisticsCards";
+import StatusIndicator from "../components/dashboard/StatusIndicator";
+import FilterBar from "../components/filters/FilterBar";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 import { mockAPI } from "../services/mockApi";
+import type { AnimalStats, Filters, Livestock } from "../types";
 
-// Remove props - Dashboard manages its own data
-export default function Dashboard() {
-  const { data, loading, error, refetch } = useLiveData();
-  const [stats, setStats] = useState<any>(null);
-  const [filters, setFilters] = useState({
-    type: "",
-    health: "",
-    county: "",
-  });
+interface DashboardProps {
+  data: Livestock[];
+  filteredData: Livestock[];
+  filters: Filters;
+  onFilterChange: (key: keyof Filters, value: string) => void;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
 
-  // Handle filter changes locally
-  const handleFilterChange = (
-    key: "type" | "health" | "county",
-    value: string
-  ) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  };
-
-  // Filter data based on current filters
-  const filteredData = data.filter((animal) => {
-    return (
-      (filters.type === "" || animal.type === filters.type) &&
-      (filters.health === "" || animal.health === filters.health) &&
-      (filters.county === "" || animal.county === filters.county)
-    );
-  });
+export default function Dashboard({
+  data,
+  filteredData,
+  filters,
+  onFilterChange,
+  loading,
+  error,
+  refetch,
+}: DashboardProps) {
+  const [stats, setStats] = useState<AnimalStats | null>(null);
 
   useEffect(() => {
     const loadStats = async () => {
@@ -41,7 +36,7 @@ export default function Dashboard() {
         if (response.success) {
           setStats(response.data);
         }
-      } catch (err) {
+      } catch {
         console.error("Failed to load statistics");
       }
     };
@@ -50,55 +45,39 @@ export default function Dashboard() {
   }, []);
 
   if (loading && !data.length) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg">Loading livestock data...</div>
-      </div>
-    );
+    return <LoadingSpinner text="Loading livestock data..." />;
   }
 
   return (
     <div className="space-y-6">
-      {/* API Status Indicator */}
-      <div
-        className={`p-3 rounded-lg ${
-          error ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
-        }`}
-      >
-        {error
-          ? "⚠️ Offline Mode - Using cached data"
-          : "✅ Connected to Livestock API"}
-      </div>
+      <StatusIndicator error={error} />
 
-      {/* Statistics */}
-      {stats && (
-        <div className="p-3 rounded-lg bg-blue-50 text-blue-800">
-          <div className="font-medium">Animal Statistics</div>
-          <pre className="text-sm mt-2">{JSON.stringify(stats, null, 2)}</pre>
-        </div>
-      )}
+      {stats && <StatisticsCards stats={stats} />}
 
-      {/* Add Animal Form */}
-      <AddAnimalForm onAnimalAdded={refetch} />
+      <RegistrationForm onAnimalAdded={refetch} />
 
-      {/* Filter Bar */}
       <FilterBar
         filters={filters}
-        onFilterChange={handleFilterChange}
+        onFilterChange={onFilterChange}
         data={data}
       />
 
-      {/* Your existing dashboard content would go here */}
-      {/* For example: */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4">Livestock Overview</h2>
+      <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">
+          Livestock Overview
+        </h2>
         <p className="text-gray-600">
-          Showing {filteredData.length} animals out of {data.length} total
+          Showing{" "}
+          <span className="font-semibold text-blue-600">
+            {filteredData.length}
+          </span>{" "}
+          animals out of{" "}
+          <span className="font-semibold text-gray-800">{data.length}</span>{" "}
+          total
         </p>
       </div>
 
-      {/* Livestock List Table */}
-      <LivestockList data={filteredData} />
+      <AnimalList data={filteredData} />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 // src/components/Navbar.tsx
 
 import { Link, useLocation } from "react-router-dom";
-import ThemeToggle from "./ThemeToggle";
+import ThemeToggle from "../ui/ThemeToggle";
 
 export default function Navbar() {
   const location = useLocation();
@@ -10,7 +10,7 @@ export default function Navbar() {
     <nav className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          {/* Logo/Brand */}
+          {/* Logo/Brand - Consistent with Footer */}
           <Link to="/" className="flex items-center space-x-2">
             <span className="text-2xl">🐄</span>
             <h1 className="text-xl font-bold text-gray-800 dark:text-white">
@@ -45,7 +45,7 @@ export default function Navbar() {
           {/* Right Section */}
           <div className="flex items-center space-x-4">
             <span className="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">
-              Demo v1.0
+              Demo for Lead Full-Stack Developer Position
             </span>
             <ThemeToggle />
           </div>

@@ -1,26 +1,27 @@
 // src/services/mockApi.ts
 
 import { livestockData } from "../data/livestockData";
+import type { AnimalStats, ApiResponse, Filters, Livestock } from "../types";
 
 // Simulate real backend API with delays, errors, and proper responses
 class MockLivestockAPI {
   private delay(ms: number = 500) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  async getAnimals(filters?: any) {
+  async getAnimals(filters?: Filters): Promise<ApiResponse<Livestock[]>> {
     await this.delay(300); // Simulate network delay
     let data = [...livestockData];
 
     // Simulate backend filtering
     if (filters?.type) {
-      data = data.filter(animal => animal.type === filters.type);
+      data = data.filter((animal) => animal.type === filters.type);
     }
     if (filters?.health) {
-      data = data.filter(animal => animal.health === filters.health);
+      data = data.filter((animal) => animal.health === filters.health);
     }
     if (filters?.county) {
-      data = data.filter(animal => animal.county === filters.county);
+      data = data.filter((animal) => animal.county === filters.county);
     }
 
     return {
@@ -28,56 +29,66 @@ class MockLivestockAPI {
       total: data.length,
       page: 1,
       limit: 50,
-      success: true
+      success: true,
     };
   }
 
-  async createAnimal(animalData: any) {
+  async createAnimal(
+    animalData: Omit<Livestock, "id">
+  ): Promise<ApiResponse<Livestock>> {
     await this.delay(400);
-    const newAnimal = {
-      id: Math.max(...livestockData.map(a => a.id)) + 1,
+    const newAnimal: Livestock = {
+      id: Math.max(...livestockData.map((a) => a.id)) + 1,
       ...animalData,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
-    
+
     livestockData.push(newAnimal);
-    
+
     return {
       data: newAnimal,
       success: true,
-      message: "Animal registered successfully"
+      message: "Animal registered successfully",
     };
   }
 
   async updateAnimalHealth(
     animalId: number,
-    healthStatus: 'Healthy' | 'Sick' | 'Under Treatment' | 'Recovered'
-  ) {
+    healthStatus: "Healthy" | "Sick" | "Under Treatment" | "Recovered"
+  ): Promise<ApiResponse<Livestock>> {
     await this.delay(300);
-    const animal = livestockData.find(a => a.id === animalId);
+    const animal = livestockData.find((a) => a.id === animalId);
     if (animal) {
       animal.health = healthStatus;
       return { success: true, data: animal };
     }
-    return { success: false, error: "Animal not found" };
+    return {
+      success: false,
+      error: "Animal not found",
+      data: {} as Livestock,
+    };
   }
 
-  // Simulate API errors
-  async getAnimalStatistics() {
+  async getAnimalStatistics(): Promise<ApiResponse<AnimalStats>> {
     await this.delay(600);
     // Simulate occasional backend errors
     if (Math.random() > 0.8) {
       throw new Error("Backend service temporarily unavailable");
     }
-    
-    const stats = {
+
+    const stats: AnimalStats = {
       totalAnimals: livestockData.length,
-      healthyCount: livestockData.filter(a => a.health === 'Healthy').length,
-      sickCount: livestockData.filter(a => a.health === 'Sick').length,
-      counties: [...new Set(livestockData.map(a => a.county))].length,
-      lastUpdated: new Date().toISOString()
+      healthyCount: livestockData.filter((a) => a.health === "Healthy").length,
+      sickCount: livestockData.filter((a) => a.health === "Sick").length,
+      underTreatmentCount: livestockData.filter(
+        (a) => a.health === "Under Treatment"
+      ).length,
+      recoveredCount: livestockData.filter((a) => a.health === "Recovered")
+        .length,
+      counties: [...new Set(livestockData.map((a) => a.county))].length,
+      lastUpdated: new Date().toISOString(),
     };
-    
+
     return { data: stats, success: true };
   }
 }

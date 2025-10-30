@@ -1,10 +1,15 @@
 // src/utils/offlineStorage.ts
 
+interface StoredData {
+  data: unknown[];
+  lastSync: string;
+}
+
 // Simulate offline-first architecture
 class OfflineStorage {
   private readonly STORAGE_KEY = 'livestock-offline-data';
 
-  saveData(data: any[]) {
+  saveData(data: unknown[]) {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
         data,
@@ -15,7 +20,7 @@ class OfflineStorage {
     }
   }
 
-  getData() {
+  getData(): StoredData | null {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : null;
@@ -26,7 +31,7 @@ class OfflineStorage {
   }
 
   // Simulate sync when back online
-  async syncWithServer() {
+  async syncWithServer(): Promise<boolean> {
     const offlineData = this.getData();
     if (offlineData) {
       console.log('Syncing offline data with server...');

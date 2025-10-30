@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { mockAPI } from "../services/mockApi";
+import type { Livestock } from "../types";
 
 export function useLiveData() {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<Livestock[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
