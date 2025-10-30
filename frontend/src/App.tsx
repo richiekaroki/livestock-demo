@@ -1,15 +1,17 @@
 // src/App.tsx
-
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import "./assets/css/index.css";
 import Footer from "./components/layout/Footer";
 import MobileNav from "./components/layout/MobileNav";
 import Navbar from "./components/layout/Navbar";
+import LoadingSpinner from "./components/ui/LoadingSpinner";
 import { useLiveData } from "./hooks/useLiveData";
-import Dashboard from "./pages/Dashboard";
-import MapView from "./pages/MapView";
 import type { Filters } from "./types";
+
+// Lazy load pages
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const MapView = lazy(() => import("./pages/MapView"));
 
 function App() {
   const { data, loading, error, refetch } = useLiveData();
@@ -74,33 +76,35 @@ function App() {
         </div>
 
         <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 flex-grow">
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <Dashboard
-                  data={data}
-                  filteredData={filteredData}
-                  filters={filters}
-                  onFilterChange={handleFilterChange}
-                  loading={loading}
-                  error={error}
-                  refetch={refetch}
-                />
-              }
-            />
-            <Route
-              path="/map"
-              element={
-                <MapView
-                  data={filteredData}
-                  filters={filters}
-                  onFilterChange={handleFilterChange}
-                  allData={data}
-                />
-              }
-            />
-          </Routes>
+          <Suspense fallback={<LoadingSpinner text="Loading page..." />}>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <Dashboard
+                    data={data}
+                    filteredData={filteredData}
+                    filters={filters}
+                    onFilterChange={handleFilterChange}
+                    loading={loading}
+                    error={error}
+                    refetch={refetch}
+                  />
+                }
+              />
+              <Route
+                path="/map"
+                element={
+                  <MapView
+                    data={filteredData}
+                    filters={filters}
+                    onFilterChange={handleFilterChange}
+                    allData={data}
+                  />
+                }
+              />
+            </Routes>
+          </Suspense>
         </main>
 
         <Footer />

@@ -1,7 +1,8 @@
 // src/components/map/LivestockMap.tsx
-
+import L from "leaflet"; // Import Leaflet
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
-import type  { Livestock } from "../../types";
+import MarkerClusterGroup from "react-leaflet-cluster";
+import type { Livestock } from "../../types";
 import { healthColors } from "../../utils/constants";
 
 interface LivestockMapProps {
@@ -13,6 +14,15 @@ interface LeafletEvent {
     getElement: () => HTMLElement | null;
   };
 }
+
+// Custom cluster icon
+const createClusterCustomIcon = function (cluster: any) {
+  return L.divIcon({
+    html: `<span>${cluster.getChildCount()}</span>`,
+    className: "custom-marker-cluster",
+    iconSize: L.point(33, 33, true),
+  });
+};
 
 export default function LivestockMap({ data }: LivestockMapProps) {
   return (
@@ -26,60 +36,70 @@ export default function LivestockMap({ data }: LivestockMapProps) {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {data.map((animal) => (
-          <Marker
-            key={animal.id}
-            position={[animal.lat, animal.lng]}
-            eventHandlers={{
-              add: (e: LeafletEvent) => {
-                const marker = e.target;
-                const color = healthColors[animal.health];
-                if (marker.getElement) {
-                  const element = marker.getElement();
-                  if (element) {
-                    element.innerHTML = `
-                      <div style="
-                        background-color: ${color}; 
-                        width: 12px; 
-                        height: 12px; 
-                        border-radius: 50%; 
-                        border: 2px solid white; 
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                      "></div>
-                    `;
+
+        <MarkerClusterGroup
+          chunkedLoading
+          maxClusterRadius={50}
+          iconCreateFunction={createClusterCustomIcon}
+        >
+          {data.map((animal) => (
+            <Marker
+              key={animal.id}
+              position={[animal.lat, animal.lng]}
+              eventHandlers={{
+                add: (e: LeafletEvent) => {
+                  const marker = e.target;
+                  const color = healthColors[animal.health];
+                  if (marker.getElement) {
+                    const element = marker.getElement();
+                    if (element) {
+                      element.innerHTML = `
+                        <div style="
+                          background-color: ${color}; 
+                          width: 12px; 
+                          height: 12px; 
+                          border-radius: 50%; 
+                          border: 2px solid white; 
+                          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                        "></div>
+                      `;
+                    }
                   }
-                }
-              },
-            }}
-          >
-            <Popup>
-              <div className="min-w-[200px]">
-                <div className="font-bold text-lg text-gray-800">{animal.name}</div>
-                <div className="text-sm text-gray-600">({animal.type})</div>
-                <div className="mt-2 space-y-1">
-                  <div>
-                    <span className="font-medium">County:</span> {animal.county}
+                },
+              }}
+            >
+              <Popup>
+                <div className="min-w-[200px]">
+                  <div className="font-bold text-lg text-gray-800">
+                    {animal.name}
                   </div>
-                  <div>
-                    <span className="font-medium">Health:</span>
-                    <span
-                      className="ml-1 px-2 py-1 rounded text-xs font-medium"
-                      style={{
-                        backgroundColor: `${healthColors[animal.health]}20`,
-                        color: healthColors[animal.health],
-                      }}
-                    >
-                      {animal.health}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Owner:</span> {animal.owner}
+                  <div className="text-sm text-gray-600">({animal.type})</div>
+                  <div className="mt-2 space-y-1">
+                    <div>
+                      <span className="font-medium">County:</span>{" "}
+                      {animal.county}
+                    </div>
+                    <div>
+                      <span className="font-medium">Health:</span>
+                      <span
+                        className="ml-1 px-2 py-1 rounded text-xs font-medium"
+                        style={{
+                          backgroundColor: `${healthColors[animal.health]}20`,
+                          color: healthColors[animal.health],
+                        }}
+                      >
+                        {animal.health}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Owner:</span> {animal.owner}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+              </Popup>
+            </Marker>
+          ))}
+        </MarkerClusterGroup>
       </MapContainer>
     </div>
   );
