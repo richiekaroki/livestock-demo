@@ -1,20 +1,22 @@
 // src/utils/offlineStorage.ts
+import type { Livestock } from "../types";
 
 interface StoredData {
-  data: unknown[];
+  data: Livestock[];
   lastSync: string;
 }
 
-// Simulate offline-first architecture
 class OfflineStorage {
   private readonly STORAGE_KEY = 'livestock-offline-data';
 
-  saveData(data: unknown[]) {
+  saveData(data: Livestock[]) {
     try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
+      const storedData: StoredData = {
         data,
         lastSync: new Date().toISOString()
-      }));
+      };
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(storedData));
+      console.log('Data saved to offline storage:', storedData.lastSync);
     } catch (error) {
       console.warn('Failed to save offline data:', error);
     }
@@ -30,17 +32,28 @@ class OfflineStorage {
     }
   }
 
-  // Simulate sync when back online
+  // FIX: Actually clear data after sync
   async syncWithServer(): Promise<boolean> {
     const offlineData = this.getData();
     if (offlineData) {
-      console.log('Syncing offline data with server...');
-      // In real app, this would send data to backend
+      console.log('Syncing offline data with server...', offlineData.lastSync);
       await new Promise(resolve => setTimeout(resolve, 1000));
-      localStorage.removeItem(this.STORAGE_KEY);
+      
+      // ADD THIS LINE - clear data after successful sync
+      this.clearData();
+      
+      console.log('Offline data sync completed');
       return true;
     }
     return false;
+  }
+
+  clearData(): void {
+    try {
+      localStorage.removeItem(this.STORAGE_KEY);
+    } catch (error) {
+      console.warn('Failed to clear offline data:', error);
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 // src/App.tsx
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import "./assets/css/index.css";
 import Footer from "./components/layout/Footer";
@@ -35,13 +35,15 @@ function App() {
   }, []);
 
   // Apply filters
-  const filteredData = data.filter((animal) => {
-    return (
-      (filters.type === "" || animal.type === filters.type) &&
-      (filters.health === "" || animal.health === filters.health) &&
-      (filters.county === "" || animal.county === filters.county)
-    );
-  });
+  const filteredData = useMemo(() => {
+    return data.filter((animal) => {
+      return (
+        (filters.type === "" || animal.type === filters.type) &&
+        (filters.health === "" || animal.health === filters.health) &&
+        (filters.county === "" || animal.county === filters.county)
+      );
+    });
+  }, [data, filters]);
 
   // Handle filter changes
   const handleFilterChange = (key: keyof Filters, value: string) => {

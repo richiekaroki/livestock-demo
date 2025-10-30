@@ -7,7 +7,7 @@ interface RegistrationFormProps {
   onAnimalAdded: () => void;
 }
 
-type AnimalType = "Cattle" | "Goat" | "Sheep" | "Camel";
+type AnimalType = "Cattle" | "Goat" | "Sheep" | "Camel" | "Pig" | "Chicken";
 type HealthStatus = "Healthy" | "Sick" | "Under Treatment" | "Recovered";
 
 export default function RegistrationForm({
@@ -107,6 +107,8 @@ export default function RegistrationForm({
               <option value="Goat">Goat</option>
               <option value="Sheep">Sheep</option>
               <option value="Camel">Camel</option>
+              <option value="Pig">Pig</option>
+              <option value="Chicken">Chicken</option>
             </select>
           </div>
 

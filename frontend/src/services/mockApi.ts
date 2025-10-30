@@ -5,13 +5,20 @@ import type { AnimalStats, ApiResponse, Filters, Livestock } from "../types";
 
 // Simulate real backend API with delays, errors, and proper responses
 class MockLivestockAPI {
+  private data: Livestock[] = [];
+
+  constructor() {
+    // Create a copy on instantiation
+    this.data = [...livestockData];
+  }
+
   private delay(ms: number = 500) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   async getAnimals(filters?: Filters): Promise<ApiResponse<Livestock[]>> {
     await this.delay(300); // Simulate network delay
-    let data = [...livestockData];
+    let data = [...this.data]; // Use internal copy
 
     // Simulate backend filtering
     if (filters?.type) {
@@ -37,13 +44,14 @@ class MockLivestockAPI {
     animalData: Omit<Livestock, "id">
   ): Promise<ApiResponse<Livestock>> {
     await this.delay(400);
+
     const newAnimal: Livestock = {
-      id: Math.max(...livestockData.map((a) => a.id)) + 1,
+      id: Math.max(0, ...this.data.map((a) => a.id)) + 1, // Added Math.max(0, ...) to handle empty array
       ...animalData,
       createdAt: new Date().toISOString(),
     };
 
-    livestockData.push(newAnimal);
+    this.data.push(newAnimal); // Now mutates internal copy
 
     return {
       data: newAnimal,
@@ -57,7 +65,7 @@ class MockLivestockAPI {
     healthStatus: "Healthy" | "Sick" | "Under Treatment" | "Recovered"
   ): Promise<ApiResponse<Livestock>> {
     await this.delay(300);
-    const animal = livestockData.find((a) => a.id === animalId);
+    const animal = this.data.find((a) => a.id === animalId);
     if (animal) {
       animal.health = healthStatus;
       return { success: true, data: animal };
@@ -77,15 +85,14 @@ class MockLivestockAPI {
     }
 
     const stats: AnimalStats = {
-      totalAnimals: livestockData.length,
-      healthyCount: livestockData.filter((a) => a.health === "Healthy").length,
-      sickCount: livestockData.filter((a) => a.health === "Sick").length,
-      underTreatmentCount: livestockData.filter(
+      totalAnimals: this.data.length,
+      healthyCount: this.data.filter((a) => a.health === "Healthy").length,
+      sickCount: this.data.filter((a) => a.health === "Sick").length,
+      underTreatmentCount: this.data.filter(
         (a) => a.health === "Under Treatment"
       ).length,
-      recoveredCount: livestockData.filter((a) => a.health === "Recovered")
-        .length,
-      counties: [...new Set(livestockData.map((a) => a.county))].length,
+      recoveredCount: this.data.filter((a) => a.health === "Recovered").length,
+      counties: [...new Set(this.data.map((a) => a.county))].length,
       lastUpdated: new Date().toISOString(),
     };
 

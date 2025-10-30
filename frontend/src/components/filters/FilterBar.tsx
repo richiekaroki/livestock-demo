@@ -1,6 +1,6 @@
 // src/components/FilterBar.tsx
 
-import type { Livestock } from "../../data/livestockData";
+import type { Livestock } from "../../types";
 
 interface Props {
   filters: {

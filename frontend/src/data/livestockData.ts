@@ -1,16 +1,6 @@
 // src/data/livestockData.ts
 
-export interface Livestock {
-  id: number;
-  name: string;
-  type: "Cattle" | "Goat" | "Sheep" | "Camel";
-  health: "Healthy" | "Sick" | "Under Treatment" | "Recovered";
-  county: string;
-  owner: string;
-  lat: number;
-  lng: number;
-  createdAt?: string;
-}
+import type { Livestock } from "../types";
 
 export const livestockData: Livestock[] = [
   {
@@ -210,6 +200,26 @@ export const livestockData: Livestock[] = [
     health: "Healthy",
     county: "Nakuru",
     owner: "Lucy K.",
+    lat: -0.303099,
+    lng: 36.080025,
+  },
+  {
+    id: 21,
+    name: "Porky",
+    type: "Pig",
+    health: "Healthy",
+    county: "Kiambu",
+    owner: "Peter K.",
+    lat: -1.0166,
+    lng: 37.8521,
+  },
+  {
+    id: 22,
+    name: "Clucky",
+    type: "Chicken",
+    health: "Healthy",
+    county: "Nakuru",
+    owner: "Mary W.",
     lat: -0.303099,
     lng: 36.080025,
   },
