@@ -1,5 +1,6 @@
 // src/components/map/LivestockMap.tsx
-import L from "leaflet"; // Import Leaflet
+
+import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import type { Livestock } from "../../types";
@@ -15,8 +16,12 @@ interface LeafletEvent {
   };
 }
 
-// Custom cluster icon
-const createClusterCustomIcon = function (cluster: any) {
+// ✅ Strongly typed cluster parameter without MarkerCluster import
+interface Cluster {
+  getChildCount: () => number;
+}
+
+const createClusterCustomIcon = (cluster: Cluster) => {
   return L.divIcon({
     html: `<span>${cluster.getChildCount()}</span>`,
     className: "custom-marker-cluster",

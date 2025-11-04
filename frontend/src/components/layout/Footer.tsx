@@ -1,36 +1,48 @@
-// src/components/Footer.tsx
+// src/components/layout/Footer.tsx
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="mt-12 py-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-      <div className="container mx-auto px-4">
-        <div className="text-center">
-          <div className="flex justify-center items-center mb-4">
-            <span className="text-2xl mr-2">🐄</span>
-            <h3 className="text-lg font-bold text-gray-800 dark:text-white">
-              Livestock Demo
-            </h3>
-          </div>
-
-          <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-2xl mx-auto text-sm">
-            Technical Demonstration for Lead Full-Stack Developer Position
-          </p>
-
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-            <span>
-              Built with React 19, TypeScript, Tailwind CSS 4, and Leaflet
-            </span>
-            <span className="hidden sm:block">•</span>
-            <a
-              href="https://github.com/richiekaroki/livestock-demo"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 dark:text-blue-400 hover:underline font-medium transition-colors"
-            >
-              View Source Code on GitHub
-            </a>
-          </div>
+    <footer className="mt-12 border-t border-border bg-bg-primary text-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Brand Section */}
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-2 mb-4">
+          <span className="text-2xl">🐄</span>
+          <h3 className="text-lg font-semibold text-text-primary">
+            Livestock Tracker
+          </h3>
         </div>
+
+        {/* Description */}
+        <p className="text-text-secondary text-sm mb-6 max-w-2xl mx-auto leading-relaxed">
+          A technical demonstration of a Livestock Management System — built
+          using React 19, TypeScript, Tailwind CSS 4, and Leaflet.
+        </p>
+
+        {/* Footer Links */}
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-3 text-xs text-text-tertiary mb-3">
+          <a
+            href="https://github.com/richiekaroki/livestock-demo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent hover:underline font-medium transition-colors"
+          >
+            View Source on GitHub
+          </a>
+          <span className="hidden sm:block">•</span>
+          <a
+            href="mailto:richiekaroki@gmail.com"
+            className="hover:text-text-primary transition-colors"
+          >
+            Contact Developer
+          </a>
+        </div>
+
+        {/* Copyright */}
+        <p className="text-xs text-text-tertiary">
+          © {currentYear} Livestock Tracker. All rights reserved.
+        </p>
       </div>
     </footer>
   );

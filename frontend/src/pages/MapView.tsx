@@ -1,5 +1,4 @@
 // src/pages/MapView.tsx
-
 import FilterBar from "../components/filters/FilterBar";
 import LivestockMap from "../components/map/LivestockMap";
 import MapLegend from "../components/map/MapLegend";
@@ -19,26 +18,30 @@ export default function MapView({
   allData,
 }: MapViewProps) {
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
           Livestock Map
         </h1>
-        <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-          <span className="text-gray-600 dark:text-gray-400">Showing: </span>
+        <div className="card flex items-center gap-2 px-4 py-2">
+          <span className="text-gray-600 dark:text-gray-400">Showing:</span>
           <span className="font-bold text-gray-800 dark:text-white">
             {data.length} animals out of {allData.length} total
           </span>
         </div>
       </div>
 
-      <FilterBar
-        filters={filters}
-        onFilterChange={onFilterChange}
-        data={allData}
-      />
+      <div className="card">
+        <FilterBar
+          filters={filters}
+          onFilterChange={onFilterChange}
+          data={allData}
+        />
+      </div>
 
-      <LivestockMap data={data} />
+      <div className="card">
+        <LivestockMap data={data} />
+      </div>
 
       <MapLegend />
     </div>

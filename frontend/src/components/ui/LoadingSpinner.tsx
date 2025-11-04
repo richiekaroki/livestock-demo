@@ -1,5 +1,4 @@
 // src/components/ui/LoadingSpinner.tsx
-
 interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg";
   text?: string;
@@ -18,9 +17,9 @@ export default function LoadingSpinner({
   return (
     <div className="flex flex-col items-center justify-center p-8">
       <div
-        className={`animate-spin rounded-full border-b-2 border-blue-600 ${sizeClasses[size]}`}
+        className={`animate-spin rounded-full border-b-2 border-accent ${sizeClasses[size]}`}
       ></div>
-      {text && <p className="mt-2 text-sm text-gray-600">{text}</p>}
+      {text && <p className="mt-2 text-sm text-text-secondary">{text}</p>}
     </div>
   );
 }

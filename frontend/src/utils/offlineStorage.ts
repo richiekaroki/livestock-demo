@@ -1,60 +1,46 @@
 // src/utils/offlineStorage.ts
-import type { Livestock } from "../types";
+const STORAGE_VERSION = "v2"; // Increment this when data structure changes
 
-interface StoredData {
-  data: Livestock[];
-  lastSync: string;
+interface OfflinePayload<T> {
+  version: string;
+  timestamp: string;
+  data: T;
 }
 
-class OfflineStorage {
-  private readonly STORAGE_KEY = 'livestock-offline-data';
-
-  saveData(data: Livestock[]) {
-    try {
-      const storedData: StoredData = {
-        data,
-        lastSync: new Date().toISOString()
-      };
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(storedData));
-      console.log('Data saved to offline storage:', storedData.lastSync);
-    } catch (error) {
-      console.warn('Failed to save offline data:', error);
-    }
+export async function saveOfflineData<T>(key: string, data: T) {
+  try {
+    const payload: OfflinePayload<T> = {
+      version: STORAGE_VERSION,
+      timestamp: new Date().toISOString(),
+      data,
+    };
+    localStorage.setItem(key, JSON.stringify(payload));
+  } catch (error) {
+    console.error("Failed to save offline data:", error);
   }
+}
 
-  getData(): StoredData | null {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      return stored ? JSON.parse(stored) : null;
-    } catch (error) {
-      console.warn('Failed to load offline data:', error);
+export async function loadOfflineData<T>(key: string): Promise<T | null> {
+  try {
+    const item = localStorage.getItem(key);
+    if (!item) return null;
+
+    const parsed: OfflinePayload<T> = JSON.parse(item);
+
+    if (parsed.version !== STORAGE_VERSION) {
+      console.warn("Offline data version mismatch, clearing cache.");
+      localStorage.removeItem(key);
       return null;
     }
-  }
 
-  // FIX: Actually clear data after sync
-  async syncWithServer(): Promise<boolean> {
-    const offlineData = this.getData();
-    if (offlineData) {
-      console.log('Syncing offline data with server...', offlineData.lastSync);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // ADD THIS LINE - clear data after successful sync
-      this.clearData();
-      
-      console.log('Offline data sync completed');
-      return true;
-    }
-    return false;
-  }
-
-  clearData(): void {
-    try {
-      localStorage.removeItem(this.STORAGE_KEY);
-    } catch (error) {
-      console.warn('Failed to clear offline data:', error);
-    }
+    return parsed.data;
+  } catch (error) {
+    console.error("Failed to load offline data:", error);
+    return null;
   }
 }
 
-export const offlineStorage = new OfflineStorage();
+export function clearOfflineData(key?: string) {
+  if (key) localStorage.removeItem(key);
+  else localStorage.clear();
+}

@@ -1,0 +1,243 @@
+/* ============================================
+   COMPONENTS.CSS - Tailwind v4
+   ============================================ */
+
+/* Card Component */
+.card {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* Button Component */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.btn-primary {
+  background-color: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
+}
+
+.btn-primary:hover {
+  background-color: color-mix(in srgb, var(--color-accent) 80%, black);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+/* Input Field Component */
+.input-field {
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+/* Badge Component */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+}
+
+/* Health Status Badges */
+.badge-healthy {
+  background-color: color-mix(
+    in srgb,
+    var(--color-success) 10%,
+    var(--color-bg-primary)
+  );
+  color: var(--color-success);
+  border-color: color-mix(
+    in srgb,
+    var(--color-success) 40%,
+    var(--color-border)
+  );
+}
+
+.badge-sick {
+  background-color: color-mix(
+    in srgb,
+    var(--color-error) 10%,
+    var(--color-bg-primary)
+  );
+  color: var(--color-error);
+  border-color: color-mix(in srgb, var(--color-error) 40%, var(--color-border));
+}
+
+.badge-under-treatment {
+  background-color: color-mix(
+    in srgb,
+    var(--color-warning) 10%,
+    var(--color-bg-primary)
+  );
+  color: var(--color-warning);
+  border-color: color-mix(
+    in srgb,
+    var(--color-warning) 40%,
+    var(--color-border)
+  );
+}
+
+.badge-recovered {
+  background-color: color-mix(
+    in srgb,
+    var(--color-info) 10%,
+    var(--color-bg-primary)
+  );
+  color: var(--color-info);
+  border-color: color-mix(in srgb, var(--color-info) 40%, var(--color-border));
+}
+
+/* Animal Type Badges */
+.badge-cattle {
+  background-color: color-mix(
+    in srgb,
+    var(--color-type-cattle) 10%,
+    var(--color-bg-primary)
+  );
+  color: var(--color-type-cattle);
+  border-color: color-mix(
+    in srgb,
+    var(--color-type-cattle) 40%,
+    var(--color-border)
+  );
+}
+
+.badge-goat {
+  background-color: color-mix(
+    in srgb,
+    var(--color-type-goat) 10%,
+    var(--color-bg-primary)
+  );
+  color: var(--color-type-goat);
+  border-color: color-mix(
+    in srgb,
+    var(--color-type-goat) 40%,
+    var(--color-border)
+  );
+}
+
+.badge-sheep {
+  background-color: color-mix(
+    in srgb,
+    var(--color-type-sheep) 10%,
+    var(--color-bg-primary)
+  );
+  color: var(--color-type-sheep);
+  border-color: color-mix(
+    in srgb,
+    var(--color-type-sheep) 40%,
+    var(--color-border)
+  );
+}
+
+.badge-camel {
+  background-color: color-mix(
+    in srgb,
+    var(--color-type-camel) 10%,
+    var(--color-bg-primary)
+  );
+  color: var(--color-type-camel);
+  border-color: color-mix(
+    in srgb,
+    var(--color-type-camel) 40%,
+    var(--color-border)
+  );
+}
+
+.badge-pig {
+  background-color: color-mix(
+    in srgb,
+    var(--color-type-pig) 10%,
+    var(--color-bg-primary)
+  );
+  color: var(--color-type-pig);
+  border-color: color-mix(
+    in srgb,
+    var(--color-type-pig) 40%,
+    var(--color-border)
+  );
+}
+
+.badge-chicken {
+  background-color: color-mix(
+    in srgb,
+    var(--color-type-chicken) 10%,
+    var(--color-bg-primary)
+  );
+  color: var(--color-type-chicken);
+  border-color: color-mix(
+    in srgb,
+    var(--color-type-chicken) 40%,
+    var(--color-border)
+  );
+}
+
+/* Animation Utility */
+.animate-fadeIn {
+  animation: var(--animate-fade-in);
+}
+
+/* Navigation specific styles */
+.nav-backdrop {
+  backdrop-filter: blur(8px);
+  background-color: color-mix(
+    in srgb,
+    var(--color-bg-primary) 80%,
+    transparent
+  );
+}
+
+.nav-link-active {
+  background-color: var(--color-accent);
+  color: white;
+}
+
+.nav-link-inactive {
+  color: var(--color-text-secondary);
+}
+
+.nav-link-inactive:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+}

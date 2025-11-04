@@ -1,15 +1,16 @@
 // src/App.tsx
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
-import "./assets/css/index.css";
 import Footer from "./components/layout/Footer";
 import MobileNav from "./components/layout/MobileNav";
 import Navbar from "./components/layout/Navbar";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 import { useLiveData } from "./hooks/useLiveData";
+import "./styles/css/main.css";
 import type { Filters } from "./types";
 
 // Lazy load pages
+const Home = lazy(() => import("./pages/Home"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MapView = lazy(() => import("./pages/MapView"));
 
@@ -52,12 +53,13 @@ function App() {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
+  // Loading screen
   if (loading && !data.length) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex items-center justify-center min-h-screen bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] transition-colors">
         <div className="text-center">
           <div className="text-6xl mb-4 animate-bounce">🐄</div>
-          <p className="text-lg text-gray-700 dark:text-gray-300">
+          <p className="text-lg text-[var(--color-text-secondary)]">
             Loading livestock data...
           </p>
         </div>
@@ -67,7 +69,8 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors flex flex-col">
+      {/* Root wrapper with full theme background */}
+      <div className="min-h-screen flex flex-col transition-colors bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]">
         <div className="hidden md:block">
           <Navbar />
         </div>
@@ -75,11 +78,13 @@ function App() {
           <MobileNav />
         </div>
 
-        <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 flex-grow">
+        {/* Main content full width, no white gutters */}
+        <main className="w-full px-4 sm:px-6 md:px-8 py-4 flex-grow bg-[var(--color-bg-primary)]">
           <Suspense fallback={<LoadingSpinner text="Loading page..." />}>
             <Routes>
+              <Route path="/" element={<Home />} />
               <Route
-                path="/"
+                path="/dashboard"
                 element={
                   <Dashboard
                     data={data}

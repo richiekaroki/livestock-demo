@@ -1,8 +1,0 @@
-/* Main CSS entry point - imports all other CSS files */
-@import "tailwindcss";
-@import "./globals.css";
-@import "./themes.css";
-@import "./components.css";
-
-/* Leaflet CSS */
-@import "leaflet/dist/leaflet.css";

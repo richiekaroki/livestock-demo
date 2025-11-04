@@ -7,22 +7,28 @@ export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem("livestock-theme") as Theme;
     if (saved) return saved;
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches)
       return "dark";
-    }
     return "light";
   });
 
   useEffect(() => {
     localStorage.setItem("livestock-theme", theme);
+
+    // Remove both just to be clean
+    document.documentElement.removeAttribute("data-theme");
+    document.documentElement.classList.remove("light", "dark");
+
+    // Apply the active theme
+    document.documentElement.classList.add(theme);
     document.documentElement.setAttribute("data-theme", theme);
 
-    // Update meta theme-color for mobile browsers
+    // Update meta color
     const metaThemeColor = document.querySelector("meta[name=theme-color]");
     if (metaThemeColor) {
       metaThemeColor.setAttribute(
         "content",
-        theme === "dark" ? "#000000" : "#ffffff"
+        theme === "dark" ? "#0a0a0a" : "#ffffff"
       );
     }
   }, [theme]);
