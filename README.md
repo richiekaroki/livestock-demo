@@ -1,7 +1,7 @@
 # 🐄 Livestock Tracker Management System (LTMS)
 
 > **Production-Ready Prototype** for Large-Scale Livestock Tracking & Management  
-> Developed by **Richard Karoki** ([richiekaroki@gmail.com](mailto:richiekaroki@gmail.com))
+> Developed by **Richard Karoki** ([karokirichard522@gmail.com](mailto:richiekaroki@gmail.com))
 
 ---
 
