@@ -19,18 +19,42 @@ export default function MapView({
 }: MapViewProps) {
   return (
     <div className="space-y-6 animate-fadeIn">
+      {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-          Livestock Map
-        </h1>
-        <div className="card flex items-center gap-2 px-4 py-2">
-          <span className="text-gray-600 dark:text-gray-400">Showing:</span>
-          <span className="font-bold text-gray-800 dark:text-white">
-            {data.length} animals out of {allData.length} total
-          </span>
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary">
+            Livestock Map
+          </h1>
+          <p className="text-text-secondary mt-1">
+            Visualize livestock distribution and health status across Kenya
+          </p>
         </div>
       </div>
 
+      {/* Results Summary */}
+      <div className="card">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-lg font-bold text-text-primary mb-1">
+              Map Overview
+            </h2>
+            <p className="text-text-secondary">
+              Showing{" "}
+              <span className="font-semibold text-accent">{data.length}</span>{" "}
+              animals out of{" "}
+              <span className="font-semibold text-text-primary">
+                {allData.length}
+              </span>{" "}
+              total
+              {filters.type && ` • Type: ${filters.type}`}
+              {filters.health && ` • Health: ${filters.health}`}
+              {filters.county && ` • County: ${filters.county}`}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
       <div className="card">
         <FilterBar
           filters={filters}
@@ -39,10 +63,12 @@ export default function MapView({
         />
       </div>
 
-      <div className="card">
+      {/* Map */}
+      <div className="card p-0 overflow-hidden">
         <LivestockMap data={data} />
       </div>
 
+      {/* Legend */}
       <MapLegend />
     </div>
   );

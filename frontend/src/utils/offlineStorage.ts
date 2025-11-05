@@ -44,3 +44,6 @@ export function clearOfflineData(key?: string) {
   if (key) localStorage.removeItem(key);
   else localStorage.clear();
 }
+
+// Production: Replace with IndexedDB for larger datasets
+// and React Native AsyncStorage for mobile app

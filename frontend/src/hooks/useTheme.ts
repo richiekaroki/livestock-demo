@@ -39,3 +39,6 @@ export function useTheme() {
 
   return { theme, toggleTheme };
 }
+
+// Production: Replace with IndexedDB for larger datasets
+// and React Native AsyncStorage for mobile app

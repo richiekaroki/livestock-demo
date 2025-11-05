@@ -6,10 +6,42 @@ import type { AnimalStats, ApiResponse, Filters, Livestock } from "../types";
 // Simulate real backend API with delays, errors, and proper responses
 class MockLivestockAPI {
   private data: Livestock[] = [];
+  private readonly STORAGE_KEY = "livestock_data";
 
   constructor() {
-    // Create a copy on instantiation
-    this.data = [...livestockData];
+    // ✅ FIX: Load from localStorage OR use initial data
+    this.loadData();
+  }
+
+  private loadData() {
+    try {
+      const saved = localStorage.getItem(this.STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          this.data = parsed;
+          console.log(
+            `✅ Loaded ${this.data.length} animals from localStorage`
+          );
+          return;
+        }
+      }
+      // Fallback to initial data
+      this.data = [...livestockData];
+      this.saveData();
+      console.log(`✅ Initialized with ${this.data.length} default animals`);
+    } catch (error) {
+      console.error("❌ Failed to load data from localStorage:", error);
+      this.data = [...livestockData];
+    }
+  }
+
+  private saveData() {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.data));
+    } catch (error) {
+      console.error("❌ Failed to save data to localStorage:", error);
+    }
   }
 
   private delay(ms: number = 500) {
@@ -46,12 +78,17 @@ class MockLivestockAPI {
     await this.delay(400);
 
     const newAnimal: Livestock = {
-      id: Math.max(0, ...this.data.map((a) => a.id)) + 1, // Added Math.max(0, ...) to handle empty array
+      id: Math.max(0, ...this.data.map((a) => a.id)) + 1,
       ...animalData,
       createdAt: new Date().toISOString(),
     };
 
-    this.data.push(newAnimal); // Now mutates internal copy
+    this.data.push(newAnimal); // Add to internal data
+    this.saveData(); // ✅ CRITICAL: Save to localStorage immediately
+
+    console.log(
+      `✅ Animal registered: ${newAnimal.name} (ID: ${newAnimal.id})`
+    );
 
     return {
       data: newAnimal,
@@ -68,6 +105,7 @@ class MockLivestockAPI {
     const animal = this.data.find((a) => a.id === animalId);
     if (animal) {
       animal.health = healthStatus;
+      this.saveData(); // ✅ FIX: Save changes to localStorage
       return { success: true, data: animal };
     }
     return {
@@ -97,6 +135,23 @@ class MockLivestockAPI {
     };
 
     return { data: stats, success: true };
+  }
+
+  // ✅ NEW: Debug method to check storage
+  async getStorageInfo() {
+    return {
+      totalAnimals: this.data.length,
+      storageKey: this.STORAGE_KEY,
+      lastAnimal: this.data[this.data.length - 1],
+      allAnimals: this.data.map((a) => ({ id: a.id, name: a.name })),
+    };
+  }
+
+  // ✅ NEW: Method to reset data (useful for testing)
+  async resetData(): Promise<void> {
+    this.data = [...livestockData];
+    this.saveData();
+    console.log("✅ Data reset to initial state");
   }
 }
 

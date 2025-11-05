@@ -1,34 +1,70 @@
 // src/pages/Dashboard.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import HealthAlerts from "../components/alerts/HealthAlerts";
+import AnalyticsDashboard from "../components/analytics/AnalyticsDashboard";
 import AnimalList from "../components/animals/AnimalList";
 import RegistrationForm from "../components/animals/RegistrationForm";
+import RefreshIndicator from "../components/dashboard/RefreshIndicator";
 import StatisticsCards from "../components/dashboard/StatisticsCards";
 import StatusIndicator from "../components/dashboard/StatusIndicator";
+import ExportButton from "../components/export/ExportButton";
 import FilterBar from "../components/filters/FilterBar";
+import SearchBar from "../components/search/SearchBar";
+import KALROSyncStatus from "../components/sync/KALROSyncStatus";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
-import { useLiveData } from "../hooks/useLiveData";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import { mockAPI } from "../services/mockApi";
-import type { AnimalStats, Filters } from "../types";
+import type { AnimalStats, Filters, Livestock } from "../types";
 
-export default function Dashboard() {
-  const { data, loading, error, refetch } = useLiveData();
+interface DashboardProps {
+  data: Livestock[];
+  filteredData: Livestock[];
+  filters: Filters;
+  onFilterChange: (key: keyof Filters, value: string) => void;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export default function Dashboard({
+  data,
+  filteredData: initialFilteredData,
+  filters,
+  onFilterChange,
+  loading,
+  error,
+  refetch,
+}: DashboardProps) {
   const [stats, setStats] = useState<AnimalStats | null>(null);
-  const [filters, setFilters] = useState<Filters>({
-    type: "",
-    health: "",
-    county: "",
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // NEW: Auto-refresh hook
+  const autoRefresh = useAutoRefresh({
+    enabled: true,
+    interval: 30000, // 30 seconds
+    onRefresh: refetch,
   });
 
-  const filteredData = data.filter((animal) => {
-    return (
-      (filters.type === "" || animal.type === filters.type) &&
-      (filters.health === "" || animal.health === filters.health) &&
-      (filters.county === "" || animal.county === filters.county)
+  // ✅ Combine filters and search in single memo
+  const displayData = useMemo(() => {
+    if (!searchQuery.trim()) return initialFilteredData;
+
+    const query = searchQuery.toLowerCase();
+    return initialFilteredData.filter(
+      (animal) =>
+        animal.name.toLowerCase().includes(query) ||
+        animal.owner.toLowerCase().includes(query) ||
+        animal.type.toLowerCase().includes(query) ||
+        animal.county.toLowerCase().includes(query) ||
+        animal.id.toString().includes(query)
     );
-  });
+  }, [initialFilteredData, searchQuery]);
 
-  const handleFilterChange = (key: keyof Filters, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+  const handleResetAll = () => {
+    setSearchQuery("");
+    onFilterChange("type", "");
+    onFilterChange("county", "");
+    onFilterChange("health", "");
   };
 
   useEffect(() => {
@@ -61,15 +97,47 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* KALRO Sync Status */}
+        <div className="mb-6">
+          <KALROSyncStatus />
+        </div>
+
+        {/* NEW: Auto-Refresh Indicator */}
+        <div className="mb-6 flex justify-end">
+          <RefreshIndicator
+            isRefreshing={autoRefresh.isRefreshing}
+            lastRefresh={autoRefresh.lastRefresh}
+            countdown={autoRefresh.countdown}
+            isPaused={autoRefresh.isPaused}
+            onRefresh={autoRefresh.triggerRefresh}
+            onPause={autoRefresh.pause}
+            onResume={autoRefresh.resume}
+          />
+        </div>
+
+        {/* Health Alerts Section */}
+        <div className="mb-6">
+          <HealthAlerts data={data} />
+        </div>
+
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-text-primary mb-2">
-            Livestock Dashboard
-          </h1>
-          <p className="text-text-secondary">
-            Manage and monitor your livestock inventory across{" "}
-            {stats?.counties || 0} counties
-          </p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-text-primary mb-2">
+                Livestock Dashboard
+              </h1>
+              <p className="text-text-secondary">
+                Manage and monitor your livestock inventory across{" "}
+                {stats?.counties || 0} counties
+                {autoRefresh.isPaused && (
+                  <span className="ml-2 text-yellow-600 font-medium">
+                    • Updates Paused
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Stats + Form Grid */}
@@ -85,49 +153,83 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Analytics Dashboard Section */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-text-primary mb-4">
+            Analytics & Insights
+          </h2>
+          <AnalyticsDashboard data={initialFilteredData} onRefresh={refetch} />
+        </div>
+
+        {/* Filters and Export Button */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          {/* Filters - takes available space */}
+          <div className="flex-1 w-full">
+            <FilterBar
+              filters={filters}
+              onFilterChange={onFilterChange}
+              data={data}
+            />
+          </div>
+
+          {/* Export Button - fixed width */}
+          <div className="w-full sm:w-auto">
+            <ExportButton data={displayData} filename="livestock-dashboard" />
+          </div>
+        </div>
+
+        {/* Search Bar */}
         <div className="mb-6">
-          <FilterBar
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            data={data}
+          <SearchBar
+            query={searchQuery}
+            onQueryChange={setSearchQuery}
+            placeholder="Search animals by name, owner, type, county, or ID..."
           />
         </div>
 
         {/* Results Summary */}
         <div className="mb-6">
           <div className="card">
-            <h2 className="text-xl font-bold text-text-primary mb-2">
-              Livestock Overview
-            </h2>
-            <p className="text-text-secondary">
-              Showing{" "}
-              <span className="font-semibold text-accent">
-                {filteredData.length}
-              </span>{" "}
-              animals out of{" "}
-              <span className="font-semibold text-text-primary">
-                {data.length}
-              </span>{" "}
-              total
-              {filters.type && ` • Type: ${filters.type}`}
-              {filters.health && ` • Health: ${filters.health}`}
-              {filters.county && ` • County: ${filters.county}`}
-            </p>
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-text-primary mb-2">
+                  Livestock Overview
+                </h2>
+                <p className="text-text-secondary">
+                  Showing{" "}
+                  <span className="font-semibold text-accent">
+                    {displayData.length}
+                  </span>{" "}
+                  animals out of{" "}
+                  <span className="font-semibold text-text-primary">
+                    {data.length}
+                  </span>{" "}
+                  total
+                  {filters.type && ` • Type: ${filters.type}`}
+                  {filters.health && ` • Health: ${filters.health}`}
+                  {filters.county && ` • County: ${filters.county}`}
+                  {searchQuery && " • Search Active"}
+                </p>
+              </div>
+
+              {/* Last refresh time */}
+              {autoRefresh.lastRefresh && (
+                <div className="text-xs text-text-tertiary">
+                  Updated: {autoRefresh.lastRefresh.toLocaleTimeString()}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Animal List */}
-        <AnimalList data={filteredData} />
+        <AnimalList data={displayData} />
 
-        {/* Reset Filters */}
-        {(filters.type || filters.health || filters.county) && (
+        {/* Reset Filters & Search */}
+        {(filters.type || filters.health || filters.county || searchQuery) && (
           <div className="text-center mt-6">
-            <button
-              onClick={() => setFilters({ type: "", health: "", county: "" })}
-              className="btn btn-secondary"
-            >
-              Reset All Filters
+            <button onClick={handleResetAll} className="btn btn-secondary">
+              Reset All Filters & Search
             </button>
           </div>
         )}

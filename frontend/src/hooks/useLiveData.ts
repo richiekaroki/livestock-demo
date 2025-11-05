@@ -49,11 +49,12 @@ export function useLiveData() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); // ✅ Empty deps - validateData is stable
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // ✅ Only run once on mount
 
   return { data, loading, error, refetch: () => fetchData() };
 }

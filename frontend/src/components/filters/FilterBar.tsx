@@ -1,6 +1,6 @@
 // src/components/FilterBar.tsx
 
-// FilterBar.tsx
+import { useMemo } from "react";
 import type { Filters, Livestock } from "../../types";
 
 interface FilterBarProps {
@@ -14,6 +14,20 @@ export default function FilterBar({
   onFilterChange,
   data,
 }: FilterBarProps) {
+  // ✅ Memoize unique values
+  const uniqueTypes = useMemo(
+    () => [...new Set(data.map((d) => d.type))],
+    [data]
+  );
+  const uniqueCounties = useMemo(
+    () => [...new Set(data.map((d) => d.county))],
+    [data]
+  );
+  const uniqueHealthStatuses = useMemo(
+    () => [...new Set(data.map((d) => d.health))],
+    [data]
+  );
+
   return (
     <div className="card p-4 flex flex-col md:flex-row items-center gap-4">
       <div className="flex gap-2 flex-wrap">
@@ -23,7 +37,7 @@ export default function FilterBar({
           onChange={(e) => onFilterChange("type", e.target.value)}
         >
           <option value="">All Types</option>
-          {[...new Set(data.map((d) => d.type))].map((t) => (
+          {uniqueTypes.map((t) => (
             <option key={t} value={t}>
               {t}
             </option>
@@ -36,7 +50,7 @@ export default function FilterBar({
           onChange={(e) => onFilterChange("county", e.target.value)}
         >
           <option value="">All Counties</option>
-          {[...new Set(data.map((d) => d.county))].map((c) => (
+          {uniqueCounties.map((c) => (
             <option key={c} value={c}>
               {c}
             </option>
@@ -49,7 +63,7 @@ export default function FilterBar({
           onChange={(e) => onFilterChange("health", e.target.value)}
         >
           <option value="">All Health Status</option>
-          {[...new Set(data.map((d) => d.health))].map((h) => (
+          {uniqueHealthStatuses.map((h) => (
             <option key={h} value={h}>
               {h}
             </option>

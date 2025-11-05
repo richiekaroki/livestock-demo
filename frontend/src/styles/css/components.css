@@ -241,3 +241,180 @@
   color: var(--color-text-primary);
   background-color: var(--color-bg-secondary);
 }
+
+/* ============================================
+   MAP COMPONENT STYLES
+   ============================================ */
+
+/* Heatmap Controls Styling */
+.heatmap-controls {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  z-index: 1000;
+}
+
+/* Marker Cluster Styles */
+.custom-marker-cluster {
+  background: var(--color-accent);
+  border: 3px solid var(--color-bg-primary);
+  border-radius: 50%;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.custom-marker-cluster:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Different sizes for different cluster counts */
+.custom-marker-cluster-small {
+  width: 30px;
+  height: 30px;
+  font-size: 0.75rem;
+}
+
+.custom-marker-cluster-medium {
+  width: 40px;
+  height: 40px;
+  font-size: 0.875rem;
+}
+
+.custom-marker-cluster-large {
+  width: 50px;
+  height: 50px;
+  font-size: 1rem;
+}
+
+/* Color variations based on cluster health (optional) */
+.custom-marker-cluster-healthy {
+  background: var(--color-success);
+}
+
+.custom-marker-cluster-sick {
+  background: var(--color-error);
+}
+
+.custom-marker-cluster-mixed {
+  background: var(--color-warning);
+}
+
+/* Heatmap Legend Styles */
+.heatmap-legend {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.75rem;
+}
+
+.heatmap-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.heatmap-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+}
+
+/* Map Container Responsive Styles */
+.map-container {
+  position: relative;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+/* Leaflet Popup Customization */
+.leaflet-popup-content-wrapper {
+  background-color: var(--color-bg-primary);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.leaflet-popup-content {
+  color: var(--color-text-primary);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  margin: 1rem;
+}
+
+.leaflet-popup-tip {
+  background-color: var(--color-bg-primary);
+}
+
+/* Heatmap Layer Styles */
+.heatmap-circle {
+  transition: fill-opacity 0.3s ease;
+}
+
+.heatmap-circle:hover {
+  fill-opacity: 0.6;
+}
+
+/* Responsive Controls */
+@media (max-width: 640px) {
+  .heatmap-controls {
+    top: 8px;
+    right: 8px;
+    padding: 0.75rem;
+    max-width: 160px;
+  }
+
+  .custom-marker-cluster {
+    font-size: 0.75rem;
+  }
+
+  .leaflet-popup-content {
+    margin: 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Dark Mode Adjustments for Map */
+[data-theme="dark"] .leaflet-popup-content-wrapper {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+}
+
+[data-theme="dark"] .leaflet-tile {
+  filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3)
+    brightness(0.7);
+}
+
+/* Animation for Heatmap Toggle */
+.heatmap-toggle-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.heatmap-toggle-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.heatmap-toggle-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.heatmap-toggle-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}

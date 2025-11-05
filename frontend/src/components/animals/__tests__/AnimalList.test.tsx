@@ -42,12 +42,8 @@ describe("AnimalList", () => {
   it("should show empty state when no animals", () => {
     render(<AnimalList data={[]} />);
 
-    expect(
-      screen.getByText(/no animals found matching your filters/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/try adjusting your filter criteria/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/no animals found/i)).toBeInTheDocument();
+    expect(screen.getByText(/try adjusting your filters/i)).toBeInTheDocument();
   });
 
   it("should display Pig and Chicken types correctly", () => {
@@ -86,24 +82,90 @@ describe("AnimalList", () => {
   it("should show correct animal count", () => {
     render(<AnimalList data={mockAnimals} />);
 
-    expect(screen.getByText("2 animals found")).toBeInTheDocument();
+    // Check that multiple animals are displayed in the grid
+    const animalCards = screen.getAllByText(/County:/);
+    expect(animalCards).toHaveLength(2);
   });
 
-  it("should show singular animal count", () => {
-    const singleAnimal = [mockAnimals[0]];
-    render(<AnimalList data={singleAnimal} />);
-
-    expect(screen.getByText("1 animal found")).toBeInTheDocument();
-  });
-
-  it("should display all table headers", () => {
+  it("should display all animal information", () => {
     render(<AnimalList data={mockAnimals} />);
 
-    expect(screen.getByText("ID")).toBeInTheDocument();
-    expect(screen.getByText("Name")).toBeInTheDocument();
-    expect(screen.getByText("Type")).toBeInTheDocument();
-    expect(screen.getByText("Health Status")).toBeInTheDocument();
-    expect(screen.getByText("County")).toBeInTheDocument();
-    expect(screen.getByText("Owner")).toBeInTheDocument();
+    expect(screen.getByText("Bessie")).toBeInTheDocument();
+    expect(screen.getByText("Cattle")).toBeInTheDocument();
+    expect(screen.getByText("Nakuru")).toBeInTheDocument();
+    expect(screen.getByText("John")).toBeInTheDocument();
+    expect(screen.getByText("Healthy")).toBeInTheDocument();
+  });
+
+  it("handles very long animal names gracefully", () => {
+    const longNameAnimal = [
+      {
+        ...mockAnimals[0],
+        name: "Very Long Animal Name That Should Be Displayed Without Truncation In This Component",
+      },
+    ];
+    render(<AnimalList data={longNameAnimal} />);
+    expect(
+      screen.getByText(
+        /Very Long Animal Name That Should Be Displayed Without Truncation In This Component/
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("applies correct CSS classes for health status", () => {
+    render(<AnimalList data={mockAnimals} />);
+
+    // Test Healthy badge
+    const healthyBadge = screen.getByText("Healthy").closest(".badge");
+    expect(healthyBadge).toBeInTheDocument();
+
+    // Test Sick badge
+    const sickBadge = screen.getByText("Sick").closest(".badge");
+    expect(sickBadge).toBeInTheDocument();
+
+    // Test that badges have the badge class
+    const badges = screen
+      .getAllByText(/Healthy|Sick/)
+      .map((el) => el.closest(".badge"));
+    badges.forEach((badge) => {
+      expect(badge).toHaveClass("badge");
+    });
+  });
+
+  it("applies correct CSS classes for animal types", () => {
+    render(<AnimalList data={mockAnimals} />);
+
+    // Test Cattle type badge
+    const cattleBadge = screen.getByText("Cattle").closest(".badge");
+    expect(cattleBadge).toBeInTheDocument();
+
+    // Test Goat type badge
+    const goatBadge = screen.getByText("Goat").closest(".badge");
+    expect(goatBadge).toBeInTheDocument();
+
+    // Test that type badges have the badge class
+    const typeBadges = screen
+      .getAllByText(/Cattle|Goat/)
+      .map((el) => el.closest(".badge"));
+    typeBadges.forEach((badge) => {
+      expect(badge).toHaveClass("badge");
+    });
+  });
+
+  it("displays animal IDs correctly", () => {
+    render(<AnimalList data={mockAnimals} />);
+
+    expect(screen.getByText("ID: #1")).toBeInTheDocument();
+    expect(screen.getByText("ID: #2")).toBeInTheDocument();
+  });
+
+  it("has responsive grid layout classes", () => {
+    const { container } = render(<AnimalList data={mockAnimals} />);
+
+    const grid = container.querySelector(".grid");
+    expect(grid).toHaveClass("grid");
+    expect(grid).toHaveClass("gap-4");
+    expect(grid).toHaveClass("md:grid-cols-2");
+    expect(grid).toHaveClass("lg:grid-cols-3");
   });
 });

@@ -5,6 +5,7 @@ import Footer from "./components/layout/Footer";
 import MobileNav from "./components/layout/MobileNav";
 import Navbar from "./components/layout/Navbar";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
+import OfflineIndicator from "./components/ui/OfflineIndicator"; // NEW IMPORT
 import { useLiveData } from "./hooks/useLiveData";
 import "./styles/css/main.css";
 import type { Filters } from "./types";
@@ -21,6 +22,7 @@ function App() {
     health: "",
     county: "",
   });
+  const [isOffline, setIsOffline] = useState(!navigator.onLine); // NEW STATE
 
   // Initialize theme on app load
   useEffect(() => {
@@ -53,6 +55,20 @@ function App() {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
+  // NEW: Update offline state when network status changes
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
   // Loading screen
   if (loading && !data.length) {
     return (
@@ -71,6 +87,9 @@ function App() {
     <Router>
       {/* Root wrapper with full theme background */}
       <div className="min-h-screen flex flex-col transition-colors bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]">
+        {/* NEW: Offline Indicator - placed at the very top */}
+        <OfflineIndicator />
+
         <div className="hidden md:block">
           <Navbar />
         </div>
@@ -78,8 +97,12 @@ function App() {
           <MobileNav />
         </div>
 
-        {/* Main content full width, no white gutters */}
-        <main className="w-full px-4 sm:px-6 md:px-8 py-4 flex-grow bg-[var(--color-bg-primary)]">
+        {/* Main content with conditional padding when offline banner shows */}
+        <main
+          className={`w-full px-4 sm:px-6 md:px-8 py-4 flex-grow bg-[var(--color-bg-primary)] transition-all duration-300 ${
+            isOffline ? "mt-12" : ""
+          }`}
+        >
           <Suspense fallback={<LoadingSpinner text="Loading page..." />}>
             <Routes>
               <Route path="/" element={<Home />} />

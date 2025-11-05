@@ -4,11 +4,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mockAPI } from "../../services/mockApi";
 import { useLiveData } from "../useLiveData";
 
-// Mock the API
 vi.mock("../../services/mockApi", () => ({
   mockAPI: {
     getAnimals: vi.fn(),
   },
+}));
+
+vi.mock("../../utils/offlineStorage", () => ({
+  loadOfflineData: vi.fn(),
+  saveOfflineData: vi.fn(),
 }));
 
 const mockAnimalData = [
@@ -25,9 +29,17 @@ const mockAnimalData = [
 ];
 
 describe("useLiveData", () => {
-  beforeEach(() => {
+  //  Make beforeEach async
+  beforeEach(async () => {
     vi.clearAllMocks();
-    localStorage.clear(); // Clear localStorage between tests
+    localStorage.clear();
+
+    vi.mocked(mockAPI.getAnimals).mockReset();
+    const { loadOfflineData, saveOfflineData } = await import(
+      "../../utils/offlineStorage"
+    );
+    vi.mocked(loadOfflineData).mockReset();
+    vi.mocked(saveOfflineData).mockReset();
   });
 
   it("should fetch data on mount", async () => {
@@ -38,11 +50,9 @@ describe("useLiveData", () => {
 
     const { result } = renderHook(() => useLiveData());
 
-    // Initial state
     expect(result.current.loading).toBe(true);
     expect(result.current.data).toEqual([]);
 
-    // After data loads
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
@@ -54,6 +64,8 @@ describe("useLiveData", () => {
 
   it("should handle API errors when no cached data exists", async () => {
     vi.mocked(mockAPI.getAnimals).mockRejectedValue(new Error("API Error"));
+    const { loadOfflineData } = await import("../../utils/offlineStorage");
+    vi.mocked(loadOfflineData).mockResolvedValue(null);
 
     const { result } = renderHook(() => useLiveData());
 
@@ -61,10 +73,7 @@ describe("useLiveData", () => {
       expect(result.current.loading).toBe(false);
     });
 
-    // Since we cleared localStorage, no cached data should exist
-    expect(result.current.error).toBe(
-      "Failed to fetch data and no cached data available"
-    );
+    expect(result.current.error).toBe("Failed to load data");
     expect(result.current.data).toEqual([]);
   });
 
@@ -80,15 +89,130 @@ describe("useLiveData", () => {
       expect(result.current.loading).toBe(false);
     });
 
-    // Wrap refetch in act() to prevent warnings
     await act(async () => {
       await result.current.refetch();
     });
 
-    expect(mockAPI.getAnimals).toHaveBeenCalledTimes(2); // Once on mount, once on refetch
+    expect(mockAPI.getAnimals).toHaveBeenCalledTimes(2);
   });
 
-  it("should provide online status", async () => {
+  it("should use cached data when API fails and offline data exists", async () => {
+    const { loadOfflineData } = await import("../../utils/offlineStorage");
+
+    vi.mocked(loadOfflineData).mockResolvedValue([
+      {
+        id: 99,
+        name: "Cached Animal",
+        type: "Goat" as const,
+        health: "Healthy" as const,
+        county: "Kiambu",
+        owner: "Cached Owner",
+        lat: -1.0166,
+        lng: 37.8521,
+      },
+    ]);
+
+    vi.mocked(mockAPI.getAnimals).mockRejectedValue(new Error("API Error"));
+
+    const { result } = renderHook(() => useLiveData());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.error).toBe(
+      "Loaded offline data (network unavailable)"
+    );
+    expect(result.current.data[0].name).toBe("Cached Animal");
+  });
+
+  it("should handle invalid data format from API", async () => {
+    vi.mocked(mockAPI.getAnimals).mockResolvedValue({
+      success: true,
+      data: "invalid data format" as any,
+    });
+
+    const { result } = renderHook(() => useLiveData());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.error).toBe("Failed to load data");
+    expect(result.current.data).toEqual([]);
+  });
+
+  it("should retry on API failure", async () => {
+    vi.mocked(mockAPI.getAnimals)
+      .mockRejectedValueOnce(new Error("First attempt failed"))
+      .mockResolvedValueOnce({
+        success: true,
+        data: mockAnimalData,
+      });
+
+    const { result } = renderHook(() => useLiveData());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(mockAPI.getAnimals).toHaveBeenCalledTimes(2);
+    expect(result.current.data[0].name).toBe("Test Animal");
+  });
+
+  it("should save data to offline storage on successful fetch", async () => {
+    vi.mocked(mockAPI.getAnimals).mockResolvedValue({
+      success: true,
+      data: mockAnimalData,
+    });
+
+    const { saveOfflineData } = await import("../../utils/offlineStorage");
+
+    renderHook(() => useLiveData());
+
+    await waitFor(() => {
+      expect(vi.mocked(saveOfflineData)).toHaveBeenCalledWith(
+        "livestockData",
+        mockAnimalData
+      );
+    });
+  });
+
+  it("should handle empty API response", async () => {
+    vi.mocked(mockAPI.getAnimals).mockResolvedValue({
+      success: true,
+      data: [],
+    });
+
+    const { result } = renderHook(() => useLiveData());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.data).toEqual([]);
+    expect(result.current.error).toBeNull();
+  });
+
+  it("should handle API success false response", async () => {
+    //  Add data property to match ApiResponse type
+    vi.mocked(mockAPI.getAnimals).mockResolvedValue({
+      success: false,
+      error: "Server error",
+      data: [], // Required by ApiResponse type
+    });
+
+    const { result } = renderHook(() => useLiveData());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.error).toBe("Failed to load data");
+    expect(result.current.data).toEqual([]);
+  });
+
+  it("should not cause infinite re-renders", async () => {
     vi.mocked(mockAPI.getAnimals).mockResolvedValue({
       success: true,
       data: mockAnimalData,
@@ -100,44 +224,13 @@ describe("useLiveData", () => {
       expect(result.current.loading).toBe(false);
     });
 
-    // Should have isOnline property (from our enhanced hook)
-    expect(result.current).toHaveProperty("isOnline");
-  });
-
-  it("should use cached data when API fails and offline data exists", async () => {
-    // Mock localStorage to simulate cached data
-    const cachedData = {
-      data: [
-        {
-          id: 99,
-          name: "Cached Animal",
-          type: "Goat" as const,
-          health: "Healthy" as const,
-          county: "Kiambu",
-          owner: "Cached Owner",
-          lat: -1.0166,
-          lng: 37.8521,
-        },
-      ],
-      lastSync: new Date().toISOString(),
-    };
-
-    // Mock localStorage getItem to return cached data
-    const getItemMock = vi.spyOn(Storage.prototype, "getItem");
-    getItemMock.mockReturnValue(JSON.stringify(cachedData));
-
-    vi.mocked(mockAPI.getAnimals).mockRejectedValue(new Error("API Error"));
-
-    const { result } = renderHook(() => useLiveData());
+    //  Remove unused 'rerender' variable
+    renderHook(() => useLiveData());
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.error).toBe("Using cached data - connection issue");
-    expect(result.current.data[0].name).toBe("Cached Animal");
-
-    // Clean up the mock
-    getItemMock.mockRestore();
+    expect(mockAPI.getAnimals).toHaveBeenCalledTimes(1);
   });
 });
