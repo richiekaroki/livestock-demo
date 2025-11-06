@@ -211,7 +211,7 @@ export const useLivestockStore = create<LivestockState>()(
       storage: createJSONStorage(() => localStorage),
 
       // Only persist certain fields
-      partialPersist: true,
+      // partialPersist: true,
       partialize: (state) => ({
         animals: state.animals,
         filters: state.filters,

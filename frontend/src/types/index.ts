@@ -45,6 +45,13 @@ export type AnimalType = Livestock["type"];
 export type FilterKey = keyof Filters;
 export type LivestockFormData = Omit<Livestock, "id" | "createdAt">;
 export type LivestockUpdate = Partial<Omit<Livestock, "id">> & { id: number };
+export type BiometricType =
+  | "nose_print"
+  | "facial"
+  | "ear_tag"
+  | "visual"
+  | "hump_pattern"
+  | "combined";
 
 /**
  * Biometric Data Interface
@@ -60,6 +67,7 @@ export type LivestockUpdate = Partial<Omit<Livestock, "id">> & { id: number };
  * - Supports insurance claims (proof of animal identity)
  */
 export interface BiometricData {
+  biometricType: BiometricType;
   // Primary identifier (hash of biometric features)
   nosePrintHash?: string;
 

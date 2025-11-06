@@ -1,43 +1,15 @@
-// src/components/animals/BiometricCapture.tsx
 import { useState } from "react";
+import type { AnimalType, BiometricData, BiometricType } from "../../types";
 
 interface BiometricCaptureProps {
   onCapture: (data: BiometricData) => void;
-  animalType: string;
-}
-
-export interface BiometricData {
-  nosePrintHash: string;
-  earTagPhoto: string | null;
-  facialRecognitionHash: string | null;
-  captureTimestamp: string;
-  confidence: number;
-  gpsLocation: { lat: number; lng: number };
-  biometricType:
-    | "nose_print"
-    | "facial"
-    | "ear_tag"
-    | "combined"
-    | "visual"
-    | "hump_pattern";
-  qualityScore: number;
-  captureLocation: { lat: number; lng: number };
+  animalType: AnimalType;
 }
 
 /**
- * Advanced Biometric Capture Component
+ * 🧠 Advanced Biometric Capture Component
  *
- * Real-world livestock identification using:
- * - Computer vision for nose print recognition (cattle)
- * - Facial recognition for goats/sheep
- * - Ear tag OCR and pattern matching
- * - GPS and timestamp verification
- *
- * Production integrations:
- * - OpenCV.js for browser-based image processing
- * - TensorFlow.js for on-device ML
- * - Device Camera API with flash support
- * - AWS Rekognition for verification
+ * Handles livestock biometric capture using simulated computer vision, GPS, and ML logic.
  */
 export default function BiometricCapture({
   onCapture,
@@ -50,41 +22,41 @@ export default function BiometricCapture({
   const getRecommendedBiometricMethod = () => {
     const methods = {
       Cattle: {
-        primary: "nose_print" as const,
-        secondary: "facial" as const,
+        primary: "nose_print" as BiometricType,
+        secondary: "facial" as BiometricType,
         description: "Nose Print Recognition + Facial Backup",
       },
       Goat: {
-        primary: "ear_tag" as const,
-        secondary: "facial" as const,
+        primary: "ear_tag" as BiometricType,
+        secondary: "facial" as BiometricType,
         description: "Ear Tag OCR + Facial Recognition",
       },
       Sheep: {
-        primary: "ear_tag" as const,
-        secondary: "facial" as const,
+        primary: "ear_tag" as BiometricType,
+        secondary: "facial" as BiometricType,
         description: "Ear Tag OCR + Facial Recognition",
       },
       Camel: {
-        primary: "facial" as const,
-        secondary: "hump_pattern" as const,
+        primary: "facial" as BiometricType,
+        secondary: "hump_pattern" as BiometricType,
         description: "Facial Recognition + Hump Pattern",
       },
       Pig: {
-        primary: "ear_tag" as const,
-        secondary: "facial" as const,
+        primary: "ear_tag" as BiometricType,
+        secondary: "facial" as BiometricType,
         description: "Ear Tag OCR + Facial Recognition",
       },
       Chicken: {
-        primary: "visual" as const,
-        secondary: "ear_tag" as const,
+        primary: "visual" as BiometricType,
+        secondary: "ear_tag" as BiometricType,
         description: "Visual Identification + Leg Band",
       },
     };
 
     return (
       methods[animalType as keyof typeof methods] || {
-        primary: "facial" as const,
-        secondary: "visual" as const,
+        primary: "facial" as BiometricType,
+        secondary: "visual" as BiometricType,
         description: "Visual Identification",
       }
     );
@@ -95,53 +67,41 @@ export default function BiometricCapture({
     const method = getRecommendedBiometricMethod();
     setCaptureMethod(method.description);
 
-    // Simulate different capture times based on method complexity
     const captureTime = method.primary === "nose_print" ? 2500 : 1800;
     await new Promise((resolve) => setTimeout(resolve, captureTime));
 
-    // Get precise GPS (simulated)
     const mockGPS = await getSimulatedGPSLocation();
 
-    // Generate advanced biometric data
     const captureData: BiometricData = {
+      biometricType: method.primary,
       nosePrintHash:
-        method.primary === "nose_print" ? generateNosePrintHash() : "",
-      facialRecognitionHash: ["facial", "combined"].includes(method.primary)
-        ? generateFacialRecognitionHash()
-        : null,
+        method.primary === "nose_print" ? generateNosePrintHash() : undefined,
       earTagPhoto:
         method.secondary === "ear_tag" ? await simulateEarTagCapture() : null,
+      animalPhoto: null,
       captureTimestamp: new Date().toISOString(),
-      confidence: calculateConfidenceScore(method.primary),
-      gpsLocation: mockGPS,
-      biometricType: method.primary,
-      qualityScore: 0.85 + Math.random() * 0.14, // 85-99% quality
       captureLocation: mockGPS,
+      confidence: calculateConfidenceScore(method.primary),
+      deviceId: "device-001",
+      capturedBy: "System",
     };
 
     setLastCapture(captureData);
     setIsCapturing(false);
     onCapture(captureData);
-
-    // Simulate AWS Rekognition verification in background
     simulateCloudVerification(captureData);
   };
 
-  // Simulated biometric processing functions
+  // ------------------------
+  // 🔬 Helper Functions
+  // ------------------------
+
   const generateNosePrintHash = (): string => {
     const patterns = ["whorl", "loop", "arch", "composite"];
     const pattern = patterns[Math.floor(Math.random() * patterns.length)];
     return `NOSE-${pattern}-${Date.now().toString(36)}-${Math.random()
       .toString(36)
       .substr(2, 8)}`;
-  };
-
-  const generateFacialRecognitionHash = (): string => {
-    const features = ["ear_shape", "eye_distance", "muzzle_pattern"];
-    const featureData = features
-      .map((f) => `${f}_${Math.random().toString(36).substr(2, 6)}`)
-      .join("-");
-    return `FACE-${featureData}-${Date.now().toString(36)}`;
   };
 
   const simulateEarTagCapture = async (): Promise<string> => {
@@ -163,10 +123,9 @@ export default function BiometricCapture({
     lat: number;
     lng: number;
   }> => {
-    // Simulate GPS with different accuracy levels
     const baseLat = -0.303099;
     const baseLng = 36.080025;
-    const accuracy = 0.001 + Math.random() * 0.009; // 100m - 1km accuracy
+    const accuracy = 0.001 + Math.random() * 0.009;
 
     return {
       lat: baseLat + (Math.random() - 0.5) * accuracy,
@@ -174,16 +133,8 @@ export default function BiometricCapture({
     };
   };
 
-  const calculateConfidenceScore = (
-    method:
-      | "nose_print"
-      | "facial"
-      | "ear_tag"
-      | "combined"
-      | "hump_pattern"
-      | "visual"
-  ): number => {
-    const baseScores: Record<string, number> = {
+  const calculateConfidenceScore = (method: BiometricType): number => {
+    const baseScores: Record<BiometricType, number> = {
       nose_print: 0.94,
       facial: 0.89,
       ear_tag: 0.82,
@@ -192,16 +143,15 @@ export default function BiometricCapture({
       visual: 0.78,
     };
 
-    const baseScore = baseScores[method] || 0.85;
-    return baseScore + Math.random() * 0.08; // Add some variance
+    const baseScore = baseScores[method] ?? 0.85;
+    return baseScore + Math.random() * 0.08;
   };
 
   const simulateCloudVerification = async (data: BiometricData) => {
-    // Simulate background verification with AWS Rekognition
     setTimeout(() => {
       console.log(
-        "AWS Rekognition verification completed for:",
-        data.nosePrintHash || data.facialRecognitionHash
+        "✅ AWS Rekognition verification completed for:",
+        data.nosePrintHash
       );
     }, 3000);
   };
@@ -209,7 +159,6 @@ export default function BiometricCapture({
   const getBiometricIcon = () => {
     const method = getRecommendedBiometricMethod();
 
-    // Animal-specific icons for better visual representation
     if (animalType === "Cattle") return "🐄👃";
     if (animalType === "Goat") return "🐐🏷️";
     if (animalType === "Sheep") return "🐑🏷️";
@@ -217,7 +166,6 @@ export default function BiometricCapture({
     if (animalType === "Pig") return "🐖🏷️";
     if (animalType === "Chicken") return "🐔👀";
 
-    // Fallback to method-based icons
     switch (method.primary) {
       case "nose_print":
         return "👃";
@@ -234,6 +182,10 @@ export default function BiometricCapture({
     }
   };
 
+  // ------------------------
+  // 💻 UI Rendering
+  // ------------------------
+
   return (
     <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
       <div className="flex items-center justify-between mb-3">
@@ -243,20 +195,6 @@ export default function BiometricCapture({
         <span className="text-xs text-gray-500 dark:text-gray-400 bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">
           {getRecommendedBiometricMethod().description}
         </span>
-      </div>
-
-      <div className="mb-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded text-xs">
-        <strong>Recommended for {animalType}:</strong>
-        <div className="mt-1 text-gray-600 dark:text-gray-300">
-          • Primary:{" "}
-          {getRecommendedBiometricMethod()
-            .primary.replace("_", " ")
-            .toUpperCase()}
-          <br />• Secondary:{" "}
-          {getRecommendedBiometricMethod()
-            .secondary.replace("_", " ")
-            .toUpperCase()}
-        </div>
       </div>
 
       <button
@@ -289,20 +227,12 @@ export default function BiometricCapture({
               {lastCapture.biometricType.replace("_", " ").toUpperCase()}
             </div>
             <div>
-              <strong>ID Hash:</strong>{" "}
-              {lastCapture.nosePrintHash || lastCapture.facialRecognitionHash}
-            </div>
-            <div>
               <strong>Confidence:</strong>{" "}
               {(lastCapture.confidence * 100).toFixed(1)}%
             </div>
             <div>
-              <strong>Quality Score:</strong>{" "}
-              {(lastCapture.qualityScore * 100).toFixed(1)}%
-            </div>
-            <div>
-              <strong>GPS Accuracy:</strong> ±
-              {(Math.random() * 900 + 100).toFixed(0)}m
+              <strong>GPS:</strong> {lastCapture.captureLocation.lat.toFixed(4)}
+              , {lastCapture.captureLocation.lng.toFixed(4)}
             </div>
             <div>
               <strong>Time:</strong>{" "}
@@ -311,17 +241,6 @@ export default function BiometricCapture({
           </div>
         </div>
       )}
-
-      <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-        <strong>Production Ready Integrations:</strong>
-        <ul className="list-disc list-inside mt-1 space-y-0.5">
-          <li>OpenCV.js for real-time image processing</li>
-          <li>TensorFlow.js for edge ML inference</li>
-          <li>AWS Rekognition for cloud verification</li>
-          <li>GPS geotagging with accuracy metrics</li>
-          <li>Quality scoring for capture reliability</li>
-        </ul>
-      </div>
     </div>
   );
 }

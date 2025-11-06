@@ -1,7 +1,6 @@
 // vitest.config.ts
 import { defineConfig } from "vitest/config";
 
-// Extend from Vite config
 export default defineConfig({
   test: {
     environment: "jsdom",
@@ -11,5 +10,11 @@ export default defineConfig({
       "src/**/__tests__/**/*.{test,spec}.{js,jsx,ts,tsx}",
       "src/test/**/*.{test,spec}.{js,jsx,ts,tsx}",
     ],
+    ui: true,
+    coverage: {
+      provider: "v8",
+      reportsDirectory: "./coverage",
+      reporter: ["text", "html"],
+    },
   },
 });

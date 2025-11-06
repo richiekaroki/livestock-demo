@@ -246,7 +246,7 @@ export default function AnalyticsDashboard({
                 outerRadius={100}
                 label={({ type, count }) => `${type}: ${count}`}
               >
-                {analytics.typeData.map((entry, index) => (
+                {analytics.typeData.map((_entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={TYPE_COLORS[index % TYPE_COLORS.length]}
