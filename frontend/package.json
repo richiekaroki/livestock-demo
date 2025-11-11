@@ -11,7 +11,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "test:watch": "vitest --watch",
+    "test:watch": "vitest watch",
     "test:run": "vitest run",
     "test:integration": "vitest src/tests/integration/",
     "test:unit": "vitest src/components/ src/hooks/ src/utils/ src/services/"

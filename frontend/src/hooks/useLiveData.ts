@@ -27,7 +27,7 @@ export function useLiveData() {
       const response = await mockAPI.getAnimals();
       if (response.success && validateData(response.data)) {
         setData(response.data);
-        saveOfflineData("livestockData", response.data);
+        await saveOfflineData("livestockData", response.data); // ✅ Added await
       } else {
         throw new Error("Invalid data format from API");
       }
@@ -36,10 +36,10 @@ export function useLiveData() {
       if (retryCount < 2) {
         console.log(`Retrying... (${retryCount + 1})`);
         await fetchData(retryCount + 1);
-        return;
+        return; // ✅ Early return prevents finally block
       }
 
-      const offline = await loadOfflineData("livestockData");
+      const offline = await loadOfflineData<Livestock[]>("livestockData");
       if (validateData(offline)) {
         setData(offline);
         setError("Loaded offline data (network unavailable)");
@@ -49,12 +49,12 @@ export function useLiveData() {
     } finally {
       setLoading(false);
     }
-  }, []); // ✅ Empty deps - validateData is stable
+  }, []);
 
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // ✅ Only run once on mount
+  }, []);
 
   return { data, loading, error, refetch: () => fetchData() };
 }

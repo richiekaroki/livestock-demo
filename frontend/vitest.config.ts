@@ -11,10 +11,22 @@ export default defineConfig({
       "src/test/**/*.{test,spec}.{js,jsx,ts,tsx}",
     ],
     ui: true,
+    pool: "forks",
+    // @ts-expect-error - poolOptions is valid but not yet typed in Vitest 4.0.7
+    poolOptions: {
+      forks: {
+        singleFork: true,
+      },
+    },
+    testTimeout: 10000,
+    hookTimeout: 10000,
     coverage: {
       provider: "v8",
       reportsDirectory: "./coverage",
       reporter: ["text", "html"],
+      // Ensure coverage temp directory is created
+      clean: true,
+      cleanOnRerun: true,
     },
   },
 });
