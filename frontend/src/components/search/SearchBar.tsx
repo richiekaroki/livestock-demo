@@ -16,7 +16,7 @@ export default function SearchBar({
   const [isSearching, setIsSearching] = useState(false);
   const [resultCount, setResultCount] = useState<number | null>(null);
 
-  // ✅ Use the debounce utility
+  //  Use the debounce utility
   const performSearch = useCallback(
     debounce((term: string) => {
       if (!term.trim()) {

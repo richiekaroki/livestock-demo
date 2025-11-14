@@ -24,9 +24,9 @@ export interface AnimalStats {
 }
 
 export interface Filters {
-  type: string;
-  health: string;
-  county: string;
+  type?: string;
+  health?: string;
+  county?: string;
 }
 
 export interface ApiResponse<T> {
