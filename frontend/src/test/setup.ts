@@ -32,10 +32,9 @@ class MockIntersectionObserver implements IntersectionObserver {
   readonly scrollMargin: string = "";
   readonly thresholds: ReadonlyArray<number> = [];
 
-  constructor(
-    _cb?: IntersectionObserverCallback,
-    _opts?: IntersectionObserverInit
-  ) {}
+  constructor() {
+    // Parameters intentionally unused for mock implementation
+  }
 
   disconnect(): void {}
   observe(): void {}
@@ -45,18 +44,20 @@ class MockIntersectionObserver implements IntersectionObserver {
   }
 }
 
-(globalThis as any).IntersectionObserver = MockIntersectionObserver;
+globalThis.IntersectionObserver = MockIntersectionObserver;
 
 // Mock ResizeObserver
 class MockResizeObserver implements ResizeObserver {
-  constructor(_cb?: ResizeObserverCallback) {}
+  constructor() {
+    // Parameter intentionally unused for mock implementation
+  }
 
   disconnect(): void {}
   observe(): void {}
   unobserve(): void {}
 }
 
-(globalThis as any).ResizeObserver = MockResizeObserver;
+globalThis.ResizeObserver = MockResizeObserver;
 
 // Suppress console errors/warnings during tests if needed
 // Uncomment if you want cleaner test output

@@ -110,7 +110,7 @@ describe("MockLivestockAPI", () => {
     it("returns empty array when no animals match filters", async () => {
       const response = await mockAPI.getAnimals({
         type: "NonExistentType",
-      } as any);
+      } as unknown as Filters);
       expect(response.data).toEqual([]);
       expect(response.total).toBe(0);
     });
@@ -247,5 +247,73 @@ describe("MockLivestockAPI", () => {
       expect(animals.data.some((a) => a.name === "Temp Animal")).toBe(false);
       expect(animals.data.length).toBe(livestockData.length);
     });
+  });
+  // Test localStorage error scenarios
+  it("handles localStorage read errors", () => {
+    //const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    // Mock localStorage.getItem to throw error
+    // Verify fallback to initial data works
+  });
+
+  // Test localStorage write errors
+  it("handles localStorage write errors", async () => {
+    // Mock localStorage.setItem to throw error
+    // Verify API doesn't crash and continues operation
+  });
+
+  it("falls back to default data when localStorage read fails", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    // Mock localStorage.getItem to throw error BEFORE creating instance
+    const getItemSpy = vi.spyOn(Storage.prototype, "getItem");
+    getItemSpy.mockImplementation(() => {
+      throw new Error("Storage read error");
+    });
+
+    // Create a NEW instance to trigger initialization with the error
+    const MockAPI = (mockAPI as any).constructor;
+    const newInstance = new MockAPI();
+
+    // Wait a bit for initialization to complete
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Verify the error was logged during initialization
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "❌ Failed to load data from localStorage:",
+      expect.any(Error)
+    );
+
+    // Verify the instance still works with default data
+    const response = await newInstance.getAnimals();
+    expect(response.success).toBe(true);
+    expect(response.data.length).toBeGreaterThan(0);
+
+    getItemSpy.mockRestore();
+    consoleSpy.mockRestore();
+  });
+
+  it("continues operation when localStorage write fails", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const setItemSpy = vi.spyOn(Storage.prototype, "setItem");
+    setItemSpy.mockImplementation(() => {
+      throw new Error("Storage write error");
+    });
+
+    const newAnimal = {
+      name: "Test Animal",
+      type: "Cattle" as const,
+      health: "Healthy" as const,
+      county: "Nakuru",
+      owner: "Test Owner",
+      lat: 0,
+      lng: 0,
+    };
+
+    const response = await mockAPI.createAnimal(newAnimal);
+    expect(response.success).toBe(true);
+    expect(consoleSpy).toHaveBeenCalled();
+
+    setItemSpy.mockRestore();
+    consoleSpy.mockRestore();
   });
 });

@@ -14,10 +14,12 @@ describe("livestockStore", () => {
   it("should add animal optimistically when online", async () => {
     const store = useLivestockStore.getState();
 
-    const spy = vi.spyOn(mockAPI, "createAnimal").mockImplementation(async (animal) => ({
-      data: { ...animal, id: 1, createdAt: new Date().toISOString() },
-      success: true,
-    }));
+    const spy = vi
+      .spyOn(mockAPI, "createAnimal")
+      .mockImplementation(async (animal) => ({
+        data: { ...animal, id: 1, createdAt: new Date().toISOString() },
+        success: true,
+      }));
 
     await store.addAnimal({
       name: "Test Cow",
@@ -74,10 +76,16 @@ describe("livestockStore", () => {
     });
 
     // Spy/mock API
-    const spy = vi.spyOn(mockAPI, "createAnimal").mockImplementation(async (animal) => ({
-      data: { ...animal, id: Math.floor(Math.random() * 1000), createdAt: new Date().toISOString() },
-      success: true,
-    }));
+    const spy = vi
+      .spyOn(mockAPI, "createAnimal")
+      .mockImplementation(async (animal) => ({
+        data: {
+          ...animal,
+          id: Math.floor(Math.random() * 1000),
+          createdAt: new Date().toISOString(),
+        },
+        success: true,
+      }));
 
     store.setOnline(true);
     await store.syncPendingChanges();
@@ -107,5 +115,45 @@ describe("livestockStore", () => {
     expect(state.pendingChanges).toBe(0);
     expect(state.error).toBeNull();
     expect(state.isOnline).toBe(true);
+  });
+
+  // Test sync failure handling
+  it("handles sync failures gracefully", async () => {
+    // Mock API to fail during sync
+    // Verify offline animals remain and error state is handled
+  });
+
+  it("keeps offline animals when sync API calls fail", async () => {
+    const store = useLivestockStore.getState();
+    store.setOnline(false);
+
+    // Add offline animal
+    await store.addAnimal({
+      name: "Failed Sync Cow",
+      type: "Cattle",
+      health: "Healthy",
+      county: "Nakuru",
+      owner: "Farmer John",
+      lat: 0,
+      lng: 0,
+    });
+
+    // Mock API to fail
+    const spy = vi
+      .spyOn(mockAPI, "createAnimal")
+      .mockRejectedValue(new Error("API failed"));
+
+    store.setOnline(true);
+    await store.syncPendingChanges();
+
+    const state = useLivestockStore.getState();
+
+    // Animal should still exist with negative ID
+    expect(state.animals.some((a) => a.name === "Failed Sync Cow")).toBe(true);
+    expect(
+      state.animals.find((a) => a.name === "Failed Sync Cow")?.id
+    ).toBeLessThan(0);
+
+    spy.mockRestore();
   });
 });

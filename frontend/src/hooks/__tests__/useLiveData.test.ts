@@ -2,7 +2,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mockAPI } from "../../services/mockApi";
-import type { Livestock } from "../../types";
+import type { ApiResponse, Livestock } from "../../types";
 import { OFFLINE_PREFIX } from "../../utils/offlineStorage";
 import { useLiveData } from "../useLiveData";
 
@@ -163,7 +163,7 @@ describe("useLiveData", () => {
     vi.mocked(mockAPI.getAnimals).mockResolvedValue({
       success: true,
       data: null,
-    } as any);
+    } as unknown as ApiResponse<Livestock[]>);
 
     const { result } = renderHook(() => useLiveData());
 

@@ -1,6 +1,6 @@
-// src/components/search/SearchBar.tsx (UPDATE)
-import { useCallback, useEffect, useState } from "react";
-import { debounce } from "../../utils/debounce"; 
+// src/components/search/SearchBar.tsx
+import { useEffect, useMemo, useState } from "react";
+import { debounce } from "../../utils/debounce";
 
 interface SearchBarProps {
   query: string;
@@ -16,27 +16,29 @@ export default function SearchBar({
   const [isSearching, setIsSearching] = useState(false);
   const [resultCount, setResultCount] = useState<number | null>(null);
 
-  //  Use the debounce utility
-  const performSearch = useCallback(
-    debounce((term: string) => {
-      if (!term.trim()) {
-        setResultCount(null);
-        setIsSearching(false);
-        return;
-      }
+  // Create debounced search function using useMemo to avoid recreation on every render
+  const debouncedSearch = useMemo(() => {
+    return debounce((term: unknown) => {
+      // Type guard to ensure term is a string
+      if (typeof term === "string") {
+        if (!term.trim()) {
+          setResultCount(null);
+          setIsSearching(false);
+          return;
+        }
 
-      setIsSearching(true);
-      const normalizedTerm = term.toLowerCase().trim();
-      const results = performClientSideSearch(normalizedTerm);
-      setResultCount(results);
-      setIsSearching(false);
-    }, 300),
-    []
-  );
+        setIsSearching(true);
+        const normalizedTerm = term.toLowerCase().trim();
+        const results = performClientSideSearch(normalizedTerm);
+        setResultCount(results);
+        setIsSearching(false);
+      }
+    }, 300);
+  }, []); // Empty dependencies since debounce should be created once
 
   useEffect(() => {
-    performSearch(query);
-  }, [query, performSearch]);
+    debouncedSearch(query);
+  }, [query, debouncedSearch]);
 
   const handleClear = () => {
     onQueryChange("");
