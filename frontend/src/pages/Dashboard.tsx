@@ -14,13 +14,12 @@ import KALROSyncStatus from "../components/sync/KALROSyncStatus";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import { mockAPI } from "../services/mockApi";
-import type { AnimalStats, Filters, Livestock } from "../types";
+import { useLivestockStore } from "../store/livestockStore";
+import type { AnimalStats, Livestock } from "../types";
 
 interface DashboardProps {
   data: Livestock[];
   filteredData: Livestock[];
-  filters: Filters;
-  onFilterChange: (key: keyof Filters, value: string) => void;
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -29,23 +28,21 @@ interface DashboardProps {
 export default function Dashboard({
   data,
   filteredData: initialFilteredData,
-  filters,
-  onFilterChange,
   loading,
   error,
   refetch,
 }: DashboardProps) {
   const [stats, setStats] = useState<AnimalStats | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const filters = useLivestockStore((s) => s.filters);
+  const updateFilter = useLivestockStore((s) => s.updateFilter);
 
-  // NEW: Auto-refresh hook
   const autoRefresh = useAutoRefresh({
     enabled: true,
-    interval: 30000, // 30 seconds
+    interval: 30000,
     onRefresh: refetch,
   });
 
-  // ✅ Combine filters and search in single memo
   const displayData = useMemo(() => {
     if (!searchQuery.trim()) return initialFilteredData;
 
@@ -62,9 +59,9 @@ export default function Dashboard({
 
   const handleResetAll = () => {
     setSearchQuery("");
-    onFilterChange("type", "");
-    onFilterChange("county", "");
-    onFilterChange("health", "");
+    updateFilter("type", "");
+    updateFilter("county", "");
+    updateFilter("health", "");
   };
 
   useEffect(() => {
@@ -90,19 +87,16 @@ export default function Dashboard({
   return (
     <div className="min-h-screen bg-bg-secondary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Status Indicator */}
         {error && (
           <div className="mb-6">
             <StatusIndicator error={error} />
           </div>
         )}
 
-        {/* KALRO Sync Status */}
         <div className="mb-6">
           <KALROSyncStatus />
         </div>
 
-        {/* NEW: Auto-Refresh Indicator */}
         <div className="mb-6 flex justify-end">
           <RefreshIndicator
             isRefreshing={autoRefresh.isRefreshing}
@@ -115,12 +109,10 @@ export default function Dashboard({
           />
         </div>
 
-        {/* Health Alerts Section */}
         <div className="mb-6">
           <HealthAlerts data={data} />
         </div>
 
-        {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-start">
             <div>
@@ -140,45 +132,35 @@ export default function Dashboard({
           </div>
         </div>
 
-        {/* Stats + Form Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Statistics - 2/3 width */}
           <div className="lg:col-span-2">
             {stats && <StatisticsCards stats={stats} />}
           </div>
-
-          {/* Registration Form - 1/3 width */}
           <div className="lg:col-span-1">
-            <RegistrationForm data={data} onAnimalAdded={refetch} />
+            <RegistrationForm onAnimalAdded={refetch} />
           </div>
         </div>
 
-        {/* Analytics Dashboard Section */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-text-primary mb-4">
             Analytics & Insights
           </h2>
-          <AnalyticsDashboard data={initialFilteredData} onRefresh={refetch} />
+          <AnalyticsDashboard data={initialFilteredData} />
         </div>
 
-        {/* Filters and Export Button */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          {/* Filters - takes available space */}
           <div className="flex-1 w-full">
             <FilterBar
               filters={filters}
-              onFilterChange={onFilterChange}
+              onFilterChange={updateFilter}
               data={data}
             />
           </div>
-
-          {/* Export Button - fixed width */}
           <div className="w-full sm:w-auto">
             <ExportButton data={displayData} filename="livestock-dashboard" />
           </div>
         </div>
 
-        {/* Search Bar */}
         <div className="mb-6">
           <SearchBar
             query={searchQuery}
@@ -187,7 +169,6 @@ export default function Dashboard({
           />
         </div>
 
-        {/* Results Summary */}
         <div className="mb-6">
           <div className="card">
             <div className="flex justify-between items-center">
@@ -212,7 +193,6 @@ export default function Dashboard({
                 </p>
               </div>
 
-              {/* Last refresh time */}
               {autoRefresh.lastRefresh && (
                 <div className="text-xs text-text-tertiary">
                   Updated: {autoRefresh.lastRefresh.toLocaleTimeString()}
@@ -222,10 +202,8 @@ export default function Dashboard({
           </div>
         </div>
 
-        {/* Animal List */}
         <AnimalList data={displayData} />
 
-        {/* Reset Filters & Search */}
         {(filters.type || filters.health || filters.county || searchQuery) && (
           <div className="text-center mt-6">
             <button onClick={handleResetAll} className="btn btn-secondary">

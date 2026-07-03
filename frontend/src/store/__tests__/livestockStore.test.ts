@@ -101,7 +101,8 @@ describe("livestockStore", () => {
 
   it("should update filters", () => {
     const store = useLivestockStore.getState();
-    store.updateFilters({ type: "Cattle", county: "Nairobi" });
+    store.updateFilter("type", "Cattle");
+    store.updateFilter("county", "Nairobi");
     const state = useLivestockStore.getState();
     expect(state.filters.type).toBe("Cattle");
     expect(state.filters.county).toBe("Nairobi");

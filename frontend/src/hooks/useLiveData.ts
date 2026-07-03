@@ -1,5 +1,5 @@
 // src/hooks/useLiveData.ts
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { mockAPI } from "../services/mockApi";
 import type { Livestock } from "../types";
 import { loadOfflineData, saveOfflineData } from "../utils/offlineStorage";
@@ -8,6 +8,7 @@ export function useLiveData() {
   const [data, setData] = useState<Livestock[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const fetchedRef = useRef(false);
 
   const validateData = (items: unknown): items is Livestock[] => {
     return (
@@ -27,16 +28,15 @@ export function useLiveData() {
       const response = await mockAPI.getAnimals();
       if (response.success && validateData(response.data)) {
         setData(response.data);
-        await saveOfflineData("livestockData", response.data); // ✅ Added await
+        await saveOfflineData("livestockData", response.data);
       } else {
         throw new Error("Invalid data format from API");
       }
     } catch (err) {
       console.warn("API fetch failed:", err);
       if (retryCount < 2) {
-        console.log(`Retrying... (${retryCount + 1})`);
         await fetchData(retryCount + 1);
-        return; // ✅ Early return prevents finally block
+        return;
       }
 
       const offline = await loadOfflineData<Livestock[]>("livestockData");
@@ -52,9 +52,11 @@ export function useLiveData() {
   }, []);
 
   useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!fetchedRef.current) {
+      fetchedRef.current = true;
+      fetchData();
+    }
+  }, [fetchData]);
 
   return { data, loading, error, refetch: () => fetchData() };
 }

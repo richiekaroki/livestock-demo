@@ -20,18 +20,14 @@ class MockLivestockAPI {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
           this.data = parsed;
-          console.log(
-            ` Loaded ${this.data.length} animals from localStorage`
-          );
           return;
         }
       }
       // Fallback to initial data
       this.data = [...livestockData];
       this.saveData();
-      console.log(` Initialized with ${this.data.length} default animals`);
     } catch (error) {
-      console.error("❌ Failed to load data from localStorage:", error);
+      console.error("Failed to load data from localStorage:", error);
       this.data = [...livestockData];
     }
   }
@@ -40,7 +36,7 @@ class MockLivestockAPI {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.data));
     } catch (error) {
-      console.error("❌ Failed to save data to localStorage:", error);
+      console.error("Failed to save data to localStorage:", error);
     }
   }
 
@@ -83,12 +79,8 @@ class MockLivestockAPI {
       createdAt: new Date().toISOString(),
     };
 
-    this.data.push(newAnimal); // Add to internal data
-    this.saveData(); //  CRITICAL: Save to localStorage immediately
-
-    console.log(
-      ` Animal registered: ${newAnimal.name} (ID: ${newAnimal.id})`
-    );
+    this.data.push(newAnimal);
+    this.saveData();
 
     return {
       data: newAnimal,
@@ -117,9 +109,12 @@ class MockLivestockAPI {
 
   async getAnimalStatistics(): Promise<ApiResponse<AnimalStats>> {
     await this.delay(600);
-    // Simulate occasional backend errors
     if (Math.random() > 0.8) {
-      throw new Error("Backend service temporarily unavailable");
+      return {
+        data: {} as AnimalStats,
+        success: false,
+        error: "Backend service temporarily unavailable",
+      };
     }
 
     const stats: AnimalStats = {
@@ -137,7 +132,6 @@ class MockLivestockAPI {
     return { data: stats, success: true };
   }
 
-  //  NEW: Debug method to check storage
   async getStorageInfo() {
     return {
       totalAnimals: this.data.length,
@@ -147,11 +141,9 @@ class MockLivestockAPI {
     };
   }
 
-  //  NEW: Method to reset data (useful for testing)
   async resetData(): Promise<void> {
     this.data = [...livestockData];
     this.saveData();
-    console.log(" Data reset to initial state");
   }
 }
 

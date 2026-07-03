@@ -2,24 +2,20 @@
 import FilterBar from "../components/filters/FilterBar";
 import LivestockMap from "../components/map/LivestockMap";
 import MapLegend from "../components/map/MapLegend";
-import type { Filters, Livestock } from "../types";
+import { useLivestockStore } from "../store/livestockStore";
+import type { Livestock } from "../types";
 
 interface MapViewProps {
   data: Livestock[];
-  filters: Filters;
-  onFilterChange: (key: keyof Filters, value: string) => void;
   allData: Livestock[];
 }
 
-export default function MapView({
-  data,
-  filters,
-  onFilterChange,
-  allData,
-}: MapViewProps) {
+export default function MapView({ data, allData }: MapViewProps) {
+  const filters = useLivestockStore((s) => s.filters);
+  const updateFilter = useLivestockStore((s) => s.updateFilter);
+
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-text-primary">
@@ -31,7 +27,6 @@ export default function MapView({
         </div>
       </div>
 
-      {/* Results Summary */}
       <div className="card">
         <div className="flex justify-between items-center">
           <div>
@@ -54,21 +49,18 @@ export default function MapView({
         </div>
       </div>
 
-      {/* Filters */}
       <div className="card">
         <FilterBar
           filters={filters}
-          onFilterChange={onFilterChange}
+          onFilterChange={updateFilter}
           data={allData}
         />
       </div>
 
-      {/* Map */}
       <div className="card p-0 overflow-hidden">
         <LivestockMap data={data} />
       </div>
 
-      {/* Legend */}
       <MapLegend />
     </div>
   );

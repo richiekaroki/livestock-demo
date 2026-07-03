@@ -6,11 +6,6 @@ interface BiometricCaptureProps {
   animalType: AnimalType;
 }
 
-/**
- * 🧠 Advanced Biometric Capture Component
- *
- * Handles livestock biometric capture using simulated computer vision, GPS, and ML logic.
- */
 export default function BiometricCapture({
   onCapture,
   animalType,
@@ -89,12 +84,10 @@ export default function BiometricCapture({
     setLastCapture(captureData);
     setIsCapturing(false);
     onCapture(captureData);
-    simulateCloudVerification(captureData);
+    simulateCloudVerification();
   };
 
-  // ------------------------
-  // 🔬 Helper Functions
-  // ------------------------
+  // Helper Functions
 
   const generateNosePrintHash = (): string => {
     const patterns = ["whorl", "loop", "arch", "composite"];
@@ -147,12 +140,9 @@ export default function BiometricCapture({
     return baseScore + Math.random() * 0.08;
   };
 
-  const simulateCloudVerification = async (data: BiometricData) => {
+  const simulateCloudVerification = async () => {
     setTimeout(() => {
-      console.log(
-        "✅ AWS Rekognition verification completed for:",
-        data.nosePrintHash
-      );
+      // Cloud verification would happen here in production
     }, 3000);
   };
 
@@ -181,10 +171,6 @@ export default function BiometricCapture({
         return "🔍";
     }
   };
-
-  // ------------------------
-  // 💻 UI Rendering
-  // ------------------------
 
   return (
     <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">

@@ -1,34 +1,31 @@
-// src/components/animals/RegistrationForm.tsx - FIXED VERSION
+// src/components/animals/RegistrationForm.tsx
 
 import { useState } from "react";
-import { mockAPI } from "../../services/mockApi";
 import type { BiometricData, Livestock } from "../../types";
+import { useLivestockStore } from "../../store/livestockStore";
 import { validateLivestock } from "../../utils/validation";
 import BiometricCapture from "./BiometricCapture";
 
 interface RegistrationFormProps {
-  data: Livestock[];
   onAnimalAdded: () => void;
 }
 
 export default function RegistrationForm({
   onAnimalAdded,
 }: RegistrationFormProps) {
-    
-  // Form fields
+  const addAnimal = useLivestockStore((s) => s.addAnimal);
+
   const [name, setName] = useState("");
-  const [type, setType] = useState<Livestock["type"]>("Cattle"); // ✅ FIXED TYPE
+  const [type, setType] = useState<Livestock["type"]>("Cattle");
   const [county, setCounty] = useState("Nakuru");
   const [owner, setOwner] = useState("");
-  const [health, setHealth] = useState<Livestock["health"]>("Healthy"); // ✅ Optional safety
+  const [health, setHealth] = useState<Livestock["health"]>("Healthy");
 
-  // Biometric data
   const [biometricData, setBiometricData] = useState<BiometricData | null>(
     null
   );
   const [showBiometric, setShowBiometric] = useState(false);
 
-  // UI states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -39,47 +36,55 @@ export default function RegistrationForm({
     setError(null);
     setSuccessMessage(null);
 
-    const animalData: Livestock = {
-      id: Date.now(), // temporary ID for mock API
+    const coords = await new Promise<{ lat: number; lng: number }>(
+      (resolve) => {
+        if (!navigator.geolocation) {
+          resolve({ lat: -0.303099, lng: 36.080025 });
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) =>
+            resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          () => resolve({ lat: -0.303099, lng: 36.080025 }),
+          { timeout: 3000 }
+        );
+      }
+    );
+
+    const animalData: Omit<Livestock, "id" | "createdAt"> = {
       name,
       type,
       county,
       owner,
       health,
-      lat: -0.303099,
-      lng: 36.080025,
+      lat: coords.lat,
+      lng: coords.lng,
       ...(biometricData && { biometricData }),
     };
 
+    const validationErrors = validateLivestock(animalData);
+    if (validationErrors.length > 0) {
+      setError(validationErrors.join(", "));
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      const validationErrors = validateLivestock(animalData);
-      if (validationErrors.length > 0) {
-        setError(validationErrors.join(", "));
-        setIsSubmitting(false);
-        return;
-      }
+      await addAnimal(animalData);
+      setSuccessMessage(`${name} registered successfully!`);
+      onAnimalAdded();
 
-      const response = await mockAPI.createAnimal(animalData);
-
-      if (response.success) {
-        setSuccessMessage(`${name} registered successfully!`);
-        onAnimalAdded();
-
-        setTimeout(() => {
-          setName("");
-          setType("Cattle");
-          setCounty("Nakuru");
-          setOwner("");
-          setHealth("Healthy");
-          setBiometricData(null);
-          setShowBiometric(false);
-          setSuccessMessage(null);
-        }, 2000);
-      } else {
-        setError(response.error || "Failed to register animal");
-      }
-    } catch (err) {
-      console.error("Registration error:", err);
+      setTimeout(() => {
+        setName("");
+        setType("Cattle");
+        setCounty("Nakuru");
+        setOwner("");
+        setHealth("Healthy");
+        setBiometricData(null);
+        setShowBiometric(false);
+        setSuccessMessage(null);
+      }, 2000);
+    } catch {
       setError("Failed to register animal. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -88,7 +93,6 @@ export default function RegistrationForm({
 
   const handleBiometricCapture = (data: BiometricData) => {
     setBiometricData(data);
-    console.log("Biometric data captured:", data);
   };
 
   return (
@@ -97,7 +101,6 @@ export default function RegistrationForm({
         Register New Animal
       </h2>
 
-      {/* Basic Information */}
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label className="block text-sm font-medium mb-1">Animal Name</label>
@@ -115,7 +118,7 @@ export default function RegistrationForm({
           <select
             className="input-field"
             value={type}
-            onChange={(e) => setType(e.target.value as Livestock["type"])} // ✅ explicit cast
+            onChange={(e) => setType(e.target.value as Livestock["type"])}
             disabled={isSubmitting}
           >
             <option value="Cattle">Cattle</option>
@@ -155,13 +158,12 @@ export default function RegistrationForm({
         </div>
       </div>
 
-      {/* Health Status */}
       <div>
         <label className="block text-sm font-medium mb-1">Health Status</label>
         <select
           className="input-field"
           value={health}
-          onChange={(e) => setHealth(e.target.value as Livestock["health"])} // ✅ cast
+          onChange={(e) => setHealth(e.target.value as Livestock["health"])}
           disabled={isSubmitting}
         >
           <option value="Healthy">Healthy</option>
@@ -171,7 +173,6 @@ export default function RegistrationForm({
         </select>
       </div>
 
-      {/* Biometric Capture Section */}
       <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
         <div className="flex justify-between mb-3">
           <h3 className="text-sm font-semibold">
@@ -204,7 +205,6 @@ export default function RegistrationForm({
         )}
       </div>
 
-      {/* Messages and Submit */}
       {error && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-md">
           <strong>Error:</strong> {error}

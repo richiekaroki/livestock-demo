@@ -12,7 +12,7 @@ interface LivestockState {
   isOnline: boolean;
 
   addAnimal: (animal: Omit<Livestock, "id" | "createdAt">) => Promise<void>;
-  updateFilters: (filters: Partial<Filters>) => void;
+  updateFilter: (key: keyof Filters, value: string) => void;
   syncPendingChanges: () => Promise<void>;
   resetStore: () => void;
   setOnline: (online: boolean) => void;
@@ -65,8 +65,8 @@ export const useLivestockStore = create<LivestockState>()(
       }
     },
 
-    updateFilters: (filters) => {
-      set((state) => ({ filters: { ...state.filters, ...filters } }));
+    updateFilter: (key, value) => {
+      set((state) => ({ filters: { ...state.filters, [key]: value } }));
     },
 
     syncPendingChanges: async () => {

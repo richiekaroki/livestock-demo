@@ -202,16 +202,18 @@ describe("MockLivestockAPI", () => {
   // -----------------------------
   describe("getAnimalStatistics", () => {
     it("returns correct statistics", async () => {
+      vi.spyOn(Math, "random").mockReturnValue(0.5);
       const stats = await mockAPI.getAnimalStatistics();
       expect(stats.success).toBe(true);
       expect(stats.data.totalAnimals).toBeGreaterThan(0);
+      vi.restoreAllMocks();
     });
 
     it("simulates backend error", async () => {
       vi.spyOn(Math, "random").mockReturnValue(0.9);
-      await expect(mockAPI.getAnimalStatistics()).rejects.toThrow(
-        "Backend service temporarily unavailable"
-      );
+      const result = await mockAPI.getAnimalStatistics();
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Backend service temporarily unavailable");
       vi.restoreAllMocks();
     });
   });
@@ -271,7 +273,9 @@ describe("MockLivestockAPI", () => {
     });
 
     // Create a NEW instance to trigger initialization with the error
-    const MockAPI = (mockAPI as any).constructor;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+    const MockAPI = (mockAPI as any).constructor as new () => typeof mockAPI;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const newInstance = new MockAPI();
 
     // Wait a bit for initialization to complete
@@ -279,7 +283,7 @@ describe("MockLivestockAPI", () => {
 
     // Verify the error was logged during initialization
     expect(consoleSpy).toHaveBeenCalledWith(
-      "❌ Failed to load data from localStorage:",
+      "Failed to load data from localStorage:",
       expect.any(Error)
     );
 

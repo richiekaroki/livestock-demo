@@ -1,10 +1,10 @@
 // src/hooks/useAutoRefresh.ts
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 interface UseAutoRefreshOptions {
   enabled?: boolean;
-  interval?: number; // milliseconds
+  interval?: number;
   onRefresh?: () => void | Promise<void>;
 }
 
@@ -15,28 +15,9 @@ interface AutoRefreshState {
   isPaused: boolean;
 }
 
-/**
- * Auto-Refresh Hook
- * 
- * Provides automatic data refreshing with user controls.
- * Simulates real-time updates for production readiness.
- * 
- * Features:
- * - Configurable refresh interval
- * - Pause/resume controls
- * - Last refresh timestamp
- * - Countdown to next refresh
- * - Manual refresh trigger
- * 
- * Interview Talking Points:
- * - "Implements polling strategy for real-time data"
- * - "Production-ready for WebSocket migration"
- * - "User-controlled refresh with pause/resume"
- * - "Optimized to prevent unnecessary API calls"
- */
 export function useAutoRefresh({
   enabled = true,
-  interval = 30000, // 30 seconds default
+  interval = 30000,
   onRefresh,
 }: UseAutoRefreshOptions) {
   const [state, setState] = useState<AutoRefreshState>({
@@ -48,44 +29,47 @@ export function useAutoRefresh({
 
   const [countdown, setCountdown] = useState<number>(interval / 1000);
 
-  const performRefresh = useCallback(async () => {
-    if (!onRefresh || state.isPaused) return;
+  const isPausedRef = useRef(state.isPaused);
+  isPausedRef.current = state.isPaused;
 
-    setState(prev => ({ ...prev, isRefreshing: true }));
+  const onRefreshRef = useRef(onRefresh);
+  onRefreshRef.current = onRefresh;
+
+  const performRefresh = useCallback(async () => {
+    if (!onRefreshRef.current || isPausedRef.current) return;
+
+    setState((prev) => ({ ...prev, isRefreshing: true }));
 
     try {
-      await onRefresh();
-      
+      await onRefreshRef.current();
+
       const now = new Date();
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isRefreshing: false,
         lastRefresh: now,
         nextRefresh: new Date(now.getTime() + interval),
       }));
-      
+
       setCountdown(interval / 1000);
     } catch (error) {
       console.error('Auto-refresh failed:', error);
-      setState(prev => ({ ...prev, isRefreshing: false }));
+      setState((prev) => ({ ...prev, isRefreshing: false }));
     }
-  }, [onRefresh, interval, state.isPaused]);
+  }, [interval]);
 
-  // Manual refresh trigger
   const triggerRefresh = useCallback(async () => {
     await performRefresh();
   }, [performRefresh]);
 
-  // Pause/resume controls
   const pause = useCallback(() => {
-    setState(prev => ({ ...prev, isPaused: true }));
+    setState((prev) => ({ ...prev, isPaused: true }));
   }, []);
 
   const resume = useCallback(() => {
-    setState(prev => ({ ...prev, isPaused: false }));
+    setState((prev) => ({ ...prev, isPaused: false }));
   }, []);
 
-  // Auto-refresh interval
   useEffect(() => {
     if (!enabled || state.isPaused) return;
 
@@ -93,7 +77,6 @@ export function useAutoRefresh({
       performRefresh();
     }, interval);
 
-    // Initial refresh
     if (!state.lastRefresh) {
       performRefresh();
     }
@@ -101,17 +84,11 @@ export function useAutoRefresh({
     return () => clearInterval(refreshInterval);
   }, [enabled, interval, state.isPaused, performRefresh, state.lastRefresh]);
 
-  // Countdown timer
   useEffect(() => {
     if (state.isPaused || !enabled) return;
 
     const countdownInterval = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          return interval / 1000;
-        }
-        return prev - 1;
-      });
+      setCountdown((prev) => (prev <= 1 ? interval / 1000 : prev - 1));
     }, 1000);
 
     return () => clearInterval(countdownInterval);
