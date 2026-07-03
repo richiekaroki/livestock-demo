@@ -1,3 +1,11 @@
 {
-  "git.ignoreLimitWarning": true
+  "git.ignoreLimitWarning": true,
+  "cSpell.words": [
+    "ehthumbs",
+    "geospatial",
+    "LTMS",
+    "njsproj",
+    "ntvs",
+    "nuxt"
+  ]
 }
