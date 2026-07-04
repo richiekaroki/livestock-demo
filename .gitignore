@@ -66,3 +66,9 @@ temp/
 
 # ==================== EDITOR EXTENSIONS ====================
 !.vscode/extensions.json
+
+# ==================== AGENT / SKILL TOOLING ====================
+.agents/
+.impeccable/
+.playwright-mcp/
+skills-lock.json
