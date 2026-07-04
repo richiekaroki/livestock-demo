@@ -4,10 +4,20 @@ import L from "leaflet";
 import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 import type { Livestock } from "../../types";
+import { healthColors } from "../../utils/constants";
 
 interface HeatmapLayerProps {
   data: Livestock[];
   metric: "all" | "sick" | "healthy" | "treatment";
+}
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 /**
@@ -65,13 +75,13 @@ export default function HeatmapLayer({ data, metric }: HeatmapLayerProps) {
 
       // Add popup with details
       circle.bindPopup(`
-        <div class="min-w-[180px] p-2">
-          <div class="font-bold text-lg text-gray-800 dark:text-gray-200">${animal.name}</div>
-          <div class="text-sm text-gray-600 dark:text-gray-400">${animal.type}</div>
-          <div class="mt-2 space-y-1 text-sm">
-            <div><span class="font-medium">Health:</span> <span style="color: ${color}; font-weight: bold;">${animal.health}</span></div>
-            <div><span class="font-medium">Owner:</span> ${animal.owner}</div>
-            <div><span class="font-medium">County:</span> ${animal.county}</div>
+        <div style="min-width:180px;padding:8px;max-width:250px;overflow:hidden;">
+          <div style="font-weight:bold;font-size:1.125rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(animal.name)}</div>
+          <div style="font-size:0.875rem;color:var(--color-text-secondary,#3D5A3D);">${escapeHtml(animal.type)}</div>
+          <div style="margin-top:8px;font-size:0.875rem;">
+            <div><span style="font-weight:500;">Health:</span> <span style="color:${color};font-weight:bold;">${escapeHtml(animal.health)}</span></div>
+            <div><span style="font-weight:500;">Owner:</span> ${escapeHtml(animal.owner)}</div>
+            <div><span style="font-weight:500;">County:</span> ${escapeHtml(animal.county)}</div>
           </div>
         </div>
       `);
@@ -95,30 +105,17 @@ export default function HeatmapLayer({ data, metric }: HeatmapLayerProps) {
 // Helper function to get color based on metric
 function getColorForMetric(metric: string, health: string): string {
   if (metric === "all") {
-    // Color by health status
-    switch (health) {
-      case "Healthy":
-        return "#22c55e"; // green-500
-      case "Sick":
-        return "#ef4444"; // red-500
-      case "Under Treatment":
-        return "#eab308"; // yellow-500
-      case "Recovered":
-        return "#3b82f6"; // blue-500
-      default:
-        return "#94a3b8"; // slate-400
-    }
+    return healthColors[health as keyof typeof healthColors] || "#94a3b8";
   }
 
-  // Single metric colors
   switch (metric) {
     case "sick":
-      return "#ef4444"; // red-500
+      return healthColors.Sick;
     case "healthy":
-      return "#22c55e"; // green-500
+      return healthColors.Healthy;
     case "treatment":
-      return "#eab308"; // yellow-500
+      return healthColors["Under Treatment"];
     default:
-      return "#3b82f6"; // blue-500
+      return healthColors.Recovered;
   }
 }

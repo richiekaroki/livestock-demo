@@ -141,9 +141,7 @@ export default function BiometricCapture({
   };
 
   const simulateCloudVerification = async () => {
-    setTimeout(() => {
-      // Cloud verification would happen here in production
-    }, 3000);
+    setTimeout(() => {}, 3000);
   };
 
   const getBiometricIcon = () => {
@@ -173,12 +171,12 @@ export default function BiometricCapture({
   };
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+    <div className="border border-border rounded-lg p-4 bg-bg-secondary">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-gray-800 dark:text-white text-sm">
+        <h3 className="font-semibold text-text-primary text-sm">
           {getBiometricIcon()} Advanced Biometric Capture
         </h3>
-        <span className="text-xs text-gray-500 dark:text-gray-400 bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">
+        <span className="text-xs text-info bg-info/10 px-2 py-1 rounded">
           {getRecommendedBiometricMethod().description}
         </span>
       </div>
@@ -188,8 +186,8 @@ export default function BiometricCapture({
         disabled={isCapturing}
         className={`w-full py-3 px-4 rounded-lg font-medium text-sm transition-all ${
           isCapturing
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg"
+            ? "bg-bg-tertiary text-text-tertiary cursor-not-allowed"
+            : "btn btn-primary"
         }`}
       >
         {isCapturing ? (
@@ -203,11 +201,11 @@ export default function BiometricCapture({
       </button>
 
       {lastCapture && (
-        <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg text-sm">
-          <div className="font-semibold text-green-800 dark:text-green-300 mb-2">
+        <div className="mt-4 p-3 bg-success/5 border border-success/20 rounded-lg text-sm">
+          <div className="font-semibold text-success mb-2">
             ✅ Biometric Capture Successful
           </div>
-          <div className="space-y-1 text-xs text-gray-700 dark:text-gray-300">
+          <div className="space-y-1 text-xs text-text-secondary">
             <div>
               <strong>Method:</strong>{" "}
               {lastCapture.biometricType.replace("_", " ").toUpperCase()}

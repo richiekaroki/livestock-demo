@@ -1,7 +1,7 @@
 // src/components/map/LivestockMap.tsx
 
 import L from "leaflet";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import type { Livestock } from "../../types";
@@ -36,6 +36,62 @@ type HeatmapMetric = "all" | "sick" | "healthy" | "treatment";
 export default function LivestockMap({ data }: LivestockMapProps) {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [heatmapMetric, setHeatmapMetric] = useState<HeatmapMetric>("all");
+  const [mapError, setMapError] = useState(false);
+  const tileErrorCount = useRef(0);
+
+  const handleTileError = useCallback(() => {
+    tileErrorCount.current += 1;
+    if (tileErrorCount.current >= 5) {
+      setMapError(true);
+    }
+  }, []);
+
+  const handleRetry = useCallback(() => {
+    tileErrorCount.current = 0;
+    setMapError(false);
+  }, []);
+
+  if (mapError) {
+    return (
+      <div className="h-[500px] rounded-xl flex items-center justify-center bg-bg-secondary border border-border">
+        <div className="text-center p-6">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-error/10 flex items-center justify-center">
+            <svg className="w-8 h-8 text-error" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+          <p className="text-text-secondary font-medium mb-1">Map failed to load</p>
+          <p className="text-text-tertiary text-sm mb-4">Check your connection and try again.</p>
+          <button
+            onClick={handleRetry}
+            className="btn btn-primary text-sm"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="h-[500px] rounded-xl flex items-center justify-center bg-bg-secondary border border-border">
+        <div className="text-center p-6">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-bg-tertiary flex items-center justify-center">
+            <svg className="w-8 h-8 text-text-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+              <line x1="8" y1="2" x2="8" y2="18" />
+              <line x1="16" y1="6" x2="16" y2="22" />
+            </svg>
+          </div>
+          <p className="text-text-secondary font-medium mb-1">No animals match your filters</p>
+          <p className="text-text-tertiary text-sm">Clear the filters above to see all animals on the map</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-[500px] rounded-xl shadow-lg border border-border overflow-hidden relative">
@@ -45,6 +101,7 @@ export default function LivestockMap({ data }: LivestockMapProps) {
           {/* Toggle Button */}
           <button
             onClick={() => setShowHeatmap(!showHeatmap)}
+            aria-pressed={showHeatmap}
             className={`btn text-sm ${
               showHeatmap ? "btn-primary" : "btn-secondary"
             }`}
@@ -59,6 +116,7 @@ export default function LivestockMap({ data }: LivestockMapProps) {
               onChange={(e) =>
                 setHeatmapMetric(e.target.value as HeatmapMetric)
               }
+              aria-label="Heatmap metric"
               className="input-field text-sm"
             >
               <option value="all">All Animals</option>
@@ -67,52 +125,28 @@ export default function LivestockMap({ data }: LivestockMapProps) {
               <option value="treatment">Under Treatment</option>
             </select>
           )}
+        </div>
+      </div>
 
-          {/* Heatmap Legend */}
-          {showHeatmap && (
-            <div className="heatmap-legend">
-              <div className="text-xs font-medium text-text-primary mb-2">
-                Heatmap Legend:
-              </div>
-              <div className="space-y-1 text-xs">
-                {heatmapMetric === "all" ? (
-                  <>
-                    <div className="heatmap-legend-item">
-                      <div className="heatmap-legend-color bg-green-500"></div>
-                      <span className="text-text-secondary">Healthy</span>
-                    </div>
-                    <div className="heatmap-legend-item">
-                      <div className="heatmap-legend-color bg-red-500"></div>
-                      <span className="text-text-secondary">Sick</span>
-                    </div>
-                    <div className="heatmap-legend-item">
-                      <div className="heatmap-legend-color bg-yellow-500"></div>
-                      <span className="text-text-secondary">Treatment</span>
-                    </div>
-                    <div className="heatmap-legend-item">
-                      <div className="heatmap-legend-color bg-blue-500"></div>
-                      <span className="text-text-secondary">Recovered</span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="heatmap-legend-item">
-                    <div
-                      className="heatmap-legend-color"
-                      style={{
-                        backgroundColor: getHeatmapColor(heatmapMetric),
-                      }}
-                    ></div>
-                    <span className="text-text-secondary">
-                      {heatmapMetric === "sick" && "Sick Animals"}
-                      {heatmapMetric === "healthy" && "Healthy Animals"}
-                      {heatmapMetric === "treatment" &&
-                        "Animals Under Treatment"}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+      {/* Compact Legend Overlay — bottom-left, no glassmorphism */}
+      <div className="absolute bottom-4 left-4 z-[1000] bg-bg-primary border border-border rounded-lg px-3 py-2 text-xs">
+        <div className="flex flex-wrap gap-x-4 gap-y-1">
+          <span className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-success border-2 border-bg-primary shadow-sm" />
+            <span className="text-text-secondary">Healthy</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-error border-2 border-bg-primary shadow-sm" />
+            <span className="text-text-secondary">Sick</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-warning border-2 border-bg-primary shadow-sm" />
+            <span className="text-text-secondary">Treatment</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-info border-2 border-bg-primary shadow-sm" />
+            <span className="text-text-secondary">Recovered</span>
+          </span>
         </div>
       </div>
 
@@ -121,10 +155,12 @@ export default function LivestockMap({ data }: LivestockMapProps) {
         zoom={6.5}
         style={{ height: "100%", width: "100%" }}
         className="map-container"
+        aria-label="Livestock distribution map of Kenya"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          eventHandlers={{ tileerror: handleTileError }}
         />
 
         {/* Heatmap Layer */}
@@ -219,18 +255,4 @@ export default function LivestockMap({ data }: LivestockMapProps) {
       </MapContainer>
     </div>
   );
-}
-
-// Helper function for heatmap legend
-function getHeatmapColor(metric: HeatmapMetric): string {
-  switch (metric) {
-    case "sick":
-      return "#ef4444"; // red-500
-    case "healthy":
-      return "#22c55e"; // green-500
-    case "treatment":
-      return "#eab308"; // yellow-500
-    default:
-      return "#3b82f6"; // blue-500
-  }
 }

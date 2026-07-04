@@ -229,14 +229,6 @@ class GovernmentAPIService {
   private simulateNetworkDelay(ms: number = 800): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
-
-  // async uploadBiometricToAWS(
-  //   animalId: string,
-  //   _biometricData: Blob
-  // ): Promise<string> {
-  //   await this.simulateNetworkDelay();
-  //   return `s3://mifugo360-biometrics/${animalId}/${Date.now()}.jpg`;
-  // }
 }
 
 export const governmentAPI = new GovernmentAPIService();

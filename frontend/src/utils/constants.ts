@@ -1,4 +1,3 @@
-// src/utils/constants.ts
 import type { AnimalType, HealthStatus } from "../types";
 
 export const healthBadgeClasses: Record<HealthStatus, string> = {
@@ -17,10 +16,10 @@ export const typeBadgeClasses: Record<AnimalType, string> = {
   Chicken: "badge-chicken",
 };
 
-// For map markers
+// For map markers — uses design token hex values from main.css
 export const healthColors: Record<HealthStatus, string> = {
-  Healthy: "#22c55e",
-  Sick: "#ef4444",
-  "Under Treatment": "#eab308",
-  Recovered: "#3b82f6",
+  Healthy: "#15803D",
+  Sick: "#DC2626",
+  "Under Treatment": "#92400E",
+  Recovered: "#0369A1",
 };

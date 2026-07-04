@@ -23,9 +23,7 @@ export default function KALROSyncStatus() {
     message: string;
   }>({ type: null, message: "" });
 
-  // Manual sync handler - fixed circular dependency
   const handleManualSync = useCallback(async () => {
-    // Use refs for latest values without re-creating callback
     const currentOnlineStatus = navigator.onLine;
     const currentPendingItems = JSON.parse(
       localStorage.getItem("kalro_sync_queue") || "[]"
@@ -52,7 +50,6 @@ export default function KALROSyncStatus() {
     setSyncResult({ type: null, message: "" });
 
     try {
-      // Process the offline queue
       const result = await governmentAPI.processOfflineQueue();
 
       const now = new Date().toISOString();
@@ -68,18 +65,17 @@ export default function KALROSyncStatus() {
       if (result.processed > 0) {
         setSyncResult({
           type: "success",
-          message: `✅ Successfully synced ${result.processed} record(s) with KALRO!`,
+          message: `Successfully synced ${result.processed} record(s) with KALRO!`,
         });
       }
 
       if (result.failed > 0) {
         setSyncResult({
           type: "error",
-          message: `⚠️ ${result.failed} record(s) failed to sync. Will retry later.`,
+          message: `${result.failed} record(s) failed to sync. Will retry later.`,
         });
       }
 
-      // Clear message after 5 seconds
       setTimeout(() => setSyncResult({ type: null, message: "" }), 5000);
     } catch (error) {
       console.error("Sync failed:", error);
@@ -92,24 +88,19 @@ export default function KALROSyncStatus() {
 
       setTimeout(() => setSyncResult({ type: null, message: "" }), 5000);
     }
-  }, []); // ✅ Stable reference
+  }, []);
 
-  // Initialize and listen for online/offline events
   useEffect(() => {
-    // Check pending queue on mount
     const queue = JSON.parse(localStorage.getItem("kalro_sync_queue") || "[]");
     setSyncStatus((prev) => ({ ...prev, pendingItems: queue.length }));
 
-    // Online/offline event handlers
     const handleOnline = () => {
       setSyncStatus((prev) => ({ ...prev, isOnline: true }));
 
-      // Auto-sync when coming back online (if there are pending items)
       const pendingQueue = JSON.parse(
         localStorage.getItem("kalro_sync_queue") || "[]"
       );
       if (pendingQueue.length > 0) {
-        console.log("🌐 Back online! Auto-syncing pending records...");
         handleManualSync();
       }
     };
@@ -121,7 +112,6 @@ export default function KALROSyncStatus() {
         message: "Connection lost. Changes will sync when back online.",
       });
 
-      // Clear message after 5 seconds
       setTimeout(() => setSyncResult({ type: null, message: "" }), 5000);
     };
 
@@ -134,7 +124,6 @@ export default function KALROSyncStatus() {
     };
   }, [handleManualSync]);
 
-  // Format last sync time
   const formatLastSync = (timestamp: string | null): string => {
     if (!timestamp) return "Never";
 
@@ -151,14 +140,12 @@ export default function KALROSyncStatus() {
 
   return (
     <div className="card p-4 bg-bg-secondary border-border">
-      {/* Status Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          {/* Online/Offline Indicator */}
           <div className="flex items-center gap-2">
             <div
-              className={`w-3 h-3 rounded-full ${
-                syncStatus.isOnline ? "bg-green-500" : "bg-red-500"
+              className={`w-2.5 h-2.5 rounded-full ${
+                syncStatus.isOnline ? "bg-success" : "bg-error"
               } animate-pulse`}
             />
             <span className="text-sm font-medium text-text-primary">
@@ -166,40 +153,31 @@ export default function KALROSyncStatus() {
             </span>
           </div>
 
-          {/* Divider */}
           <div className="w-px h-4 bg-border" />
 
-          {/* Sync Status */}
           <div className="text-sm text-text-secondary">
             <span className="font-medium">KALRO Sync:</span>{" "}
             {syncStatus.isSyncing ? (
-              <span className="text-blue-600 dark:text-blue-400">
-                Syncing...
-              </span>
+              <span className="text-info">Syncing...</span>
             ) : syncStatus.pendingItems > 0 ? (
-              <span className="text-yellow-600 dark:text-yellow-400">
-                {syncStatus.pendingItems} pending
-              </span>
+              <span className="text-warning">{syncStatus.pendingItems} pending</span>
             ) : (
-              <span className="text-green-600 dark:text-green-400">
-                All synced
-              </span>
+              <span className="text-success">All synced</span>
             )}
           </div>
         </div>
 
-        {/* Sync Button */}
         {syncStatus.pendingItems > 0 && syncStatus.isOnline && (
           <button
             onClick={handleManualSync}
             disabled={syncStatus.isSyncing}
-            className={`btn btn-primary text-xs py-1 px-3 ${
+            className={`btn btn-primary text-xs py-1.5 px-3 ${
               syncStatus.isSyncing ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
             {syncStatus.isSyncing ? (
-              <span className="flex items-center gap-1">
-                <span className="animate-spin">⚙️</span>
+              <span className="flex items-center gap-1.5">
+                <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" />
                 Syncing...
               </span>
             ) : (
@@ -209,32 +187,33 @@ export default function KALROSyncStatus() {
         )}
       </div>
 
-      {/* Last Sync Info */}
-      <div className="text-xs text-text-tertiary">
+      <div className="text-xs text-text-tertiary font-mono">
         Last synced: {formatLastSync(syncStatus.lastSync)}
       </div>
 
-      {/* Sync Result Message */}
       {syncResult.type && (
         <div
-          className={`mt-3 p-2 rounded-md text-xs ${
+          className={`mt-3 p-2.5 rounded-lg text-xs font-medium ${
             syncResult.type === "success"
-              ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800"
-              : "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800"
+              ? "bg-success/10 text-success border border-success/20"
+              : "bg-warning/10 text-warning border border-warning/20"
           }`}
         >
           {syncResult.message}
         </div>
       )}
 
-      {/* Offline Warning */}
       {!syncStatus.isOnline && (
-        <div className="mt-3 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+        <div className="mt-3 p-2.5 bg-error/5 border border-error/20 rounded-lg">
           <div className="flex items-start gap-2">
-            <span className="text-sm">⚠️</span>
-            <div className="text-xs text-red-800 dark:text-red-300">
+            <svg className="w-4 h-4 text-error mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <div className="text-xs text-error">
               <strong>Offline Mode Active</strong>
-              <p className="mt-1">
+              <p className="mt-1 text-error/80">
                 Your changes are saved locally and will sync with KALRO when
                 connection is restored.
               </p>
@@ -243,10 +222,9 @@ export default function KALROSyncStatus() {
         </div>
       )}
 
-      {/* Help Text (only show when there are pending items) */}
       {syncStatus.pendingItems > 0 && (
-        <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md text-xs text-blue-800 dark:text-blue-300">
-          <strong>💡 Tip:</strong> Records will auto-sync when you reconnect.
+        <div className="mt-3 p-2.5 bg-info/5 border border-info/20 rounded-lg text-xs text-info">
+          <strong>Tip:</strong> Records will auto-sync when you reconnect.
           You can also manually sync using the button above.
         </div>
       )}

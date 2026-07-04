@@ -1,5 +1,5 @@
 /* ============================================
-   MAIN.CSS - Tailwind v4
+   MAIN.CSS - Tailwind v4 + Organic Biophilic Theme
    ============================================ */
 
 @import "tailwindcss";
@@ -13,44 +13,166 @@
 
 @theme {
   /* ---------- Color Tokens ---------- */
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f8fafc;
-  --color-bg-tertiary: #f1f5f9;
+  --color-bg-primary: #FAFDF7;
+  --color-bg-secondary: #F0FDF4;
+  --color-bg-tertiary: #E8F5E9;
 
-  --color-text-primary: #1e293b;
-  --color-text-secondary: #475569;
-  --color-text-tertiary: #64748b;
+  --color-text-primary: #1B2E1B;
+  --color-text-secondary: #3D5A3D;
+  --color-text-tertiary: #415941;
 
-  --color-border: #e2e8f0;
-  --color-accent: #3b82f6;
+  --color-border: #C8E6C9;
+  --color-accent: #15803D;
+  --color-accent-hover: #166534;
+  --color-accent-gold: #A16207;
+  --color-accent-gold-hover: #854D0E;
 
   /* ---------- Status Colors ---------- */
-  --color-success: #22c55e;
-  --color-error: #ef4444;
-  --color-warning: #eab308;
-  --color-info: #3b82f6;
+  --color-success: #15803D;
+  --color-error: #DC2626;
+  --color-warning: #92400E;
+  --color-info: #0369A1;
 
   /* ---------- Animal Type Colors ---------- */
-  --color-type-cattle: #f97316;
-  --color-type-goat: #a855f7;
-  --color-type-sheep: #6366f1;
-  --color-type-camel: #f59e0b;
-  --color-type-pig: #ec4899;
-  --color-type-chicken: #ef4444;
+  --color-type-cattle: #B45309;
+  --color-type-goat: #7C3AED;
+  --color-type-sheep: #4F46E5;
+  --color-type-camel: #D97706;
+  --color-type-pig: #DB2777;
+  --color-type-chicken: #DC2626;
+
+  /* ---------- Shadows ---------- */
+  --shadow-sm: 0 1px 2px 0 rgb(21 128 61 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(21 128 61 / 0.07), 0 2px 4px -2px rgb(21 128 61 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(21 128 61 / 0.08), 0 4px 6px -4px rgb(21 128 61 / 0.04);
+  --shadow-xl: 0 20px 25px -5px rgb(21 128 61 / 0.08), 0 8px 10px -6px rgb(21 128 61 / 0.04);
+
+  /* ---------- Radius ---------- */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
 
   /* ---------- Animation ---------- */
-  --animate-fade-in: fadeIn 0.5s ease-out forwards;
+  --animate-fade-in: fadeIn 0.2s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) forwards;
+  --animate-slide-up: slideUp 0.2s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) forwards;
+  --animate-scale-in: scaleIn 0.2s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) forwards;
+  --animate-slide-down: slideDown 0.2s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) forwards;
+  --animate-fade-out: fadeOut 0.15s ease-in forwards;
+  --animate-slide-out-down: slideOutDown 0.15s ease-in forwards;
+  --animate-slide-out-up: slideOutUp 0.15s ease-in forwards;
+  --animate-scale-out: scaleOut 0.15s ease-in forwards;
 
+  /* Entrance */
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* Exit */
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  @keyframes slideOutDown {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(12px); }
+  }
+
+  @keyframes slideOutUp {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-12px); }
+  }
+
+  @keyframes scaleOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.95); }
+  }
+
+  /* Scroll reveal */
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes revealScale {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+}
+
+/* Easing curves */
+:root {
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Scroll reveal base classes */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.2s var(--ease-out-expo), transform 0.2s var(--ease-out-expo);
+}
+
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-reveal-scale {
+  opacity: 0;
+  transform: scale(0.96);
+  transition: opacity 0.2s var(--ease-out-expo), transform 0.2s var(--ease-out-expo);
+}
+
+.scroll-reveal-scale.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Stagger children */
+.stagger-children > * {
+  --stagger-index: 0;
+  transition-delay: calc(var(--stagger-index) * 60ms);
+}
+
+/* Page transition */
+.page-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.2s var(--ease-out-expo), transform 0.2s var(--ease-out-expo);
+}
+
+/* Animated number */
+.animated-number {
+  display: inline-block;
+  transition: transform 0.15s var(--ease-out-quart);
+}
+
+.animated-number.changing {
+  transform: translateY(-2px);
 }
 
 /* ============================================
@@ -58,25 +180,31 @@
    ============================================ */
 
 [data-theme="dark"] {
-  --color-bg-primary: #0b0b0c;
-  --color-bg-secondary: #161616;
-  --color-bg-tertiary: #1f1f1f;
-  --color-text-primary: #f9fafb;
-  --color-text-secondary: #d1d5db;
-  --color-text-tertiary: #9ca3af;
-  --color-border: #2d2d2d;
-  --color-accent: #60a5fa;
+  --color-bg-primary: #0C1A0C;
+  --color-bg-secondary: #132413;
+  --color-bg-tertiary: #1A2E1A;
+  --color-text-primary: #E8F5E9;
+  --color-text-secondary: #A5D6A7;
+  --color-text-tertiary: #66BB6A;
+  --color-border: #2E4A2E;
+  --color-accent: #4ADE80;
+  --color-accent-hover: #22C55E;
+  --color-accent-gold: #FBBF24;
+  --color-accent-gold-hover: #F59E0B;
 }
 
 [data-theme="light"] {
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f8fafc;
-  --color-bg-tertiary: #f1f5f9;
-  --color-text-primary: #1e293b;
-  --color-text-secondary: #475569;
-  --color-text-tertiary: #64748b;
-  --color-border: #e2e8f0;
-  --color-accent: #3b82f6;
+  --color-bg-primary: #FAFDF7;
+  --color-bg-secondary: #F0FDF4;
+  --color-bg-tertiary: #E8F5E9;
+  --color-text-primary: #1B2E1B;
+  --color-text-secondary: #3D5A3D;
+  --color-text-tertiary: #415941;
+  --color-border: #C8E6C9;
+  --color-accent: #15803D;
+  --color-accent-hover: #166534;
+  --color-accent-gold: #A16207;
+  --color-accent-gold-hover: #854D0E;
 }
 
 /* ============================================
@@ -86,18 +214,60 @@
 body {
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
   margin: 0;
   padding: 0;
+  font-family: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Tailwind Base Layer Override */
 @layer base {
   body {
-    @apply bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] m-0 p-0;
+    @apply m-0 p-0;
+    font-family: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
   }
 }
 
 .border {
   border-color: var(--color-border);
+}
+
+/* Focus visible styles */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip to content link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--color-accent);
+  color: white;
+  padding: 8px 16px;
+  z-index: 100;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Selection styles */
+::selection {
+  background-color: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  color: var(--color-text-primary);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

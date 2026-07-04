@@ -1,6 +1,7 @@
 // src/components/dashboard/RefreshIndicator.tsx
 
 import { useState } from "react";
+import { useDelayedUnmount } from "../../hooks/useDelayedUnmount";
 
 interface RefreshIndicatorProps {
   isRefreshing: boolean;
@@ -22,6 +23,7 @@ export default function RefreshIndicator({
   onResume,
 }: RefreshIndicatorProps) {
   const [showControls, setShowControls] = useState(false);
+  const { shouldRender, isAnimating } = useDelayedUnmount(showControls, 200);
 
   const formatTime = (date: Date | null) => {
     if (!date) return "Never";
@@ -33,39 +35,29 @@ export default function RefreshIndicator({
     });
   };
 
-  // Dynamic styles using CSS variables
   const getContainerStyles = () => {
     if (isRefreshing) {
-      return "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300";
+      return "bg-info/10 border-info/20 text-info";
     }
     if (isPaused) {
-      return "bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300";
+      return "bg-bg-secondary border-border text-text-secondary";
     }
-    return "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300";
+    return "bg-success/10 border-success/20 text-success";
   };
 
   return (
     <div className="relative">
-      {/* Main Indicator */}
       <button
         onClick={() => setShowControls(!showControls)}
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${getContainerStyles()}`}
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all cursor-pointer ${getContainerStyles()}`}
       >
-        {/* Refresh Icon */}
         {isRefreshing ? (
           <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
         ) : (
-          <svg
-            className="h-4 w-4"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
-              clipRule="evenodd"
-            />
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="23 4 23 10 17 10" />
+            <polyline points="1 20 1 14 7 14" />
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
           </svg>
         )}
 
@@ -78,19 +70,21 @@ export default function RefreshIndicator({
         </div>
       </button>
 
-      {/* Dropdown Controls */}
-      {showControls && (
-        <div className="absolute top-full right-0 mt-2 w-64 card z-50 animate-fadeIn">
+      {shouldRender && (
+        <div
+          className={`absolute top-full right-0 mt-2 w-64 card z-50 ${
+            isAnimating ? "animate-scale-out" : "animate-scale-in"
+          }`}
+        >
           <div className="p-4 space-y-3">
-            {/* Status Info */}
             <div className="space-y-2">
               <div className="text-sm font-medium text-text-primary">
                 Auto-Refresh Status
               </div>
-              <div className="text-xs text-text-secondary space-y-1">
+              <div className="text-xs text-text-secondary space-y-1.5">
                 <div className="flex justify-between">
                   <span>Last refresh:</span>
-                  <span className="font-medium text-text-primary">
+                  <span className="font-medium text-text-primary font-mono">
                     {formatTime(lastRefresh)}
                   </span>
                 </div>
@@ -107,7 +101,6 @@ export default function RefreshIndicator({
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-2">
               {isPaused ? (
                 <button
@@ -143,7 +136,6 @@ export default function RefreshIndicator({
               </button>
             </div>
 
-            {/* Quick Actions */}
             <div className="pt-2 border-t border-border">
               <div className="text-xs text-text-tertiary">
                 Data updates {isPaused ? "paused" : "every 30 seconds"}
@@ -151,7 +143,6 @@ export default function RefreshIndicator({
             </div>
           </div>
 
-          {/* Click outside to close */}
           <div
             className="fixed inset-0 z-[-1]"
             onClick={() => setShowControls(false)}

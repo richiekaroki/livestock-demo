@@ -74,16 +74,19 @@ export default function RegistrationForm({
       setSuccessMessage(`${name} registered successfully!`);
       onAnimalAdded();
 
+      // Clear form immediately after successful registration
+      setName("");
+      setType("Cattle");
+      setCounty("Nakuru");
+      setOwner("");
+      setHealth("Healthy");
+      setBiometricData(null);
+      setShowBiometric(false);
+
+      // Dismiss success message after 4 seconds
       setTimeout(() => {
-        setName("");
-        setType("Cattle");
-        setCounty("Nakuru");
-        setOwner("");
-        setHealth("Healthy");
-        setBiometricData(null);
-        setShowBiometric(false);
         setSuccessMessage(null);
-      }, 2000);
+      }, 4000);
     } catch {
       setError("Failed to register animal. Please try again.");
     } finally {
@@ -97,13 +100,13 @@ export default function RegistrationForm({
 
   return (
     <form className="card space-y-4 p-6" onSubmit={handleSubmit}>
-      <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+      <h2 className="text-xl font-bold text-text-primary">
         Register New Animal
       </h2>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium mb-1">Animal Name</label>
+          <label className="block text-sm font-medium mb-1.5 text-text-secondary">Animal Name</label>
           <input
             className="input-field"
             value={name}
@@ -114,7 +117,7 @@ export default function RegistrationForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Animal Type</label>
+          <label className="block text-sm font-medium mb-1.5 text-text-secondary">Animal Type</label>
           <select
             className="input-field"
             value={type}
@@ -131,7 +134,7 @@ export default function RegistrationForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">County</label>
+          <label className="block text-sm font-medium mb-1.5 text-text-secondary">County</label>
           <select
             className="input-field"
             value={county}
@@ -147,7 +150,7 @@ export default function RegistrationForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Owner Name</label>
+          <label className="block text-sm font-medium mb-1.5 text-text-secondary">Owner Name</label>
           <input
             className="input-field"
             value={owner}
@@ -159,7 +162,7 @@ export default function RegistrationForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Health Status</label>
+        <label className="block text-sm font-medium mb-1.5 text-text-secondary">Health Status</label>
         <select
           className="input-field"
           value={health}
@@ -173,15 +176,15 @@ export default function RegistrationForm({
         </select>
       </div>
 
-      <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+      <div className="border-t border-border pt-4">
         <div className="flex justify-between mb-3">
-          <h3 className="text-sm font-semibold">
+          <h3 className="text-sm font-semibold text-text-secondary">
             Biometric Identification (Optional)
           </h3>
           <button
             type="button"
             onClick={() => setShowBiometric(!showBiometric)}
-            className="text-xs text-blue-600 hover:underline"
+            className="text-xs text-accent hover:text-accent-hover font-medium cursor-pointer"
             disabled={isSubmitting}
           >
             {showBiometric ? "Hide" : "Show"} Biometric Capture
@@ -196,8 +199,8 @@ export default function RegistrationForm({
         )}
 
         {biometricData && (
-          <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded-md">
-            <div className="text-sm text-green-800">
+          <div className="mt-3 p-3 bg-success/5 border border-success/20 rounded-lg">
+            <div className="text-sm text-success font-medium">
               Biometric data captured (
               {(biometricData.confidence * 100).toFixed(1)}% confidence)
             </div>
@@ -206,14 +209,14 @@ export default function RegistrationForm({
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+        <div className="p-3 bg-error/5 border border-error/20 rounded-lg text-error text-sm">
           <strong>Error:</strong> {error}
         </div>
       )}
 
       {successMessage && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-          <strong>{successMessage}</strong>
+        <div className="p-3 bg-success/5 border border-success/20 rounded-lg text-success text-sm font-medium">
+          {successMessage}
         </div>
       )}
 
@@ -224,7 +227,20 @@ export default function RegistrationForm({
         }`}
         disabled={isSubmitting}
       >
-        {isSubmitting ? "Registering..." : "Register Animal"}
+        {isSubmitting ? (
+          <>
+            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+            Registering...
+          </>
+        ) : (
+          <>
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Register Animal
+          </>
+        )}
       </button>
     </form>
   );

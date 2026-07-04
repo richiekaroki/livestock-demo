@@ -14,7 +14,6 @@ export default function FilterBar({
   onFilterChange,
   data,
 }: FilterBarProps) {
-  // ✅ Memoize unique values
   const uniqueTypes = useMemo(
     () => [...new Set(data.map((d) => d.type))],
     [data]
@@ -29,10 +28,10 @@ export default function FilterBar({
   );
 
   return (
-    <div className="card p-4 flex flex-col md:flex-row items-center gap-4">
-      <div className="flex gap-2 flex-wrap">
+    <div className="flex flex-col md:flex-row items-center gap-3">
+      <div className="flex gap-2 flex-wrap flex-1">
         <select
-          className="input-field"
+          className="input-field w-auto min-w-[140px]"
           value={filters.type}
           onChange={(e) => onFilterChange("type", e.target.value)}
         >
@@ -45,7 +44,7 @@ export default function FilterBar({
         </select>
 
         <select
-          className="input-field"
+          className="input-field w-auto min-w-[140px]"
           value={filters.county}
           onChange={(e) => onFilterChange("county", e.target.value)}
         >
@@ -58,7 +57,7 @@ export default function FilterBar({
         </select>
 
         <select
-          className="input-field"
+          className="input-field w-auto min-w-[160px]"
           value={filters.health}
           onChange={(e) => onFilterChange("health", e.target.value)}
         >
@@ -72,13 +71,17 @@ export default function FilterBar({
       </div>
 
       <button
-        className="btn btn-gray mt-2 md:mt-0"
+        className="btn btn-ghost text-sm"
         onClick={() => {
           onFilterChange("type", "");
           onFilterChange("county", "");
           onFilterChange("health", "");
         }}
       >
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
         Reset Filters
       </button>
     </div>

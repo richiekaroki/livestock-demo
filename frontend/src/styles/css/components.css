@@ -1,19 +1,24 @@
 /* ============================================
-   COMPONENTS.CSS - Tailwind v4
+   COMPONENTS.CSS - Organic Biophilic Theme
    ============================================ */
 
 /* Card Component */
 .card {
   background-color: var(--color-bg-primary);
   border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  transition: all 0.2s ease-in-out;
+  transition: box-shadow 0.2s ease;
 }
 
-.card:hover {
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+/* Interactive card — hover shadow only on cards that are clickable */
+.card.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Button Component */
@@ -21,14 +26,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--color-border);
+  font-family: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
   transition: all 0.2s ease;
   cursor: pointer;
   font-size: 0.875rem;
   line-height: 1.25rem;
+}
+
+.btn:active {
+  transform: scale(0.98);
 }
 
 .btn-primary {
@@ -38,179 +49,139 @@
 }
 
 .btn-primary:hover {
-  background-color: color-mix(in srgb, var(--color-accent) 80%, black);
-  transform: translateY(-1px);
+  background-color: var(--color-accent-hover);
+  box-shadow: 0 2px 8px rgb(21 128 61 / 0.3);
+}
+
+.btn-gold {
+  background-color: var(--color-accent-gold);
+  color: white;
+  border-color: var(--color-accent-gold);
+}
+
+.btn-gold:hover {
+  background-color: var(--color-accent-gold-hover);
+  box-shadow: 0 2px 8px rgb(161 98 7 / 0.3);
 }
 
 .btn-secondary {
-  background-color: var(--color-bg-tertiary);
+  background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
+  border-color: var(--color-border);
 }
 
 .btn-secondary:hover {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-accent);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.btn-ghost:hover {
   background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
 }
 
 /* Input Field Component */
 .input-field {
   border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  padding: 0.625rem 0.875rem;
   width: 100%;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
+  font-family: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.875rem;
   transition: all 0.2s ease;
+}
+
+.input-field::placeholder {
+  color: var(--color-text-tertiary);
 }
 
 .input-field:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 /* Badge Component */
 .badge {
   display: inline-flex;
   align-items: center;
+  gap: 0.25rem;
   border-radius: 9999px;
   padding: 0.25rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 500;
+  font-family: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
   border: 1px solid var(--color-border);
+  line-height: 1;
 }
 
 /* Health Status Badges */
 .badge-healthy {
-  background-color: color-mix(
-    in srgb,
-    var(--color-success) 10%,
-    var(--color-bg-primary)
-  );
+  background-color: color-mix(in srgb, var(--color-success) 10%, var(--color-bg-primary));
   color: var(--color-success);
-  border-color: color-mix(
-    in srgb,
-    var(--color-success) 40%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb, var(--color-success) 30%, var(--color-border));
 }
 
 .badge-sick {
-  background-color: color-mix(
-    in srgb,
-    var(--color-error) 10%,
-    var(--color-bg-primary)
-  );
+  background-color: color-mix(in srgb, var(--color-error) 10%, var(--color-bg-primary));
   color: var(--color-error);
-  border-color: color-mix(in srgb, var(--color-error) 40%, var(--color-border));
+  border-color: color-mix(in srgb, var(--color-error) 30%, var(--color-border));
 }
 
 .badge-under-treatment {
-  background-color: color-mix(
-    in srgb,
-    var(--color-warning) 10%,
-    var(--color-bg-primary)
-  );
+  background-color: color-mix(in srgb, var(--color-warning) 10%, var(--color-bg-primary));
   color: var(--color-warning);
-  border-color: color-mix(
-    in srgb,
-    var(--color-warning) 40%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb, var(--color-warning) 30%, var(--color-border));
 }
 
 .badge-recovered {
-  background-color: color-mix(
-    in srgb,
-    var(--color-info) 10%,
-    var(--color-bg-primary)
-  );
+  background-color: color-mix(in srgb, var(--color-info) 10%, var(--color-bg-primary));
   color: var(--color-info);
-  border-color: color-mix(in srgb, var(--color-info) 40%, var(--color-border));
+  border-color: color-mix(in srgb, var(--color-info) 30%, var(--color-border));
 }
 
 /* Animal Type Badges */
 .badge-cattle {
-  background-color: color-mix(
-    in srgb,
-    var(--color-type-cattle) 10%,
-    var(--color-bg-primary)
-  );
+  background-color: color-mix(in srgb, var(--color-type-cattle) 10%, var(--color-bg-primary));
   color: var(--color-type-cattle);
-  border-color: color-mix(
-    in srgb,
-    var(--color-type-cattle) 40%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb, var(--color-type-cattle) 30%, var(--color-border));
 }
 
 .badge-goat {
-  background-color: color-mix(
-    in srgb,
-    var(--color-type-goat) 10%,
-    var(--color-bg-primary)
-  );
+  background-color: color-mix(in srgb, var(--color-type-goat) 10%, var(--color-bg-primary));
   color: var(--color-type-goat);
-  border-color: color-mix(
-    in srgb,
-    var(--color-type-goat) 40%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb, var(--color-type-goat) 30%, var(--color-border));
 }
 
 .badge-sheep {
-  background-color: color-mix(
-    in srgb,
-    var(--color-type-sheep) 10%,
-    var(--color-bg-primary)
-  );
+  background-color: color-mix(in srgb, var(--color-type-sheep) 10%, var(--color-bg-primary));
   color: var(--color-type-sheep);
-  border-color: color-mix(
-    in srgb,
-    var(--color-type-sheep) 40%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb, var(--color-type-sheep) 30%, var(--color-border));
 }
 
 .badge-camel {
-  background-color: color-mix(
-    in srgb,
-    var(--color-type-camel) 10%,
-    var(--color-bg-primary)
-  );
+  background-color: color-mix(in srgb, var(--color-type-camel) 10%, var(--color-bg-primary));
   color: var(--color-type-camel);
-  border-color: color-mix(
-    in srgb,
-    var(--color-type-camel) 40%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb, var(--color-type-camel) 30%, var(--color-border));
 }
 
 .badge-pig {
-  background-color: color-mix(
-    in srgb,
-    var(--color-type-pig) 10%,
-    var(--color-bg-primary)
-  );
+  background-color: color-mix(in srgb, var(--color-type-pig) 10%, var(--color-bg-primary));
   color: var(--color-type-pig);
-  border-color: color-mix(
-    in srgb,
-    var(--color-type-pig) 40%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb, var(--color-type-pig) 30%, var(--color-border));
 }
 
 .badge-chicken {
-  background-color: color-mix(
-    in srgb,
-    var(--color-type-chicken) 10%,
-    var(--color-bg-primary)
-  );
+  background-color: color-mix(in srgb, var(--color-type-chicken) 10%, var(--color-bg-primary));
   color: var(--color-type-chicken);
-  border-color: color-mix(
-    in srgb,
-    var(--color-type-chicken) 40%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb, var(--color-type-chicken) 30%, var(--color-border));
 }
 
 /* Animation Utility */
@@ -218,19 +189,23 @@
   animation: var(--animate-fade-in);
 }
 
-/* Navigation specific styles */
+.animate-slideUp {
+  animation: var(--animate-slide-up);
+}
+
+/* ============================================
+   NAVIGATION SPECIFIC STYLES
+   ============================================ */
+
 .nav-backdrop {
-  backdrop-filter: blur(8px);
-  background-color: color-mix(
-    in srgb,
-    var(--color-bg-primary) 80%,
-    transparent
-  );
+  background-color: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .nav-link-active {
   background-color: var(--color-accent);
   color: white;
+  box-shadow: 0 1px 3px rgb(21 128 61 / 0.2);
 }
 
 .nav-link-inactive {
@@ -250,9 +225,9 @@
 .heatmap-controls {
   background-color: var(--color-bg-primary);
   border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   padding: 1rem;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  box-shadow: var(--shadow-md);
   z-index: 1000;
 }
 
@@ -262,80 +237,26 @@
   border: 3px solid var(--color-bg-primary);
   border-radius: 50%;
   color: white;
-  font-weight: bold;
+  font-weight: 600;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgb(21 128 61 / 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.875rem;
+  font-family: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
   transition: all 0.2s ease;
 }
 
 .custom-marker-cluster:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-/* Different sizes for different cluster counts */
-.custom-marker-cluster-small {
-  width: 30px;
-  height: 30px;
-  font-size: 0.75rem;
-}
-
-.custom-marker-cluster-medium {
-  width: 40px;
-  height: 40px;
-  font-size: 0.875rem;
-}
-
-.custom-marker-cluster-large {
-  width: 50px;
-  height: 50px;
-  font-size: 1rem;
-}
-
-/* Color variations based on cluster health (optional) */
-.custom-marker-cluster-healthy {
-  background: var(--color-success);
-}
-
-.custom-marker-cluster-sick {
-  background: var(--color-error);
-}
-
-.custom-marker-cluster-mixed {
-  background: var(--color-warning);
-}
-
-/* Heatmap Legend Styles */
-.heatmap-legend {
-  background-color: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  font-size: 0.75rem;
-}
-
-.heatmap-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.heatmap-legend-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 12px rgb(21 128 61 / 0.4);
 }
 
 /* Map Container Responsive Styles */
 .map-container {
   position: relative;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid var(--color-border);
 }
@@ -343,13 +264,14 @@
 /* Leaflet Popup Customization */
 .leaflet-popup-content-wrapper {
   background-color: var(--color-bg-primary);
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--color-border);
 }
 
 .leaflet-popup-content {
   color: var(--color-text-primary);
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
   margin: 1rem;
 }
 
@@ -359,7 +281,7 @@
 
 /* Heatmap Layer Styles */
 .heatmap-circle {
-  transition: fill-opacity 0.3s ease;
+  transition: fill-opacity 0.2s ease;
 }
 
 .heatmap-circle:hover {
@@ -394,27 +316,4 @@
 [data-theme="dark"] .leaflet-tile {
   filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3)
     brightness(0.7);
-}
-
-/* Animation for Heatmap Toggle */
-.heatmap-toggle-enter {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-.heatmap-toggle-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.heatmap-toggle-exit {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.heatmap-toggle-exit-active {
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
 }

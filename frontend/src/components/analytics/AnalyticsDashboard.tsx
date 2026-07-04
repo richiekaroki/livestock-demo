@@ -6,8 +6,6 @@ import {
   CartesianGrid,
   Cell,
   Legend,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -17,6 +15,7 @@ import {
 } from "recharts";
 import type { PieLabelRenderProps } from "recharts";
 import type { Livestock } from "../../types";
+import { healthColors } from "../../utils/constants";
 
 interface AnalyticsDashboardProps {
   data: Livestock[];
@@ -44,88 +43,17 @@ export default function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
         status,
         count,
       })),
-      criticalAnimals: data.filter(
-        (a) => a.health === "Sick" || a.health === "Under Treatment"
-      ),
     };
   }, [data]);
 
-  const COLORS = {
-    Healthy: "#22c55e",
-    Sick: "#ef4444",
-    "Under Treatment": "#eab308",
-    Recovered: "#3b82f6",
-  };
+  const COLORS = healthColors;
 
   const TYPE_COLORS = [
-    "#f97316",
-    "#a855f7",
-    "#6366f1",
-    "#f59e0b",
-    "#ec4899",
-    "#ef4444",
+    "#B45309", "#7C3AED", "#4F46E5", "#D97706", "#DB2777", "#DC2626",
   ];
-
-  const trendData = useMemo(() => {
-    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const healthyCount =
-      analytics.healthData.find((h) => h.status === "Healthy")?.count || 0;
-    const sickCount =
-      analytics.healthData.find((h) => h.status === "Sick")?.count || 0;
-    const treatmentCount =
-      analytics.healthData.find((h) => h.status === "Under Treatment")
-        ?.count || 0;
-
-    return days.map((day, i) => ({
-      day,
-      healthy: Math.max(0, healthyCount - (6 - i)),
-      sick: Math.max(0, sickCount - Math.floor((6 - i) / 2)),
-      treatment: Math.max(0, treatmentCount - Math.floor((6 - i) / 3)),
-    }));
-  }, [analytics.healthData]);
 
   return (
     <div className="space-y-6">
-      {analytics.criticalAnimals.length > 0 && (
-        <div className="card p-4 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
-          <div className="flex items-start gap-3">
-            <svg
-              className="h-6 w-6 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <div className="flex-1">
-              <h3 className="font-bold text-red-800 dark:text-red-300 mb-1">
-                {analytics.criticalAnimals.length} Animals Require Attention
-              </h3>
-              <p className="text-sm text-red-700 dark:text-red-400">
-                {
-                  analytics.criticalAnimals.filter((a) => a.health === "Sick")
-                    .length
-                }{" "}
-                sick,{" "}
-                {
-                  analytics.criticalAnimals.filter(
-                    (a) => a.health === "Under Treatment"
-                  ).length
-                }{" "}
-                under treatment
-              </p>
-              <button className="mt-2 text-sm text-red-600 dark:text-red-400 underline hover:no-underline">
-                View Critical Animals
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card p-6">
           <h3 className="text-lg font-bold text-text-primary mb-4">
@@ -167,13 +95,14 @@ export default function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
                 strokeDasharray="3 3"
                 stroke="var(--color-border)"
               />
-              <XAxis dataKey="county" stroke="var(--color-text-secondary)" />
-              <YAxis stroke="var(--color-text-secondary)" />
+              <XAxis dataKey="county" stroke="var(--color-text-secondary)" fontSize={12} />
+              <YAxis stroke="var(--color-text-secondary)" fontSize={12} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "var(--color-bg-primary)",
                   border: "1px solid var(--color-border)",
-                  borderRadius: "0.5rem",
+                  borderRadius: "0.75rem",
+                  fontFamily: "'Fira Sans', sans-serif",
                 }}
               />
               <Bar
@@ -213,56 +142,23 @@ export default function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
           </ResponsiveContainer>
         </div>
 
-        <div className="card p-6">
-          <h3 className="text-lg font-bold text-text-primary mb-4">
-            Health Trends (Last 7 Days)
+        <div className="card p-6 flex flex-col items-center justify-center text-center min-h-[300px]">
+          <svg className="w-12 h-12 text-text-tertiary mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 3v18h18" />
+            <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
+          </svg>
+          <h3 className="text-lg font-bold text-text-primary mb-2">
+            Health Trends
           </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={trendData}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--color-border)"
-              />
-              <XAxis dataKey="day" stroke="var(--color-text-secondary)" />
-              <YAxis stroke="var(--color-text-secondary)" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "var(--color-bg-primary)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "0.5rem",
-                }}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="healthy"
-                stroke="#22c55e"
-                strokeWidth={2}
-              />
-              <Line
-                type="monotone"
-                dataKey="sick"
-                stroke="#ef4444"
-                strokeWidth={2}
-              />
-              <Line
-                type="monotone"
-                dataKey="treatment"
-                stroke="#eab308"
-                strokeWidth={2}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-          <p className="text-xs text-text-tertiary mt-2">
-            Trend derived from current distribution. In production, this would
-            show real historical data.
+          <p className="text-sm text-text-secondary max-w-xs">
+            Historical trend data will appear here after 7 days of continuous data collection.
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="card p-4 text-center">
-          <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+          <div className="text-2xl font-bold text-success font-mono">
             {(
               ((analytics.healthData.find((h) => h.status === "Healthy")
                 ?.count || 0) /
@@ -275,7 +171,7 @@ export default function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
         </div>
 
         <div className="card p-4 text-center">
-          <div className="text-2xl font-bold text-text-primary">
+          <div className="text-2xl font-bold text-text-primary font-mono">
             {analytics.countyData.length}
           </div>
           <div className="text-sm text-text-secondary mt-1">
@@ -284,14 +180,14 @@ export default function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
         </div>
 
         <div className="card p-4 text-center">
-          <div className="text-2xl font-bold text-text-primary">
+          <div className="text-2xl font-bold text-text-primary font-mono">
             {analytics.typeData.length}
           </div>
           <div className="text-sm text-text-secondary mt-1">Animal Types</div>
         </div>
 
         <div className="card p-4 text-center">
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+          <div className="text-2xl font-bold text-info font-mono">
             {data.length}
           </div>
           <div className="text-sm text-text-secondary mt-1">Total Animals</div>

@@ -36,16 +36,16 @@ export default class ErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen text-center bg-gray-100 dark:bg-gray-900 p-6">
-          <h1 className="text-3xl font-bold text-red-600 mb-2">
-            Something went wrong 💥
+        <div className="flex flex-col items-center justify-center min-h-screen text-center bg-bg-secondary p-6">
+          <h1 className="text-3xl font-bold text-error mb-2">
+            Something went wrong
           </h1>
-          <p className="text-gray-700 dark:text-gray-300 mb-4">
+          <p className="text-text-secondary mb-4">
             {this.state.errorMessage || "An unexpected error occurred."}
           </p>
           <button
             onClick={this.handleReload}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            className="btn btn-primary"
           >
             Reload App
           </button>

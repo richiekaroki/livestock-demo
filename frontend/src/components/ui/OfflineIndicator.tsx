@@ -1,30 +1,21 @@
 // src/components/ui/OfflineIndicator.tsx
 
 import { useEffect, useState } from "react";
+import { useDelayedUnmount } from "../../hooks/useDelayedUnmount";
 
-/**
- * Offline Indicator Component
- *
- * Shows a banner when the user loses internet connection
- * Critical for offline-first architecture in rural Kenya
- *
- * Features:
- * - Automatic detection of online/offline status
- * - Dismissible banner
- * - Helpful message about offline capabilities
- * - Visual feedback for connection state
- */
 export default function OfflineIndicator() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [isDismissed, setIsDismissed] = useState(false);
   const [showReconnected, setShowReconnected] = useState(false);
+
+  const isVisible = isOffline || showReconnected;
+  const { shouldRender, isAnimating } = useDelayedUnmount(isVisible && !isDismissed, 300);
 
   useEffect(() => {
     const handleOnline = () => {
       setIsOffline(false);
       setShowReconnected(true);
 
-      // Auto-hide "reconnected" message after 5 seconds
       setTimeout(() => {
         setShowReconnected(false);
         setIsDismissed(false);
@@ -46,60 +37,39 @@ export default function OfflineIndicator() {
     };
   }, []);
 
-  // Don't show anything if online and not showing reconnected message
-  if (!isOffline && !showReconnected) {
-    return null;
-  }
-
-  // Don't show if dismissed
-  if (isDismissed) {
+  if (!shouldRender) {
     return null;
   }
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-200 ${
         isOffline
-          ? "bg-red-600 dark:bg-red-700"
-          : "bg-green-600 dark:bg-green-700"
-      }`}
+          ? "bg-error"
+          : "bg-success"
+      } ${isAnimating ? "animate-slide-out-up" : "animate-slide-down"}`}
     >
       <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-3">
-          {/* Icon and Message */}
           <div className="flex items-center gap-3 flex-1">
-            {/* Status Icon */}
             <div className="flex-shrink-0">
               {isOffline ? (
-                <svg
-                  className="h-6 w-6 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 6.707 6.293a1 1 0 00-1.414 1.414L8.586 11l-3.293 3.293a1 1 0 101.414 1.414L10 12.414l3.293 3.293a1 1 0 001.414-1.414L11.414 11l3.293-3.293z"
-                    clipRule="evenodd"
-                  />
+                <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                  <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
+                  <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
+                  <path d="M10.71 5.05A16 16 0 0 1 22.56 9" />
+                  <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
+                  <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+                  <line x1="12" y1="20" x2="12.01" y2="20" />
                 </svg>
               ) : (
-                <svg
-                  className="h-6 w-6 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
+                <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
               )}
             </div>
 
-            {/* Message */}
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <p className="text-white font-semibold text-sm">
@@ -111,31 +81,22 @@ export default function OfflineIndicator() {
                   </span>
                 )}
               </div>
-              <p className="text-white/90 text-xs mt-0.5">
+              <p className="text-white/80 text-xs mt-0.5">
                 {isOffline
-                  ? "You're working offline. Changes will sync automatically when connection is restored."
+                  ? "Changes will sync automatically when connection is restored."
                   : "Connection restored. Your data is syncing now."}
               </p>
             </div>
           </div>
 
-          {/* Dismiss Button */}
           <button
             onClick={() => setIsDismissed(true)}
-            className="flex-shrink-0 text-white/80 hover:text-white transition-colors"
+            className="flex-shrink-0 text-white/70 hover:text-white transition-colors cursor-pointer"
             aria-label="Dismiss notification"
           >
-            <svg
-              className="h-5 w-5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>

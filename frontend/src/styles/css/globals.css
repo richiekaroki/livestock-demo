@@ -1,41 +1,28 @@
 /* ============================================
-   GLOBALS.CSS - Tailwind v4
+   GLOBALS.CSS - Organic Biophilic Theme
    ============================================ */
 
 html {
-  scroll-behavior: smooth;
   height: 100%;
   width: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
   margin: 0;
   padding: 0;
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
   line-height: 1.6;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   height: 100%;
   width: 100%;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--color-bg-secondary);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-tertiary);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Links */
@@ -59,11 +46,23 @@ h5,
 h6 {
   color: var(--color-text-primary);
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
+
+h1 { font-size: 2.25rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.375rem; }
+h4 { font-size: 1.125rem; }
 
 p {
   color: var(--color-text-secondary);
+  line-height: 1.65;
+}
+
+/* Code / Monospace */
+code, pre, .font-mono {
+  font-family: 'Fira Code', ui-monospace, monospace;
 }
 
 /* Accessibility */
@@ -81,7 +80,7 @@ p {
 
 /* Ensure full black margins on dark mode */
 [data-theme="dark"] body {
-  background-color: #0b0b0c;
+  background-color: #0C1A0C;
 }
 
 /* ============================================
@@ -91,13 +90,15 @@ p {
 /* Leaflet Map Container Fixes */
 .leaflet-container {
   background-color: var(--color-bg-secondary);
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
+  border-radius: var(--radius-lg);
 }
 
 .leaflet-control-zoom a {
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   border-color: var(--color-border);
+  border-radius: var(--radius-sm);
 }
 
 .leaflet-control-zoom a:hover {
@@ -106,7 +107,7 @@ p {
 
 /* Ensure map tiles are visible in dark mode */
 [data-theme="dark"] .leaflet-container {
-  background-color: #1a1a1a;
+  background-color: #132413;
 }
 
 [data-theme="dark"] .leaflet-control-zoom a {

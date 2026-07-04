@@ -6,65 +6,53 @@ interface StatisticsCardsProps {
 }
 
 export default function StatisticsCards({ stats }: StatisticsCardsProps) {
-  const statItems = [
-    {
-      label: "Total Animals",
-      value: stats.totalAnimals,
-      color: "text-text-primary",
-      bg: "bg-bg-secondary",
-    },
-    {
-      label: "Healthy",
-      value: stats.healthyCount,
-      color: "text-success",
-      bg: "bg-success-bg",
-    },
-    {
-      label: "Sick",
-      value: stats.sickCount,
-      color: "text-error",
-      bg: "bg-error-bg",
-    },
-    {
-      label: "Under Treatment",
-      value: stats.underTreatmentCount,
-      color: "text-warning",
-      bg: "bg-warning-bg",
-    },
-    {
-      label: "Recovered",
-      value: stats.recoveredCount,
-      color: "text-info",
-      bg: "bg-info-bg",
-    },
-    {
-      label: "Counties",
-      value: stats.counties,
-      color: "text-text-primary",
-      bg: "bg-bg-secondary",
-    },
-  ];
-
   return (
     <div className="card">
-      <h3 className="text-lg font-semibold text-text-primary mb-4">
-        Livestock Statistics
-      </h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {statItems.map((item) => (
-          <div
-            key={item.label}
-            className={`text-center p-4 rounded-lg border border-border ${item.bg}`}
-          >
-            <div className={`text-2xl font-bold ${item.color}`}>
-              {item.value}
-            </div>
-            <div className="text-sm text-text-secondary mt-1">{item.label}</div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {/* Primary metric — total count */}
+        <div className="flex items-baseline gap-3">
+          <span className="text-4xl font-bold font-mono text-text-primary">
+            {stats.totalAnimals.toLocaleString()}
+          </span>
+          <span className="text-sm text-text-secondary">total animals tracked</span>
+        </div>
+
+        {/* Secondary metrics — inline row */}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xl font-bold font-mono text-success">
+              {stats.healthyCount.toLocaleString()}
+            </span>
+            <span className="text-sm text-text-secondary">healthy</span>
           </div>
-        ))}
+          <div className="flex items-baseline gap-2">
+            <span className="text-xl font-bold font-mono text-error">
+              {stats.sickCount.toLocaleString()}
+            </span>
+            <span className="text-sm text-text-secondary">sick</span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-xl font-bold font-mono text-warning">
+              {stats.underTreatmentCount.toLocaleString()}
+            </span>
+            <span className="text-sm text-text-secondary">treatment</span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-xl font-bold font-mono text-info">
+              {stats.recoveredCount.toLocaleString()}
+            </span>
+            <span className="text-sm text-text-secondary">recovered</span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-xl font-bold font-mono text-text-primary">
+              {stats.counties.toLocaleString()}
+            </span>
+            <span className="text-sm text-text-secondary">counties</span>
+          </div>
+        </div>
       </div>
       {stats.lastUpdated && (
-        <div className="text-xs text-text-tertiary mt-4 text-center">
+        <div className="text-xs text-text-tertiary mt-3 pt-3 border-t border-border font-mono">
           Last updated: {new Date(stats.lastUpdated).toLocaleString()}
         </div>
       )}
