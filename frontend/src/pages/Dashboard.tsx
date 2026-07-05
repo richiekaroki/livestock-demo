@@ -59,13 +59,6 @@ export default function Dashboard({
     );
   }, [initialFilteredData, searchQuery]);
 
-  const handleResetAll = () => {
-    setSearchQuery("");
-    updateFilter("type", "");
-    updateFilter("county", "");
-    updateFilter("health", "");
-  };
-
   useEffect(() => {
     const loadStats = async () => {
       try {
@@ -234,18 +227,6 @@ export default function Dashboard({
           </div>
 
           <AnimalList data={displayData} />
-
-          {(filters.type || filters.health || filters.county || searchQuery) && (
-            <div className="text-center mt-6">
-              <button onClick={handleResetAll} className="btn btn-secondary">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                  <path d="M3 3v5h5" />
-                </svg>
-                Reset All Filters
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Tab: Analytics */}

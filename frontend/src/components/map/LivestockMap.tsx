@@ -56,7 +56,7 @@ export default function LivestockMap({ data }: LivestockMapProps) {
       <div className="h-[500px] rounded-xl flex items-center justify-center bg-bg-secondary border border-border">
         <div className="text-center p-6">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-error/10 flex items-center justify-center">
-            <svg className="w-8 h-8 text-error" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-8 h-8 text-error" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -79,7 +79,7 @@ export default function LivestockMap({ data }: LivestockMapProps) {
     return (
       <div className="h-[500px] rounded-xl flex items-center justify-center bg-bg-secondary border border-border">
         <div className="text-center p-6">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-bg-tertiary flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-bg-tertiary flex items-center justify-center" aria-hidden="true">
             <svg className="w-8 h-8 text-text-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
               <line x1="8" y1="2" x2="8" y2="18" />
@@ -128,8 +128,8 @@ export default function LivestockMap({ data }: LivestockMapProps) {
         </div>
       </div>
 
-      {/* Compact Legend Overlay — bottom-left, no glassmorphism */}
-      <div className="absolute bottom-4 left-4 z-[1000] bg-bg-primary border border-border rounded-lg px-3 py-2 text-xs">
+      {/* Compact Legend Overlay — bottom-left */}
+      <div className="absolute bottom-4 left-4 z-[1000] bg-bg-primary border border-border rounded-lg px-3 py-2 text-xs shadow-sm">
         <div className="flex flex-wrap gap-x-4 gap-y-1">
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-full bg-success border-2 border-bg-primary shadow-sm" />
@@ -202,19 +202,13 @@ export default function LivestockMap({ data }: LivestockMapProps) {
             >
               <Popup className="custom-popup">
                 <div className="min-w-[220px]">
-                  <div className="font-bold text-lg text-text-primary">
-                    {animal.name}
-                  </div>
-                  <div className="text-sm text-text-secondary">
-                    ({animal.type})
-                  </div>
-                  <div className="mt-3 space-y-2">
+                  <div className="map-popup-name">{animal.name}</div>
+                  <div className="map-popup-type">({animal.type})</div>
+                  <div className="map-popup-detail space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-text-primary">
-                        Health:
-                      </span>
+                      <span className="map-popup-label">Health:</span>
                       <span
-                        className="px-2 py-1 rounded text-xs font-medium capitalize"
+                        className="px-2 py-0.5 rounded text-xs font-medium capitalize"
                         style={{
                           backgroundColor: `${healthColors[animal.health]}20`,
                           color: healthColors[animal.health],
@@ -225,25 +219,16 @@ export default function LivestockMap({ data }: LivestockMapProps) {
                       </span>
                     </div>
                     <div>
-                      <span className="font-medium text-text-primary">
-                        County:
-                      </span>
-                      <span className="text-text-secondary ml-1">
-                        {animal.county}
-                      </span>
+                      <span className="map-popup-label">County:</span>
+                      <span className="map-popup-value">{animal.county}</span>
                     </div>
                     <div>
-                      <span className="font-medium text-text-primary">
-                        Owner:
-                      </span>
-                      <span className="text-text-secondary ml-1">
-                        {animal.owner}
-                      </span>
+                      <span className="map-popup-label">Owner:</span>
+                      <span className="map-popup-value">{animal.owner}</span>
                     </div>
                     {animal.createdAt && (
-                      <div className="text-xs text-text-tertiary mt-2">
-                        Registered:{" "}
-                        {new Date(animal.createdAt).toLocaleDateString()}
+                      <div className="map-popup-date">
+                        Registered: {new Date(animal.createdAt).toLocaleDateString()}
                       </div>
                     )}
                   </div>

@@ -228,6 +228,7 @@ function saveDismissed(ids: Set<string>) {
 
 export default function HealthAlerts({ data }: HealthAlertsProps) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [totalAlertCount, setTotalAlertCount] = useState(0);
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(loadDismissed);
   const [showDismissed, setShowDismissed] = useState(false);
 
@@ -298,6 +299,7 @@ export default function HealthAlerts({ data }: HealthAlertsProps) {
       : generatedAlerts.filter(alert => !dismissedAlerts.has(alert.id));
 
     setAlerts(activeAlerts);
+    setTotalAlertCount(generatedAlerts.length);
   }, [data, dismissedAlerts, showDismissed]);
 
   const dismissAlert = (alertId: string) => {
@@ -317,7 +319,7 @@ export default function HealthAlerts({ data }: HealthAlertsProps) {
     });
   };
 
-  const dismissedCount = alerts.filter(a => dismissedAlerts.has(a.id)).length;
+  const dismissedCount = totalAlertCount - alerts.length;
 
   if (alerts.length === 0 && !showDismissed) {
     return (
