@@ -4,7 +4,6 @@ import HealthAlerts from "../components/alerts/HealthAlerts";
 import AnalyticsDashboard from "../components/analytics/AnalyticsDashboard";
 import AnimalList from "../components/animals/AnimalList";
 import RegistrationForm from "../components/animals/RegistrationForm";
-import RefreshIndicator from "../components/dashboard/RefreshIndicator";
 import StatisticsCards from "../components/dashboard/StatisticsCards";
 import StatusIndicator from "../components/dashboard/StatusIndicator";
 import ExportButton from "../components/export/ExportButton";
@@ -40,7 +39,7 @@ export default function Dashboard({
   const filters = useLivestockStore((s) => s.filters);
   const updateFilter = useLivestockStore((s) => s.updateFilter);
 
-  const autoRefresh = useAutoRefresh({
+  useAutoRefresh({
     enabled: true,
     interval: 30000,
     onRefresh: refetch,
@@ -137,23 +136,9 @@ export default function Dashboard({
             <p className="text-text-secondary">
               Manage and monitor your livestock inventory across{" "}
               <span className="font-semibold text-accent">{stats?.counties || 0}</span> counties
-              {autoRefresh.isPaused && (
-                <span className="ml-2 text-warning font-medium">
-                  &bull; Updates Paused
-                </span>
-              )}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <RefreshIndicator
-              isRefreshing={autoRefresh.isRefreshing}
-              lastRefresh={autoRefresh.lastRefresh}
-              countdown={autoRefresh.countdown}
-              isPaused={autoRefresh.isPaused}
-              onRefresh={autoRefresh.triggerRefresh}
-              onPause={autoRefresh.pause}
-              onResume={autoRefresh.resume}
-            />
             <KALROSyncStatus />
           </div>
         </div>
@@ -244,11 +229,6 @@ export default function Dashboard({
                     {searchQuery && " \u2022 Search Active"}
                   </p>
                 </div>
-                {autoRefresh.lastRefresh && (
-                  <div className="text-xs text-text-tertiary font-mono">
-                    Updated: {autoRefresh.lastRefresh.toLocaleTimeString()}
-                  </div>
-                )}
               </div>
             </div>
           </div>
