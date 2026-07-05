@@ -203,7 +203,7 @@ export default function Dashboard({
           </div>
 
           <div className="mb-4">
-            <div className="card p-4">
+            <div className="card p-4" role="status" aria-live="polite" aria-atomic="true">
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-sm text-text-secondary">

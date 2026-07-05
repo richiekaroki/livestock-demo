@@ -132,9 +132,4 @@ describe("HealthAlerts", () => {
 
     expect(screen.getByText(/Sick Animal/)).toBeInTheDocument();
   });
-
-  it("shows view affected animals button when animals list present", () => {
-    render(<HealthAlerts data={[mockSickAnimal]} />);
-    expect(screen.getByText(/View 1 affected animal/)).toBeInTheDocument();
-  });
 });

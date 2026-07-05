@@ -71,6 +71,7 @@ function AnimatedRoutes({
               <MapView
                 data={filteredData}
                 allData={data}
+                loading={loading}
               />
             }
           />

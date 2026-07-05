@@ -78,16 +78,18 @@ export default function LivestockMap({ data }: LivestockMapProps) {
   if (data.length === 0) {
     return (
       <div className="h-[500px] rounded-xl flex items-center justify-center bg-bg-secondary border border-border">
-        <div className="text-center p-6">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-bg-tertiary flex items-center justify-center" aria-hidden="true">
-            <svg className="w-8 h-8 text-text-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <div className="text-center p-6 max-w-sm">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent/10 flex items-center justify-center" aria-hidden="true">
+            <svg className="w-8 h-8 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
               <line x1="8" y1="2" x2="8" y2="18" />
               <line x1="16" y1="6" x2="16" y2="22" />
             </svg>
           </div>
-          <p className="text-text-secondary font-medium mb-1">No animals match your filters</p>
-          <p className="text-text-tertiary text-sm">Clear the filters above to see all animals on the map</p>
+          <p className="text-text-primary font-semibold mb-1">No animals on map</p>
+          <p className="text-text-secondary text-sm leading-relaxed">
+            Clear the filters above to see all registered livestock across Kenya.
+          </p>
         </div>
       </div>
     );
@@ -128,8 +130,8 @@ export default function LivestockMap({ data }: LivestockMapProps) {
         </div>
       </div>
 
-      {/* Compact Legend Overlay — bottom-left */}
-      <div className="absolute bottom-4 left-4 z-[1000] bg-bg-primary border border-border rounded-lg px-3 py-2 text-xs shadow-sm">
+      {/* Compact Legend Overlay — bottom-left, responsive */}
+      <div className="absolute bottom-4 left-4 z-[1000] bg-bg-primary border border-border rounded-lg px-3 py-2 text-xs shadow-sm max-sm:bottom-auto max-sm:top-16">
         <div className="flex flex-wrap gap-x-4 gap-y-1">
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-full bg-success border-2 border-bg-primary shadow-sm" />

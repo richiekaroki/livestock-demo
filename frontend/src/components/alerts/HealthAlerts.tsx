@@ -129,16 +129,6 @@ function AnimatedAlert({
             {alert.message}
           </p>
 
-          {alert.animals && alert.animals.length > 0 && (
-            <div className="mt-3">
-              <button
-                className="text-sm font-medium underline hover:no-underline cursor-pointer"
-              >
-                View {alert.animals.length} affected {alert.animals.length === 1 ? 'animal' : 'animals'}
-              </button>
-            </div>
-          )}
-
           <div className="flex gap-2 mt-3 flex-wrap">
             {alert.type === 'critical' && !isDismissed && (
               <>
@@ -233,9 +223,28 @@ export default function HealthAlerts({ data }: HealthAlertsProps) {
   const [showDismissed, setShowDismissed] = useState(false);
 
   useEffect(() => {
+    const sickAnimals: Livestock[] = [];
+    const treatmentAnimals: Livestock[] = [];
+    const recoveredAnimals: Livestock[] = [];
+    const countySickMap: Record<string, number> = {};
+
+    for (const animal of data) {
+      switch (animal.health) {
+        case 'Sick':
+          sickAnimals.push(animal);
+          countySickMap[animal.county] = (countySickMap[animal.county] || 0) + 1;
+          break;
+        case 'Under Treatment':
+          treatmentAnimals.push(animal);
+          break;
+        case 'Recovered':
+          recoveredAnimals.push(animal);
+          break;
+      }
+    }
+
     const generatedAlerts: Alert[] = [];
 
-    const sickAnimals = data.filter(a => a.health === 'Sick');
     if (sickAnimals.length > 0) {
       generatedAlerts.push({
         id: 'sick-animals',
@@ -248,7 +257,6 @@ export default function HealthAlerts({ data }: HealthAlertsProps) {
       });
     }
 
-    const treatmentAnimals = data.filter(a => a.health === 'Under Treatment');
     if (treatmentAnimals.length > 0) {
       generatedAlerts.push({
         id: 'under-treatment',
@@ -261,14 +269,7 @@ export default function HealthAlerts({ data }: HealthAlertsProps) {
       });
     }
 
-    const countyHealthMap = data.reduce((acc, animal) => {
-      if (animal.health === 'Sick') {
-        acc[animal.county] = (acc[animal.county] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
-
-    Object.entries(countyHealthMap).forEach(([county, count]) => {
+    for (const [county, count] of Object.entries(countySickMap)) {
       if (count >= 3) {
         generatedAlerts.push({
           id: `outbreak-${county}`,
@@ -279,9 +280,8 @@ export default function HealthAlerts({ data }: HealthAlertsProps) {
           timestamp: new Date().toISOString(),
         });
       }
-    });
+    }
 
-    const recoveredAnimals = data.filter(a => a.health === 'Recovered');
     if (recoveredAnimals.length > 0) {
       generatedAlerts.push({
         id: 'recovered-animals',

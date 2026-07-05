@@ -1,6 +1,6 @@
 // src/components/export/ExportButton.tsx
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Livestock } from "../../types";
 import { healthColors } from "../../utils/constants";
 
@@ -16,6 +16,21 @@ export default function ExportButton({
   const [isExporting, setIsExporting] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const closeMenu = useCallback(() => setShowMenu(false), []);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeMenu();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showMenu, closeMenu]);
 
   const exportToCSV = () => {
     setIsExporting(true);
@@ -191,6 +206,8 @@ export default function ExportButton({
       <button
         onClick={() => setShowMenu(!showMenu)}
         disabled={isExporting || data.length === 0}
+        aria-haspopup="menu"
+        aria-expanded={showMenu}
         className={`btn btn-primary flex items-center gap-2 ${
           isExporting || data.length === 0 ? "opacity-50 cursor-not-allowed" : ""
         }`}
@@ -213,7 +230,7 @@ export default function ExportButton({
       </button>
 
       {showMenu && !isExporting && (
-        <div className="absolute right-0 mt-2 w-64 bg-bg-primary border border-border rounded-xl shadow-xl z-10 animate-scaleIn">
+        <div ref={menuRef} role="menu" aria-label="Export format options" className="absolute right-0 mt-2 w-64 bg-bg-primary border border-border rounded-xl shadow-xl z-10 animate-scaleIn">
           <div className="p-2">
             <div className="px-3 py-2 text-xs font-semibold text-text-tertiary uppercase tracking-wider">
               Export Format
@@ -221,6 +238,7 @@ export default function ExportButton({
 
             <button
               onClick={exportToCSV}
+              role="menuitem"
               className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-bg-secondary transition-colors flex items-center gap-3 cursor-pointer"
             >
               <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center flex-shrink-0">
@@ -237,6 +255,7 @@ export default function ExportButton({
 
             <button
               onClick={exportToPDF}
+              role="menuitem"
               className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-bg-secondary transition-colors flex items-center gap-3 cursor-pointer mt-1"
             >
               <div className="w-8 h-8 rounded-lg bg-error/10 flex items-center justify-center flex-shrink-0">
@@ -255,6 +274,7 @@ export default function ExportButton({
 
             <button
               onClick={exportKALROFormat}
+              role="menuitem"
               className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-bg-secondary transition-colors flex items-center gap-3 cursor-pointer mt-1"
             >
               <div className="w-8 h-8 rounded-lg bg-info/10 flex items-center justify-center flex-shrink-0">

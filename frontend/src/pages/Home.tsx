@@ -45,7 +45,7 @@ export default function HomePage() {
   return (
     <div className="bg-bg-primary text-text-primary transition-colors duration-200">
       {/* Compact Functional Hero */}
-      <section className="border-b border-border bg-bg-secondary">
+      <section aria-label="Introduction" className="border-b border-border bg-bg-secondary">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <div className="max-w-2xl">
             <h1 className="text-3xl sm:text-4xl font-bold mb-3 leading-tight tracking-tight" style={{ textWrap: "balance" }}>
@@ -81,7 +81,7 @@ export default function HomePage() {
       </section>
 
       {/* Live Stats Bar */}
-      <section className="border-b border-border">
+      <section aria-label="Livestock statistics" className="border-b border-border">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {loading && !stats ? (
             <StatsSkeleton />
@@ -148,7 +148,7 @@ export default function HomePage() {
       </section>
 
       {/* Feature Showcase — varied layout, not identical grid */}
-      <section className="py-16 px-4">
+      <section aria-label="Features" className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl sm:text-3xl font-bold mb-10 tracking-tight">
             Manage your livestock
@@ -247,7 +247,7 @@ export default function HomePage() {
 
       {/* Data-Driven Closing — echoes the stats bar */}
       {stats && stats.total > 0 && (
-        <section className="py-12 px-4 bg-bg-secondary border-y border-border">
+        <section aria-label="Summary" className="py-12 px-4 bg-bg-secondary border-y border-border">
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-text-secondary text-sm leading-relaxed" style={{ maxWidth: "55ch", marginInline: "auto" }}>
               From pastoralist communities in Marsabit to dairy farms in

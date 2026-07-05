@@ -54,13 +54,44 @@ export default function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
 
   return (
     <div className="space-y-6">
+      {/* Visually-hidden data tables for screen readers */}
+      <div className="sr-only" role="region" aria-label="Analytics data tables">
+        <table>
+          <caption>Health Status Distribution</caption>
+          <thead><tr><th>Status</th><th>Count</th></tr></thead>
+          <tbody>
+            {analytics.healthData.map((d) => (
+              <tr key={d.status}><td>{d.status}</td><td>{d.count}</td></tr>
+            ))}
+          </tbody>
+        </table>
+        <table>
+          <caption>Animals by County</caption>
+          <thead><tr><th>County</th><th>Count</th></tr></thead>
+          <tbody>
+            {analytics.countyData.map((d) => (
+              <tr key={d.county}><td>{d.county}</td><td>{d.count}</td></tr>
+            ))}
+          </tbody>
+        </table>
+        <table>
+          <caption>Livestock Type Distribution</caption>
+          <thead><tr><th>Type</th><th>Count</th></tr></thead>
+          <tbody>
+            {analytics.typeData.map((d) => (
+              <tr key={d.type}><td>{d.type}</td><td>{d.count}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card p-6">
           <h3 className="text-lg font-bold text-text-primary mb-4">
             Health Status Distribution
           </h3>
           <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
+            <PieChart aria-label="Pie chart showing health status distribution">
               <Pie
                 data={analytics.healthData}
                 dataKey="count"
@@ -90,7 +121,7 @@ export default function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
             Animals by County
           </h3>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={analytics.countyData}>
+            <BarChart data={analytics.countyData} aria-label="Bar chart showing animals by county">
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="var(--color-border)"
@@ -119,7 +150,7 @@ export default function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
             Livestock Type Distribution
           </h3>
           <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
+            <PieChart aria-label="Pie chart showing livestock type distribution">
               <Pie
                 data={analytics.typeData}
                 dataKey="count"
