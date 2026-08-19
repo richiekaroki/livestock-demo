@@ -9,6 +9,9 @@ build/
 *.tgz
 *.tar.gz
 
+# ==================== PRISMA ====================
+*.prisma.tmp
+
 # ==================== ENVIRONMENT VARIABLES ====================
 .env
 .env.local
@@ -73,3 +76,10 @@ temp/
 .playwright-mcp/
 skills-lock.json
 opencode.json
+**/.claude/
+**/CLAUDE.md
+**/AGENTS.md
+
+# ==================== LOCAL NOTES ====================
+docs/HOW_IT_WORKS.txt
+docs/verify-*.png
