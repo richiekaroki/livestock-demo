@@ -1,0 +1,31 @@
+# Render Blueprint — deploys the Wam Mfugo API as a managed web service.
+# Usage: push this repo to GitHub, create a new Blueprint in Render from it,
+# then set the sync:false env vars in the Render dashboard.
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: wam-mfugo-api
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install && npm run build:api
+    startCommand: node apps/api/dist/main.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: KALRO_API_URL
+        sync: false
+      - key: KALRO_CLIENT_ID
+        sync: false
+      - key: KIAMIS_API_URL
+        sync: false
+      - key: KIAMIS_API_KEY
+        sync: false
