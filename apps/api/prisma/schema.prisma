@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AnimalType {
+  Cattle
+  Goat
+  Sheep
+  Camel
+  Pig
+  Chicken
+}
+
+enum HealthStatus {
+  Healthy
+  Sick
+  UNDER_TREATMENT @map("Under Treatment")
+  Recovered
+}
+
+model Farmer {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  name      String
+  phone     String
+  county    String
+  subCounty String
+  animals   Animal[]
+  createdAt DateTime @default(now())
+
+  @@map("farmers")
+}
+
+model Animal {
+  id           Int       @id @default(autoincrement())
+  name         String
+  type         AnimalType
+  breed        String?
+  health       HealthStatus
+  county       String
+  owner        String
+  lat          Float
+  lng          Float
+  createdAt    DateTime  @default(now())
+  biometric    String?
+  govReg       String?
+  farmerId     Int?
+  farmer       Farmer?   @relation(fields: [farmerId], references: [id], onDelete: SetNull)
+  vaccinations Vaccination[]
+  diseases     Disease[]
+
+  @@map("animals")
+}
+
+model Vaccination {
+  id           Int      @id @default(autoincrement())
+  type         String
+  date         DateTime
+  batchNumber  String
+  veterinarian String
+  nextDueDate  DateTime?
+  animalId     Int
+  animal       Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+
+  @@map("vaccinations")
+}
+
+model Disease {
+  id           Int      @id @default(autoincrement())
+  name         String
+  reportedDate DateTime
+  status       String
+  treatment    String?
+  treatedBy    String?
+  animalId     Int
+  animal       Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+
+  @@map("diseases")
+}
+
+model Outbreak {
+  id               Int      @id @default(autoincrement())
+  diseaseType      String
+  affectedAnimals  Int
+  suspectedAnimals Int
+  county           String
+  lat              Float
+  lng              Float
+  reportedBy       String
+  reportedAt       DateTime @default(now())
+  status           String   @default("reported")
+
+  @@map("outbreaks")
+}
+
+model SyncLog {
+  id         Int      @id @default(autoincrement())
+  action     String
+  status     String
+  payload    String?
+  createdAt  DateTime @default(now())
+
+  @@map("sync_logs")
+}
