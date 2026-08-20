@@ -36,6 +36,65 @@ model Farmer {
   @@map("farmers")
 }
 
+model User {
+  id               Int       @id @default(autoincrement())
+  email            String    @unique
+  name             String
+  phone            String
+  role             String    @default("farmer")
+  county           String
+  subCounty        String?
+  isActive         Boolean   @default(true)
+  failedOtpAttempts Int      @default(0)
+  lockedUntil      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  animals          Animal[]
+  sessions         Session[]
+  auditLogs        AuditLog[]
+
+  @@map("users")
+}
+
+model OtpCode {
+  id        Int      @id @default(autoincrement())
+  email     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  purpose   String
+  createdAt DateTime @default(now())
+
+  @@map("otp_codes")
+}
+
+model Session {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  refreshTokenHash String
+  device          String?
+  ip              String?
+  lastActive      DateTime @default(now())
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  event     String
+  email     String?
+  userId    Int?
+  ip        String?
+  metadata  String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
+
 model Animal {
   id           Int       @id @default(autoincrement())
   name         String
@@ -51,6 +110,8 @@ model Animal {
   govReg       String?
   farmerId     Int?
   farmer       Farmer?   @relation(fields: [farmerId], references: [id], onDelete: SetNull)
+  userId       Int?
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   vaccinations Vaccination[]
   diseases     Disease[]
 

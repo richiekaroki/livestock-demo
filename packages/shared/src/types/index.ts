@@ -302,6 +302,88 @@ export interface FarmerProfile {
 }
 
 // ============================================
+// AUTH TYPES
+// ============================================
+
+export type UserRole = 'admin' | 'field_agent' | 'farmer';
+
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  phone: string;
+  role: UserRole;
+  county: string;
+  subCounty?: string;
+  isActive: boolean;
+  failedOtpAttempts: number;
+  lockedUntil?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AuthPayload {
+  sub: number;
+  email: string;
+  role: UserRole;
+}
+
+export interface RequestOtpRequest {
+  email: string;
+}
+
+export interface VerifyOtpRequest {
+  email: string;
+  otp: string;
+}
+
+export interface AuthResponse {
+  user: Omit<User, 'failedOtpAttempts' | 'lockedUntil'>;
+  accessToken: string;
+  refreshToken: string;
+  session: SessionInfo;
+}
+
+export interface RegisterRequest {
+  email: string;
+  name: string;
+  phone: string;
+  role?: UserRole;
+  county: string;
+  subCounty?: string;
+}
+
+export interface SessionInfo {
+  id: number;
+  device?: string;
+  ip?: string;
+  lastActive: string;
+  createdAt: string;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  event: string;
+  email?: string;
+  userId?: number;
+  ip?: string;
+  metadata?: string;
+  createdAt: string;
+}
+
+export interface UpdateProfileRequest {
+  name?: string;
+  phone?: string;
+  county?: string;
+  subCounty?: string;
+}
+
+export interface AdminUpdateUserRequest {
+  role?: UserRole;
+  isActive?: boolean;
+}
+
+// ============================================
 // TYPE GUARDS (for runtime type checking)
 // ============================================
 

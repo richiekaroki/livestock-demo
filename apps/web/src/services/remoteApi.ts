@@ -10,8 +10,11 @@ import type {
   AnimalTypeInfo,
   KALROVeterinaryRecord,
   KIAMISRegistrationResponse,
+  AuthResponse,
+  SessionInfo,
+  User,
 } from "@wam-mfugo/shared";
-import { apiGet, apiPatch, apiPost } from "./apiClient";
+import { apiDelete, apiGet, apiPatch, apiPost } from "./apiClient";
 
 interface KIAMISRegistrationPayload {
   animalType: string;
@@ -71,4 +74,33 @@ export const remoteApi = {
   getAnimalTypes: () => apiGet<ApiResponse<AnimalTypeInfo[]>>("/ref/animal-types"),
 
   getFarmers: () => apiGet<ApiResponse<Farmer[]>>("/farmers"),
+
+  // Auth endpoints
+  requestOtp: (email: string) =>
+    apiPost<ApiResponse<{ message: string }>>("/auth/request-otp", { email }),
+
+  verifyOtp: (email: string, otp: string) =>
+    apiPost<ApiResponse<AuthResponse>>("/auth/verify-otp", { email, otp }),
+
+  register: (data: { email: string; name: string; phone: string; county: string; subCounty?: string }) =>
+    apiPost<ApiResponse<{ message: string }>>("/auth/register", data),
+
+  verifyRegistration: (email: string, otp: string) =>
+    apiPost<ApiResponse<AuthResponse>>("/auth/verify-registration", { email, otp }),
+
+  refreshToken: (refreshToken: string) =>
+    apiPost<ApiResponse<AuthResponse>>("/auth/refresh", { refreshToken }),
+
+  logout: () => apiPost<ApiResponse<{ message: string }>>("/auth/logout", {}),
+
+  getMe: () => apiGet<ApiResponse<Omit<User, "failedOtpAttempts" | "lockedUntil">>>("/auth/me"),
+
+  updateMe: (data: { name?: string; phone?: string; county?: string; subCounty?: string }) =>
+    apiPatch<ApiResponse<Omit<User, "failedOtpAttempts" | "lockedUntil">>>("/auth/me", data),
+
+  getSessions: () => apiGet<ApiResponse<SessionInfo[]>>("/auth/sessions"),
+
+  revokeSession: (id: number) => apiDelete<ApiResponse<{ message: string }>>(`/auth/sessions/${id}`),
+
+  revokeAllSessions: () => apiDelete<ApiResponse<{ message: string }>>("/auth/sessions"),
 };

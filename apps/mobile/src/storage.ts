@@ -5,6 +5,10 @@ import type { Livestock } from "@wam-mfugo/shared";
 const CACHE_KEY = "wam_animals_cache";
 const QUEUE_KEY = "wam_offline_queue";
 
+export const AUTH_TOKEN_KEY = "wam_auth_token";
+export const AUTH_USER_KEY = "wam_auth_user";
+export const AUTH_REFRESH_KEY = "wam_auth_refresh";
+
 interface QueuedCreate {
   data: Omit<Livestock, "id">;
   createdAt: string;

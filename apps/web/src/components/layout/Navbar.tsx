@@ -1,6 +1,8 @@
 // src/components/layout/Navbar.tsx
 import { Link, useLocation } from "react-router-dom";
 import ThemeToggle from "../ui/ThemeToggle";
+import UserMenu from "../UserMenu";
+import { useAuth } from "../../contexts/AuthContext";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -10,6 +12,7 @@ const navLinks = [
 
 export default function Navbar() {
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 nav-backdrop border-b border-border">
@@ -65,12 +68,16 @@ export default function Navbar() {
 
           {/* Right Section */}
           <div className="flex items-center gap-3">
-            <div className="hidden lg:flex flex-col items-end leading-tight">
-              <span className="text-sm font-medium text-text-primary">
-                Full-Stack SuperApp
-              </span>
-              <span className="text-xs text-text-tertiary">Demo System</span>
-            </div>
+            {isAuthenticated ? (
+              <UserMenu />
+            ) : (
+              <Link
+                to="/login"
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent/90 transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
             <div className="w-px h-6 bg-border"></div>
             <ThemeToggle />
           </div>

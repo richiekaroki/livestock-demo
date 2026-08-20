@@ -6,6 +6,10 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: "./src/test/setup.ts",
+    env: {
+      VITE_API_BASE_URL: "",
+      VITE_OFFLINE_MODE: "true",
+    },
     include: [
       "src/**/__tests__/**/*.{test,spec}.{js,jsx,ts,tsx}",
       "src/test/**/*.{test,spec}.{js,jsx,ts,tsx}",

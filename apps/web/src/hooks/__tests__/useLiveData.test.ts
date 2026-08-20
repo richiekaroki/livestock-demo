@@ -1,7 +1,7 @@
-// src/hooks/__tests__/useLiveData.test.ts
+﻿// src/hooks/__tests__/useLiveData.test.ts
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { mockAPI } from "../../services/mockApi";
+import { backend } from "../../services/backend";
 import type { ApiResponse, Livestock } from "@wam-mfugo/shared";
 import {
   clearOfflineData,
@@ -10,7 +10,11 @@ import {
 } from "../../utils/offlineStorage";
 import { useLiveData } from "../useLiveData";
 
-vi.mock("../../services/mockApi");
+vi.mock("../../services/backend", () => ({
+  backend: {
+    getAnimals: vi.fn(),
+  },
+}));
 
 // Helper to generate test livestock entries
 const createMockLivestock = (
@@ -35,7 +39,7 @@ describe("useLiveData", () => {
 
   it("fetches data successfully and saves to offline cache", async () => {
     const mockData: Livestock[] = [createMockLivestock()];
-    vi.mocked(mockAPI.getAnimals).mockResolvedValue({
+    vi.mocked(backend.getAnimals).mockResolvedValue({
       success: true,
       data: mockData,
       total: 1,
@@ -66,7 +70,7 @@ describe("useLiveData", () => {
 
     await saveOfflineData("livestockData", offlineData);
 
-    vi.mocked(mockAPI.getAnimals).mockRejectedValue(new Error("Network error"));
+    vi.mocked(backend.getAnimals).mockRejectedValue(new Error("Network error"));
 
     const { result } = renderHook(() => useLiveData());
 
@@ -83,7 +87,7 @@ describe("useLiveData", () => {
     const consoleWarnSpy = vi
       .spyOn(console, "warn")
       .mockImplementation(() => {});
-    vi.mocked(mockAPI.getAnimals).mockRejectedValue(new Error("Network down"));
+    vi.mocked(backend.getAnimals).mockRejectedValue(new Error("Network down"));
 
     const { result } = renderHook(() => useLiveData());
 
@@ -97,7 +101,7 @@ describe("useLiveData", () => {
 
   it("supports manual refetch", async () => {
     const mockData: Livestock[] = [createMockLivestock()];
-    vi.mocked(mockAPI.getAnimals).mockResolvedValue({
+    vi.mocked(backend.getAnimals).mockResolvedValue({
       success: true,
       data: mockData,
       total: 1,
@@ -112,7 +116,7 @@ describe("useLiveData", () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(mockAPI.getAnimals).toHaveBeenCalledTimes(2);
+    expect(backend.getAnimals).toHaveBeenCalledTimes(2);
   });
 
   it("retries twice before succeeding", async () => {
@@ -133,7 +137,7 @@ describe("useLiveData", () => {
         total: 1,
       });
 
-    vi.mocked(mockAPI.getAnimals).mockImplementation(spy);
+    vi.mocked(backend.getAnimals).mockImplementation(spy);
 
     const { result } = renderHook(() => useLiveData());
 
@@ -154,7 +158,7 @@ describe("useLiveData", () => {
       .mockImplementation(() => {});
 
     // API returns success=true but data invalid
-    vi.mocked(mockAPI.getAnimals).mockResolvedValue({
+    vi.mocked(backend.getAnimals).mockResolvedValue({
       success: true,
       data: null,
     } as unknown as ApiResponse<Livestock[]>);

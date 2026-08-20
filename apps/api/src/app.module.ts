@@ -8,10 +8,14 @@ import { OutbreaksModule } from './outbreaks/outbreaks.module';
 import { HealthModule } from './health/health.module';
 import { RefModule } from './ref/ref.module';
 import { FarmersModule } from './farmers/farmers.module';
+import { AuthModule } from './auth/auth.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    AuthModule,
+    AdminModule,
     AnimalsModule,
     StatsModule,
     KalroModule,

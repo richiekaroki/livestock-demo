@@ -54,6 +54,23 @@ async function main() {
     });
   }
   console.log(`Seeded ${demo.animals.length} animals`);
+
+  const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'rkabue23@gmail.com';
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {},
+    create: {
+      email: adminEmail,
+      name: process.env.DEFAULT_ADMIN_NAME || 'Richard Karoki',
+      phone: '+254700000000',
+      role: 'admin',
+      county: 'Nairobi',
+      subCounty: 'Westlands',
+      isActive: true,
+      failedOtpAttempts: 0,
+    },
+  });
+  console.log(`Seeded default admin: ${adminEmail}`);
 }
 
 main()

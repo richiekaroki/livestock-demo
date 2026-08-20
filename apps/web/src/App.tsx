@@ -1,11 +1,15 @@
 // src/App.tsx
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Route, BrowserRouter as Router, Routes, useLocation } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
 import Footer from "./components/layout/Footer";
 import MobileNav from "./components/layout/MobileNav";
 import Navbar from "./components/layout/Navbar";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 import OfflineIndicator from "./components/ui/OfflineIndicator";
+import OfflineBanner from "./components/OfflineBanner";
+import ProtectedRoute from "./components/ProtectedRoute";
+import RoleRoute from "./components/RoleRoute";
 import { useLiveData } from "./hooks/useLiveData";
 import { useOnlineStatus } from "./hooks/useOnlineStatus";
 import { useLivestockStore } from "./store/livestockStore";
@@ -15,6 +19,11 @@ import "./styles/css/main.css";
 const Home = lazy(() => import("./pages/Home"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MapView = lazy(() => import("./pages/MapView"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const Profile = lazy(() => import("./pages/Profile"));
+const UserList = lazy(() => import("./pages/admin/UserList"));
+const AuditLogs = lazy(() => import("./pages/admin/AuditLogs"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 function AnimatedRoutes({
@@ -60,25 +69,34 @@ function AnimatedRoutes({
           <Route
             path="/dashboard"
             element={
-              <Dashboard
-                data={data}
-                filteredData={filteredData}
-                loading={loading}
-                error={error}
-                refetch={refetch}
-              />
+              <ProtectedRoute>
+                <Dashboard
+                  data={data}
+                  filteredData={filteredData}
+                  loading={loading}
+                  error={error}
+                  refetch={refetch}
+                />
+              </ProtectedRoute>
             }
           />
           <Route
             path="/map"
             element={
-              <MapView
-                data={filteredData}
-                allData={data}
-                loading={loading}
-              />
+              <ProtectedRoute>
+                <MapView
+                  data={filteredData}
+                  allData={data}
+                  loading={loading}
+                />
+              </ProtectedRoute>
             }
           />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute><RoleRoute allowedRoles={['admin']}><UserList /></RoleRoute></ProtectedRoute>} />
+          <Route path="/admin/audit-logs" element={<ProtectedRoute><RoleRoute allowedRoles={['admin']}><AuditLogs /></RoleRoute></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
@@ -126,34 +144,37 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen flex flex-col transition-colors bg-bg-primary text-text-primary">
-        <a href="#main-content" className="skip-link">Skip to content</a>
-        <OfflineIndicator />
+      <AuthProvider>
+        <div className="min-h-screen flex flex-col transition-colors bg-bg-primary text-text-primary">
+          <a href="#main-content" className="skip-link">Skip to content</a>
+          <OfflineBanner />
+          <OfflineIndicator />
 
-        <div className="hidden md:block">
-          <Navbar />
+          <div className="hidden md:block">
+            <Navbar />
+          </div>
+          <div className="md:hidden">
+            <MobileNav />
+          </div>
+
+          <main
+            id="main-content"
+            className={`w-full px-4 sm:px-6 md:px-8 py-4 flex-grow bg-bg-primary transition-all duration-200 ${
+              isOffline ? "mt-12" : ""
+            }`}
+          >
+            <AnimatedRoutes
+              data={data}
+              filteredData={filteredData}
+              loading={loading}
+              error={error}
+              refetch={refetch}
+            />
+          </main>
+
+          <Footer />
         </div>
-        <div className="md:hidden">
-          <MobileNav />
-        </div>
-
-        <main
-          id="main-content"
-          className={`w-full px-4 sm:px-6 md:px-8 py-4 flex-grow bg-bg-primary transition-all duration-200 ${
-            isOffline ? "mt-12" : ""
-          }`}
-        >
-          <AnimatedRoutes
-            data={data}
-            filteredData={filteredData}
-            loading={loading}
-            error={error}
-            refetch={refetch}
-          />
-        </main>
-
-        <Footer />
-      </div>
+      </AuthProvider>
     </Router>
   );
 }
