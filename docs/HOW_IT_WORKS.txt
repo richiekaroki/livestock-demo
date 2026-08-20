@@ -1,0 +1,406 @@
+WAM MFUGO — HOW THIS PROJECT WORKS (and why it is built this way)
+=================================================================
+
+WHAT IT IS
+----------
+Wam Mfugo is a full-stack, offline-first livestock management system built as
+a portfolio project mapped 1:1 to the "Lead Full-Stack Developer (Mifugo360
+SuperApp)" role. It covers the whole stack a reviewer cares about: React SPA,
+React Native mobile app, a real NestJS API, a shared package, tests, CI, and a
+free-tier deployment path.
+
+Tech stack:
+  Web ........ React 19 + Vite 7 + TypeScript + Tailwind 4
+  State ...... Zustand + React Router 7
+  Maps ....... Leaflet / react-leaflet      Charts ..... Recharts
+  API ........ NestJS 11 + Prisma 6 + Postgres (in-memory fallback)
+  Mobile ..... Expo SDK 57 / React Native 0.86 (expo-router, expo-camera)
+  Shared ..... packages/shared — types + ref data + generator + seed
+  Tests ...... Vitest (web) · Jest + supertest (api) · tsc (mobile type-check)
+  Hosting .... Vercel (web) / Render (api) / Neon or Supabase (Postgres)
+  Auth ....... Passwordless email OTP — JWT access+refresh, 3 roles, Brevo SMTP
+              (console fallback in demo mode). See docs/AUTH_PLAN.md
+
+-------------------------------------------------------------------------------
+THE JOURNEY — milestone by milestone (what was built, and why it was necessary)
+-------------------------------------------------------------------------------
+
+MILESTONE 0 — Web-only demo
+  What: a single React SPA with a mocked API layer over localStorage.
+  Why: the fastest way to prove the product idea and UI/UX. But a mock-only
+       app reads like a tutorial, not production work.
+
+MILESTONE 1 — Monorepo + shared package (the foundation)
+  What: npm workspaces (apps/*, packages/*) and `@wam-mfugo/shared`
+        (types, validators, seed data) shared by web, api and mobile.
+  Why: three apps speaking the same contract had to have ONE source of truth.
+       Without it, types drift apart and the API and UI silently disagree.
+       It also mirrors how real product companies structure code.
+
+MILESTONE 2 — A real backend (NestJS + Prisma)
+  What: apps/api — 8 endpoints (animals CRUD, stats, KALRO, KIAMIS, outbreaks,
+        health), a repository pattern, class-validator DTOs, CORS, ValidationPipe.
+  Why: the role is "full-stack". A real API with tests proves backend skill the
+       way a mock never can. The in-memory repository keeps the repo runnable by
+       anyone with zero setup (no database needed to review the code).
+
+MILESTONE 3 — Wire the web to the real API
+  What: apiClient.ts + remoteApi.ts in the web app; a backend selector that
+        uses the live API when VITE_API_BASE_URL is set, else the mock.
+  Why: proves the end-to-end contract actually works over HTTP (verified live
+       against the local API in a browser test). Deploying it is then one step.
+
+MILESTONE 4 — Real camera biometrics (web + mobile)
+  What: getUserMedia capture on web, expo-camera on mobile; SHA-256 photo hash;
+        both emit the same shared BiometricData shape.
+  Why: the closest free proxy for the "OpenCV / biometric systems" line in the
+       job description. Simulated capture was replaced with a real camera
+       (falling back to simulation only when no camera is available, e.g. CI).
+
+MILESTONE 5 — Offline hardening (IndexedDB)
+  What: offlineStorage moved from localStorage to IndexedDB via Dexie.
+  Why: biometric photos are large — far beyond localStorage's ~5 MB cap.
+       IndexedDB stores them for offline-first registration in the field.
+
+MILESTONE 6 — Data-driven reference system
+  What: shared ref/ package with 47 Kenya counties (IEBC codes, sub-counties,
+        centroids), 6 animal types with breeds and common names, Kenyan farmer
+        name pools. Deterministic PRNG generator for demo data. API endpoints
+        for ref data + farmers. Web/mobile filter dropdowns and registration
+        forms built from shared data.
+  Why: eliminates all hard-coded animal/farmer/county data. The same source
+       powers web, API, and mobile. Counties have real IEBC codes and GPS
+       coordinates. Animals get breeds. Farmers get FM-xxxx codes and
+       realistic Kenyan names. Demo data is configurable via seed.
+
+MILESTONE 7 — React Native mobile app (Expo)
+  What: apps/mobile — 4 tabs (Home, Animals, Register, Map), its own API
+        client, AsyncStorage offline cache + write queue, camera capture,
+        county/farmer selection from shared ref data.
+  Why: mobile is the #1 keyword for the role. Expo reuses the React + TypeScript
+       skills, shares the same package, and runs on a real phone via the free
+       Expo Go app — no Mac, no Xcode/Android Studio needed.
+  Web fix: react-native-maps has no web build — importing it crashes the web
+       bundle ("codegenNativeComponent is not a function"). The Map screen is
+       isolated behind AnimalMap.tsx (native, real map) + AnimalMap.web.tsx
+       (web fallback list), so Metro never bundles react-native-maps on web.
+
+MILESTONE 8 — CI (GitHub Actions)
+  What: .github/workflows/ci.yml — web (lint, tsc, tests), api (prisma
+        generate, lint, build, unit + e2e), mobile (type-check).
+  Why: automated green checks are the strongest "I ship professional code"
+       signal, and they protect the monorepo as it grows.
+
+MILESTONE 9 — Authentication (done)
+  What: passwordless email OTP login with three roles (Admin, Field Agent,
+        Farmer). No passwords stored — eliminates recovery entirely. JWT
+        access (15 min) + refresh (7 day, rotated) tokens, rate-limited OTP
+        with account lockout, audit trail, session management (view/revoke),
+        user profile management, admin user management UI, offline auth
+        handling. Demo mode seeds a default admin and logs the OTP to the
+        console; EMAIL_PROVIDER=smtp sends real emails via Brevo.
+  Why: every real app needs auth. Passwordless OTP is the modern approach —
+       no password fatigue, no recovery flow, no breached password databases.
+       Email-based because it's free (no SMS costs). Console logging for
+       demo mode, Brevo SMTP for production.
+  Verified: request-otp -> verify-otp -> JWT -> protected routes (kalro 200
+       with admin token, 401 without), refresh rotation, /auth/me, /admin/users.
+  See: docs/AUTH_PLAN.md for the full implementation plan.
+
+MILESTONE 10 — Deployment (pending: needs your accounts/credentials)
+  What: Neon/Supabase Postgres + Render API + Vercel web, wired via env vars.
+  Why: a live URL turns the portfolio from "code" into "product". Blocked only
+       on account creation and credentials — no code changes required.
+
+-------------------------------------------------------------------------------
+KEY DECISIONS & WHY EACH WAS NECESSARY
+-------------------------------------------------------------------------------
+  NestJS over plain Express ..... structured, DI-friendly, ValidationPipe +
+                                   modules match how enterprise APIs look.
+  Repository pattern ............ lets the same service code run against
+                                   in-memory (demo) or Prisma (Postgres) by
+                                   swapping one DI token.
+  Prisma + Postgres ............. typed client, migrations, and Neon/Supabase
+                                   free tiers make a real DB nearly free.
+  Mocking KALRO/KIAMIS .......... those government systems have no public
+                                   sandbox keys; they are stubbed behind a
+                                   service boundary so live credentials can be
+                                   swapped in later without touching callers
+                                   (see "Sandbox stubs" below).
+  Expo over bare RN/Flutter ..... reuses React/TS skills, shares the package,
+                                   runs on-device via Expo Go for free.
+  Offline-first ................. the product targets rural farmers with poor
+                                   connectivity; cache + write-queue is a core
+                                   feature, not a nice-to-have.
+  Data-driven ref data .......... eliminates hard-coded counties, types,
+                                   breeds, and farmer names. One source of
+                                   truth shared across all three apps.
+  Deterministic generator ...... demo data is reproducible (same seed = same
+                                   output), configurable (count, farmers),
+                                   and realistic (Kenyan names, real GPS).
+  Passwordless OTP .............. no passwords stored, no recovery flow,
+                                   modern auth approach, free (email only).
+  Brevo SMTP .................... free 300 emails/day; console fallback keeps
+                                   the repo runnable with zero config.
+  Vercel/Render/Neon ............ free tiers, zero credit card, and the exact
+                                   stack the role describes.
+
+-------------------------------------------------------------------------------
+WHAT IS MOCKED VS REAL (sandbox stubs)
+-------------------------------------------------------------------------------
+  REAL: the API itself (NestJS), the animals/stats/outbreaks/ref/farmers
+        endpoints, the repository layer, DTO validation, tests, CI. The
+        API runs in-memory until a DATABASE_URL is provided; with one env
+        var it uses real Postgres via Prisma.
+        The auth layer is real: OTP issue + verify, JWT signing/validation,
+        refresh rotation, session + audit services, role guards. Email is
+        real Brevo SMTP when EMAIL_PROVIDER=smtp (console fallback in demo).
+
+  STUBBED (no public credentials exist): KALRO veterinary lookup and KIAMIS
+        registration. Each stub carries the note:
+        "Sandbox stub — replace with live integration when credentials exist."
+        The web mock layer (mockApi, governmentAPIs) carries the same note.
+        The API's /kalro endpoint DOES make a real fetch when KALRO_API_URL is
+        set — it only falls back to a stub record otherwise.
+
+-------------------------------------------------------------------------------
+HOW THE PIECES WORK TODAY
+-------------------------------------------------------------------------------
+Monorepo layout:
+  apps/web        Vite React SPA (pages incl. auth + admin, components incl.
+                  UserMenu/ProtectedRoute/RoleRoute/OfflineBanner, hooks,
+                  Zustand store, services, utils, data, styles)
+  apps/api        NestJS (modules: auth, admin, animals, farmers, ref, stats,
+                  kalro, kiamis, outbreaks, health) + prisma/schema + seed
+  apps/mobile     Expo (app/(auth)/ login|register, app/(tabs)/ index|animals|
+                  register|map|profile, src/ api | storage | useAnimals |
+                  camera | contexts/AuthContext, metro monorepo config)
+  packages/shared types + validation + ref data + generator + seed; web imports
+                  TS source, api imports prebuilt dist (rebuild:
+                  npm run build -w @wam-mfugo/shared)
+
+Auth data flow (web + mobile):
+  - AuthContext wraps the app; Login/Register two-step OTP screens hit
+    /auth/request-otp then /auth/verify-otp (or /auth/register first).
+  - apiClient/api.ts injects the Bearer token, and on a 401 tries one
+    /auth/refresh before failing; tokens + user persist in localStorage
+    (web) / AsyncStorage (mobile).
+  - ProtectedRoute/RoleRoute gate routes by auth + role; OfflineBanner shows
+    "Offline — using cached data".
+
+Web data flow: components -> hooks -> Zustand store -> services (mock OR API)
+  - useLiveData loads animals, auto-refreshes, caches to IndexedDB
+    (utils/offlineStorage), falls back to cache offline.
+  - livestockStore queues writes offline (syncPendingChanges) and replays them
+    on reconnect with conflict resolution.
+  - useOnlineStatus is a single shared listener (+useSyncExternalStore) so the
+    navbar, OfflineIndicator and KALROSyncStatus agree on connectivity.
+
+API endpoints (identical contract to the web services):
+  GET   /api/animals                 list (+ type/health/county filters, page/limit)
+  POST  /api/animals                 create (validated DTO, breed + farmerId)
+  PATCH /api/animals/:id/health      health status update
+  GET   /api/animals/export          animals CSV download (admin/field agent)
+  GET   /api/stats                   aggregate AnimalStats
+  GET   /api/stats/export            stats snapshot CSV download
+  GET   /api/farmers                 list farmers (FM-xxxx codes, names, counties)
+  GET   /api/ref/counties            47 Kenya counties with sub-counties + centroids
+                                     (optional page/limit pagination)
+  GET   /api/ref/animal-types        6 animal types with breeds + common names
+                                     (optional page/limit pagination)
+  GET   /api/kalro/veterinary/:animalId   real fetch if KALRO_API_URL set, else stub
+  POST  /api/kiamis/register         validates Kenyan National ID; returns a
+                                     KE-<COUNTY>-<YEAR>-<NUMBER> + QR placeholder
+  POST  /api/outbreaks               records a disease outbreak report
+  GET   /api/health                  { status, db: "in-memory" | "configured" }
+  POST  /api/auth/request-otp        request 6-digit OTP (email, rate-limited)
+  POST  /api/auth/verify-otp         verify OTP -> { user, accessToken, refreshToken, session }
+  POST  /api/auth/register           create account (farmer by default) + send OTP
+  POST  /api/auth/refresh            rotate refresh token -> new access+refresh
+  POST  /api/auth/logout             end current session
+  GET   /api/auth/me                 current user profile
+  PATCH /api/auth/me                 update own name/phone/county/subCounty
+  GET   /api/auth/sessions           list own active sessions
+  DELETE /api/auth/sessions          revoke all sessions
+  DELETE /api/auth/sessions/:id      revoke one session
+  GET   /api/admin/users             list users (admin only, filterable/paginated)
+  PATCH /api/admin/users/:id         update role / isActive (admin only)
+  GET   /api/admin/audit-logs        audit trail (admin only, filterable)
+  GET   /api/admin/audit-logs/export audit trail CSV download (admin only)
+
+  Interactive OpenAPI docs: /api/docs (Swagger UI) when the API is running.
+  Pagination params: ?page=1&limit=50 (limit capped at 100).
+
+Shared reference data:
+  packages/shared/src/ref/counties.ts       47 Kenya counties (IEBC codes 1-47),
+                                            sub-counties, GPS centroids
+  packages/shared/src/ref/animalTypes.ts    6 types (Cattle, Goat, Sheep, Camel,
+                                            Pig, Chicken) with breeds + names
+  packages/shared/src/ref/farmerNames.ts    Kenyan first/last name pools (65+ each)
+  packages/shared/src/generator.ts          Deterministic PRNG (mulberry32),
+                                            generateDemoData(), demoFarmerCountFor()
+
+Mobile app:
+  - Auth: (auth)/login + (auth)/register two-step OTP screens gated by
+    AuthContext (AsyncStorage token/user); root layout shows (auth) stack
+    when logged out, (tabs) stack when logged in
+  - Home: herd summary cards (AnimalStats shape)
+  - Animals: filterable list (type/health/county from shared ref data)
+  - Register: county chips (KENYA_COUNTIES), farmer chips (from API),
+    auto-fills owner + county on farmer selection, expo-camera capture ->
+    SHA-256 hash -> BiometricData + create; failed creates queue in
+    AsyncStorage and replay on reconnect
+  - Map: react-native-maps markers by county (native) / fallback list (web)
+  - Profile: view + edit own name/phone/county, logout
+  - Offline: AsyncStorage cache of the last getAnimals response
+
+-------------------------------------------------------------------------------
+TESTS & QUALITY
+-------------------------------------------------------------------------------
+  Web ....... Vitest — 151 tests across 17 files (components, hooks, services,
+             store, utils, biometrics, offline storage, remote API).
+  API ....... Jest — 21 tests across 4 suites (in-memory animal repo, KIAMIS,
+             OTP service, session service) + e2e (boots the full AppModule).
+  Mobile .... tsc --noEmit type-check (npm run typecheck:mobile).
+  Lint ...... web 0 errors; api 0 errors (7 no-unsafe-argument warnings from
+             supertest typing are intentional scaffold defaults).
+  Verified .. a browser smoke test ran the web app against the live local API
+             (GET /api/animals 200, zero console errors, farmer auto-fill
+             works, all pages render correctly). Auth verified end-to-end via
+             curl (OTP -> JWT -> protected routes -> refresh).
+
+-------------------------------------------------------------------------------
+RUNNING IT LOCALLY
+-------------------------------------------------------------------------------
+  npm install             installs everything, builds shared via "prepare"
+  npm run dev:web         -> http://localhost:5173
+  npm run dev:api         -> http://localhost:4000/api/health (in-memory mode)
+  npm run dev:mobile      -> npx expo start in apps/mobile (scan with Expo Go)
+  npm run build:web       production web bundle
+  npm run build:api       nest build
+  npm run build:shared    tsc -p tsconfig.build.json (shared package)
+  npm run test:web        Vitest, 151 tests
+  npm run test:api        Jest unit tests (21)
+  npm run test:api:e2e    Jest + supertest (boots full AppModule)
+  npm run typecheck:mobile  Expo tsc
+
+RUNNING EACH APP SEPARATELY
+-------------------------------------------------------------------------------
+  # 1) Shared package only (types/ref data used by the other three).
+  #    Built automatically on `npm install` (prepare hook) — no need to run
+  #    unless you edited packages/shared and need a fresh dist for the API:
+  npm run build:shared
+
+  # 2) API alone (no UI). Serves everything the apps talk to:
+  #    http://localhost:4000/api/health
+  npm run dev:api
+  #    or without file-watch (prod-style):
+  npm run build:api && npm run start:api
+  #    Demo mode (no DB): DATABASE_URL is blank in apps/api/.env, so the API
+  #    runs fully in-memory and prints OTPs to the terminal when
+  #    EMAIL_PROVIDER=console. Login with the seeded admin:
+  #    rkabue23@gmail.com — the OTP appears in the API console log.
+
+  # 3) Web app alone (no API). Uses the mock service layer if
+  #    VITE_API_BASE_URL is empty in apps/web/.env:
+  #    http://localhost:5173
+  npm run dev:web
+
+  # 4) Mobile app alone (no API). Same mock/shared-data story as web where
+  #    applicable; auth still needs the API:
+  npm run dev:mobile
+  #    (also: npm run android | ios | web —- Expo's web target)
+
+  # 5) Any one test/lint/typecheck job in isolation:
+  npm run test:web | test:api | test:api:e2e | typecheck:mobile | lint:web
+
+RUNNING THE STACK TOGETHER (full app: auth + data)
+-------------------------------------------------------------------------------
+  Terminal 1 (API):   npm run dev:api        -> :4000
+  Terminal 2 (Web):   npm run dev:web        -> :5173  (VITE_API_BASE_URL set)
+  Terminal 3 (Mobile): npm run dev:mobile    -> Expo Go (EXPO_PUBLIC_API_URL set)
+
+  Order matters: start the API FIRST so the web/mobile apps hit a live backend
+  on boot. Then:
+    1. Open http://localhost:5173 (or scan the Expo QR).
+    2. On the login screen, enter rkabue23@gmail.com (seeded admin).
+    3. Check the API terminal for the 6-digit OTP (demo/console mode) — or
+       your inbox when EMAIL_PROVIDER=smtp (real Brevo email).
+    4. Enter the OTP -> JWT issued -> app shows the admin's navbar/menu.
+    5. Try /admin/users (admin only), the Register flow (new farmer account),
+       and Profile (edit own details). Logout -> /login again.
+  The web app falls back to offline cache if the API is down, but auth
+  (OTP delivery) requires the API to be reachable.
+
+Environment files (.env, gitignored):
+  apps/api/.env           JWT_SECRET (generated), JWT_EXPIRES_IN=15m,
+                          JWT_REFRESH_EXPIRES_IN=7d, OTP_* (expiry/limits),
+                          DEFAULT_ADMIN_EMAIL=rkabue23@gmail.com,
+                          EMAIL_PROVIDER=console | smtp (Brevo: SMTP_HOST/
+                          SMTP_PORT/SMTP_USER/SMTP_PASS/SMTP_FROM),
+                          DATABASE_URL (blank = in-memory), PORT=4000
+  apps/web/.env           VITE_API_BASE_URL=http://localhost:4000/api,
+                          VITE_OFFLINE_MODE=false
+  apps/mobile/.env        EXPO_PUBLIC_API_URL=http://localhost:4000/api
+
+RUNNING VIA DOCKER (optional — same as three terminals, plus Postgres)
+-------------------------------------------------------------------------------
+  docker compose up --build
+    -> web   http://localhost:5173   (nginx, VITE_API_BASE_URL baked in)
+    -> api   http://localhost:4000/api  (docs: /api/docs)
+    -> db    Postgres 16 on :5432 (wam/wam), migrations + admin seed run on boot
+  Uses real Postgres (not in-memory) with EMAIL_PROVIDER=console for OTPs.
+  Builds are defined in apps/api/Dockerfile + apps/web/Dockerfile.
+  Note: Docker build inside WSL2/Windows needs 6-8 GB RAM allocated to
+  Docker Desktop (Settings > Resources). The build installs ~1500 packages
+  inside the Linux VM — slow on first run, cached after.
+
+OPS / POLISH
+-------------------------------------------------------------------------------
+  Security: helmet headers (CSP, HSTS, X-Content-Type-Options, X-Frame-Options),
+            CORS via CORS_ORIGIN (comma-separated or "*").
+  Logging:  request-id middleware assigns x-request-id (echoed in the response);
+            structured JSON log per request { requestId, method, path, status,
+            durationMs, ip, userAgent }.
+  Health:   /api/health now pings Postgres when DATABASE_URL is set
+            -> { status, db: "ok" | "in-memory" | "error", uptime, timestamp }.
+  Docs:     Swagger UI /api/docs (bearer auth, per-endpoint query params).
+
+-------------------------------------------------------------------------------
+DEPLOYMENT (free tier)
+-------------------------------------------------------------------------------
+  DB   -> Neon or Supabase free Postgres. Set DATABASE_URL in apps/api/.env;
+          npx prisma migrate dev; npm run prisma:seed. NEVER commit the string
+          (apps/api/.env.example is the committed template).
+  API  -> Render: repo root, build "npm install && npm run build:api",
+          start "node apps/api/dist/main.js",
+          env PORT, DATABASE_URL, CORS_ORIGIN, JWT_SECRET, JWT_EXPIRES_IN,
+          JWT_REFRESH_EXPIRES_IN, EMAIL_PROVIDER=smtp, SMTP_HOST, SMTP_PORT,
+          SMTP_USER, SMTP_PASS, SMTP_FROM, DEFAULT_ADMIN_EMAIL,
+          KALRO_API_URL (optional).
+          render.yaml is a Blueprint for this (auth env vars included) — import
+          the repo as a Blueprint and fill the sync:false values in the dashboard.
+          Render free tier sleeps after ~15 min idle (cold start on first hit).
+  Web  -> Vercel: import repo, framework Vite, root directory apps/web,
+          env VITE_API_BASE_URL = the deployed Render URL.
+  CI   -> .github/workflows/ci.yml runs lint/typecheck/tests on push + PR.
+          .github/workflows/deploy.yml auto-deploys on push to main:
+          Vercel via VERCEL_TOKEN, Render via a deploy-hook URL
+          (both as GitHub Actions secrets).
+  Mobile -> set EXPO_PUBLIC_API_URL (apps/mobile/.env) to the deployed API.
+
+-------------------------------------------------------------------------------
+STATUS CHECKLIST
+-------------------------------------------------------------------------------
+  DONE   M0-M9: web demo, monorepo+shared, NestJS API, web->API wiring,
+         real camera biometrics, IndexedDB offline, Expo mobile, CI,
+         data-driven reference system (47 counties, 6 types, farmers),
+         passwordless email OTP auth (JWT + roles + admin UI + Brevo SMTP),
+         Swagger/OpenAPI docs (/api/docs), pagination (animals/ref),
+         CSV export (animals, stats, audit logs),
+         helmet + request IDs + structured logging, DB-ping health check,
+         Docker + docker-compose (Postgres/API/web), CI + auto-deploy
+         workflow (Vercel + Render), render.yaml Blueprint,
+         package cleanup (removed unused deps, moved @types to devDeps).
+  PENDING  M10: provision Postgres, deploy API to Render, web to Vercel,
+         run mobile on a device, swap real KALRO/KIAMIS credentials.

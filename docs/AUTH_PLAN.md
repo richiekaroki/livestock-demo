@@ -1,5 +1,30 @@
 # Authentication Implementation Plan
 
+## Status
+
+> **Phase 1-8 implemented and verified (2026-08-20).** Auth is fully functional across API, web, and mobile. See per-phase status below.
+
+| Phase | Scope | Status |
+|-------|-------|--------|
+| 1 | Shared types + Prisma schema | ✅ Done |
+| 2 | API auth module + tests | ✅ Done (21 API tests pass) |
+| 2b | API admin module | ✅ Done |
+| 3 | Web frontend auth (context, pages, guards, admin) | ✅ Done (web build + 151 tests pass) |
+| 4 | Mobile frontend auth (context, screens, navigation) | ✅ Done (typecheck passes) |
+| 5 | Route protection on existing endpoints | ✅ Done (verified e2e) |
+| 6 | Demo mode (in-memory repos + seeded admin) | ✅ Done (verified e2e) |
+| 7 | Docs + env | ✅ Done |
+
+**Verified end-to-end against running API (in-memory mode):**
+- `POST /api/auth/request-otp` → OTP logged/emailed
+- `POST /api/auth/verify-otp` → JWT access + refresh + session issued (seeded admin `rkabue23@gmail.com`)
+- `GET /api/kalro/veterinary/:id` → 200 with admin token, 401 without
+- `GET /api/stats` → 401 without token
+- `POST /api/auth/refresh` → rotates tokens
+- `GET /api/auth/me`, `GET /api/admin/users` → admin-only, OK
+
+**Email provider:** Brevo SMTP (`smtp-relay.brevo.com:587`) via `EMAIL_PROVIDER=smtp`; falls back to console logging in demo mode. Keys live in `apps/api/.env` (gitignored).
+
 ## Overview
 
 Add passwordless email OTP authentication with three user roles (Admin, Field Agent, Farmer) to the Wam Mfugo monorepo. Self-registration supported; admins can also create accounts. No passwords stored — eliminates password recovery entirely.
@@ -9,7 +34,7 @@ Add passwordless email OTP authentication with three user roles (Admin, Field Ag
 - **No passwords stored** — users authenticate via 6-digit OTP sent to their email
 - **OTP**: 6-digit numeric code, valid for 5 minutes, single use
 - **JWT**: Short-lived access token (15 min) + refresh token (7 days)
-- **Email delivery**: Console log in demo mode; SendGrid free tier or Gmail SMTP in production
+- **Email delivery**: Console log in demo mode; Brevo SMTP (`smtp-relay.brevo.com:587`) in production via nodemailer
 - **JWT secret**: Configured via `JWT_SECRET` env var
 
 ### Login Flow
@@ -448,8 +473,8 @@ When `DEMO_MODE !== 'false'` and no database is configured:
 **File:** `apps/api/src/auth/in-memory-user.repository.ts`
 
 In-memory user store for demo mode. Seeded with default admin account:
-- Email: admin@wamfugo.com
-- Name: Admin User
+- Email: `DEFAULT_ADMIN_EMAIL` env var (default `rkabue23@gmail.com`)
+- Name: Richard Karoki
 - Role: admin
 
 **File:** `apps/api/src/auth/in-memory-otp.repository.ts`
