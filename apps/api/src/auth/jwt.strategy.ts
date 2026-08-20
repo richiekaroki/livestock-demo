@@ -13,6 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async validate(payload: AuthPayload) {
     if (!payload.sub || !payload.email || !payload.role) {
       throw new UnauthorizedException('Invalid token payload');

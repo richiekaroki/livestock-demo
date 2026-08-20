@@ -1,6 +1,17 @@
-import { Inject, Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import type { AuthPayload, AuthResponse, RegisterRequest, UpdateProfileRequest, UserRole } from '@wam-mfugo/shared';
+import type {
+  AuthPayload,
+  AuthResponse,
+  RegisterRequest,
+  UpdateProfileRequest,
+  UserRole,
+} from '@wam-mfugo/shared';
 import { USER_REPOSITORY, type UserRepository } from './user.repository';
 import { OtpService } from './otp.service';
 import { SessionService } from './session.service';
@@ -22,14 +33,18 @@ export class AuthService {
     this.otpMaxRequests = parseInt(process.env.OTP_MAX_REQUESTS || '5', 10);
   }
 
-  async requestOtp(email: string, ip?: string): Promise<{ message: string }> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async requestOtp(email: string, _ip?: string): Promise<{ message: string }> {
     const user = await this.userRepo.findByEmail(email);
 
     if (user && !user.isActive) {
       throw new UnauthorizedException('Account is deactivated');
     }
 
-    if (user && this.otpService.isLocked(user.failedOtpAttempts, user.lockedUntil)) {
+    if (
+      user &&
+      this.otpService.isLocked(user.failedOtpAttempts, user.lockedUntil)
+    ) {
       const seconds = this.otpService.getLockoutSeconds(user.lockedUntil!);
       throw new UnauthorizedException(
         `Account locked. Try again in ${Math.ceil(seconds / 60)} minutes.`,
@@ -89,7 +104,10 @@ export class AuthService {
       throw new UnauthorizedException(result.reason);
     }
 
-    await this.userRepo.update(user.id, { failedOtpAttempts: 0, lockedUntil: null });
+    await this.userRepo.update(user.id, {
+      failedOtpAttempts: 0,
+      lockedUntil: null,
+    });
 
     return this.issueTokens(user.id, user.email, user.role, ip, device);
   }
@@ -107,7 +125,7 @@ export class AuthService {
       email: data.email,
       name: data.name,
       phone: data.phone,
-      role: (data.role || 'farmer') as UserRole,
+      role: data.role || 'farmer',
       county: data.county,
       subCounty: data.subCounty,
     });
@@ -121,9 +139,16 @@ export class AuthService {
     });
 
     const otp = await this.otpService.createOtp(data.email, 'register');
-    await this.emailService.sendOtpEmail(data.email, otp, 'register', data.name);
+    await this.emailService.sendOtpEmail(
+      data.email,
+      otp,
+      'register',
+      data.name,
+    );
 
-    return { message: 'Account created. Please verify your email with the OTP sent.' };
+    return {
+      message: 'Account created. Please verify your email with the OTP sent.',
+    };
   }
 
   async verifyRegistration(
@@ -180,7 +205,11 @@ export class AuthService {
       ip,
     });
 
-    const payload: AuthPayload = { sub: user.id, email: user.email, role: user.role };
+    const payload: AuthPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
     const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
 
     return {

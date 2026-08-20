@@ -29,14 +29,17 @@ export class InMemoryUserRepository implements UserRepository {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async findByEmail(email: string): Promise<User | null> {
     return this.users.find((u) => u.email === email) ?? null;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async findById(id: number): Promise<User | null> {
     return this.users.find((u) => u.id === id) ?? null;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async create(data: {
     email: string;
     name: string;
@@ -63,9 +66,21 @@ export class InMemoryUserRepository implements UserRepository {
     return user;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async update(
     id: number,
-    data: Partial<Pick<User, 'name' | 'phone' | 'county' | 'subCounty' | 'role' | 'isActive' | 'failedOtpAttempts'>> & { lockedUntil?: string | null },
+    data: Partial<
+      Pick<
+        User,
+        | 'name'
+        | 'phone'
+        | 'county'
+        | 'subCounty'
+        | 'role'
+        | 'isActive'
+        | 'failedOtpAttempts'
+      >
+    > & { lockedUntil?: string | null },
   ): Promise<User> {
     const user = this.users.find((u) => u.id === id);
     if (!user) throw new Error('User not found');
@@ -75,25 +90,40 @@ export class InMemoryUserRepository implements UserRepository {
     if (data.subCounty !== undefined) user.subCounty = data.subCounty;
     if (data.role !== undefined) user.role = data.role;
     if (data.isActive !== undefined) user.isActive = data.isActive;
-    if (data.failedOtpAttempts !== undefined) user.failedOtpAttempts = data.failedOtpAttempts;
-    if (data.lockedUntil !== undefined) user.lockedUntil = data.lockedUntil ?? undefined;
+    if (data.failedOtpAttempts !== undefined)
+      user.failedOtpAttempts = data.failedOtpAttempts;
+    if (data.lockedUntil !== undefined)
+      user.lockedUntil = data.lockedUntil ?? undefined;
     user.updatedAt = new Date().toISOString();
     return user;
   }
 
-  async list(filters?: { role?: string; isActive?: boolean; search?: string }): Promise<User[]> {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async list(filters?: {
+    role?: string;
+    isActive?: boolean;
+    search?: string;
+  }): Promise<User[]> {
     return this.users.filter((u) => {
       if (filters?.role && u.role !== filters.role) return false;
-      if (filters?.isActive !== undefined && u.isActive !== filters.isActive) return false;
+      if (filters?.isActive !== undefined && u.isActive !== filters.isActive)
+        return false;
       if (filters?.search) {
         const q = filters.search.toLowerCase();
-        if (!u.name.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) return false;
+        if (
+          !u.name.toLowerCase().includes(q) &&
+          !u.email.toLowerCase().includes(q)
+        )
+          return false;
       }
       return true;
     });
   }
 
-  async count(filters?: { role?: string; isActive?: boolean }): Promise<number> {
+  async count(filters?: {
+    role?: string;
+    isActive?: boolean;
+  }): Promise<number> {
     return this.list(filters).then((u) => u.length);
   }
 }

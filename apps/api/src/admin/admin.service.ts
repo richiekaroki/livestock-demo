@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import type { User, UserRole } from '@wam-mfugo/shared';
+import type { UserRole } from '@wam-mfugo/shared';
 import { USER_REPOSITORY, type UserRepository } from '../auth/user.repository';
 import { SessionService } from '../auth/session.service';
 import { AuditService } from '../auth/audit.service';

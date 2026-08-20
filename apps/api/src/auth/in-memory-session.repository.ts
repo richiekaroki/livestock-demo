@@ -5,6 +5,7 @@ export class InMemorySessionRepository implements SessionRepository {
   private sessions: SessionRecord[] = [];
   private nextId = 1;
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async create(data: {
     userId: number;
     refreshTokenHash: string;
@@ -27,10 +28,12 @@ export class InMemorySessionRepository implements SessionRepository {
     return session;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async findByRefreshTokenHash(hash: string): Promise<SessionRecord | null> {
     return this.sessions.find((s) => s.refreshTokenHash === hash) ?? null;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async listByUserId(userId: number): Promise<SessionInfo[]> {
     const now = new Date();
     return this.sessions
@@ -45,19 +48,23 @@ export class InMemorySessionRepository implements SessionRepository {
       }));
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async delete(id: number): Promise<void> {
     this.sessions = this.sessions.filter((s) => s.id !== id);
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async deleteByUserId(userId: number): Promise<void> {
     this.sessions = this.sessions.filter((s) => s.userId !== userId);
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async deleteExpired(): Promise<void> {
     const now = new Date();
     this.sessions = this.sessions.filter((s) => s.expiresAt > now);
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async updateLastActive(id: number): Promise<void> {
     const session = this.sessions.find((s) => s.id === id);
     if (session) session.lastActive = new Date();

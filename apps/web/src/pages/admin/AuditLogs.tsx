@@ -60,6 +60,7 @@ export default function AuditLogs() {
 
   useEffect(() => {
     fetchLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken, eventFilter, emailSearch]);
 
   return (

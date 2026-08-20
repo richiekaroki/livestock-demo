@@ -12,7 +12,7 @@ concurrency:
 jobs:
   deploy-web:
     name: Deploy web to Vercel
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && secrets.VERCEL_TOKEN != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,12 +22,10 @@ jobs:
       - run: npm run build -w @wam-mfugo/shared
       - name: Deploy to Vercel
         run: npx vercel deploy --prod --yes --token "${{ secrets.VERCEL_TOKEN }}" --cwd apps/web --env VITE_API_BASE_URL="${{ secrets.VITE_API_BASE_URL }}"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
   deploy-api:
     name: Deploy API to Render
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && secrets.RENDER_DEPLOY_HOOK_URL != ''
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Render deploy

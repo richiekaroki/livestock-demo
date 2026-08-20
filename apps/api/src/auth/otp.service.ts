@@ -16,7 +16,10 @@ export class OtpService {
   ) {
     this.otpExpiryMinutes = parseInt(process.env.OTP_EXPIRY_MINUTES || '5', 10);
     this.maxRequests = parseInt(process.env.OTP_MAX_REQUESTS || '5', 10);
-    this.maxFailedAttempts = parseInt(process.env.OTP_MAX_FAILED_ATTEMPTS || '5', 10);
+    this.maxFailedAttempts = parseInt(
+      process.env.OTP_MAX_FAILED_ATTEMPTS || '5',
+      10,
+    );
     this.lockoutMinutes = parseInt(process.env.OTP_LOCKOUT_MINUTES || '15', 10);
   }
 
@@ -93,12 +96,15 @@ export class OtpService {
     return Math.max(0, Math.ceil(remaining / 1000));
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async incrementFailedAttempts(
     failedAttempts: number,
   ): Promise<{ failedOtpAttempts: number; lockedUntil?: Date }> {
     const newCount = failedAttempts + 1;
     if (newCount >= this.maxFailedAttempts) {
-      const lockedUntil = new Date(Date.now() + this.lockoutMinutes * 60 * 1000);
+      const lockedUntil = new Date(
+        Date.now() + this.lockoutMinutes * 60 * 1000,
+      );
       return { failedOtpAttempts: newCount, lockedUntil };
     }
     return { failedOtpAttempts: newCount };

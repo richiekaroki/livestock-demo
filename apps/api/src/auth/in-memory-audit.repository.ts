@@ -7,6 +7,7 @@ export class InMemoryAuditRepository implements AuditRepository {
   private logs: StoredLog[] = [];
   private nextId = 1;
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async log(data: {
     event: string;
     email?: string;
@@ -24,9 +25,12 @@ export class InMemoryAuditRepository implements AuditRepository {
       createdAt: new Date(),
     };
     this.logs.push(entry);
-    console.log(`[AUDIT] ${data.event} | email=${data.email ?? '-'} | userId=${data.userId ?? '-'} | ip=${data.ip ?? '-'}`);
+    console.log(
+      `[AUDIT] ${data.event} | email=${data.email ?? '-'} | userId=${data.userId ?? '-'} | ip=${data.ip ?? '-'}`,
+    );
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async list(filters?: {
     event?: string;
     email?: string;

@@ -85,7 +85,9 @@ async function request<T>(path: string, init: RequestOptions = {}): Promise<T> {
       try {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(REFRESH_KEY);
-      } catch {}
+      } catch {
+        // localStorage may be unavailable
+      }
       throw new Error("Session expired. Please sign in again.");
     }
 

@@ -1,6 +1,12 @@
 function escapeCell(value: unknown): string {
-  const s = value === null || value === undefined ? '' : String(value);
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string')
+    return /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  if (typeof value === 'number' || typeof value === 'boolean')
+    return String(value);
+  // Objects/arrays — best-effort serialization
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+  return String(value);
 }
 
 export function toCsv(rows: Array<Record<string, unknown>>): string {

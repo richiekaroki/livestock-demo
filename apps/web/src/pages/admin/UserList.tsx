@@ -54,6 +54,7 @@ export default function UserList() {
 
   useEffect(() => {
     fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken, search, roleFilter, statusFilter]);
 
   const toggleActive = async (user: UserRow) => {
