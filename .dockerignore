@@ -1,0 +1,12 @@
+node_modules
+**/node_modules
+.git
+**/dist
+apps/web/.env
+apps/api/.env
+apps/mobile/.env
+**/.expo
+**/*.log
+frontend
+docs
+.playwright-mcp
