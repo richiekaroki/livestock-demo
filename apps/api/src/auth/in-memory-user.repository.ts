@@ -13,7 +13,7 @@ export class InMemoryUserRepository implements UserRepository {
   }
 
   private seed() {
-    const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'rkabue23@gmail.com';
+    const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@example.com';
     this.users.push({
       id: this.nextId++,
       email: adminEmail,

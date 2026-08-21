@@ -5,7 +5,7 @@ import request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { OtpService } from './../src/auth/otp.service';
 
-const ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || 'rkabue23@gmail.com';
+const ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || 'admin@example.com';
 
 describe('Wam Mfugo API (e2e)', () => {
   let app: INestApplication;

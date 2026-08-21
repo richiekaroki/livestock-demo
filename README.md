@@ -21,7 +21,7 @@ npm run dev:api     # http://localhost:4000 — start first
 npm run dev:web     # http://localhost:5173
 ```
 
-Login with the seeded admin `rkabue23@gmail.com`; the OTP prints in the API console (demo) or arrives via email (`EMAIL_PROVIDER=smtp`).
+Set `DEFAULT_ADMIN_EMAIL` in `apps/api/.env` to your email (defaults to `admin@example.com`). Login with that email; the OTP prints in the API console (demo) or arrives via email (`EMAIL_PROVIDER=smtp`).
 
 Prefer the full stack (Postgres + API + web) in one command? `docker compose up --build` → http://localhost:5173, API at http://localhost:4000/api.
 

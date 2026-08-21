@@ -17,7 +17,7 @@
 
 **Verified end-to-end against running API (in-memory mode):**
 - `POST /api/auth/request-otp` → OTP logged/emailed
-- `POST /api/auth/verify-otp` → JWT access + refresh + session issued (seeded admin `rkabue23@gmail.com`)
+- `POST /api/auth/verify-otp` → JWT access + refresh + session issued (seeded admin from `DEFAULT_ADMIN_EMAIL`)
 - `GET /api/kalro/veterinary/:id` → 200 with admin token, 401 without
 - `GET /api/stats` → 401 without token
 - `POST /api/auth/refresh` → rotates tokens
@@ -473,7 +473,7 @@ When `DEMO_MODE !== 'false'` and no database is configured:
 **File:** `apps/api/src/auth/in-memory-user.repository.ts`
 
 In-memory user store for demo mode. Seeded with default admin account:
-- Email: `DEFAULT_ADMIN_EMAIL` env var (default `rkabue23@gmail.com`)
+- Email: `DEFAULT_ADMIN_EMAIL` env var (default `admin@example.com`)
 - Name: Richard Karoki
 - Role: admin
 
