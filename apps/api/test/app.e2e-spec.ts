@@ -3,9 +3,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import type { ApiResponse, Livestock } from '@wam-mfugo/shared';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
+import { AuthService } from './../src/auth/auth.service';
+
+const ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || 'rkabue23@gmail.com';
 
 describe('Wam Mfugo API (e2e)', () => {
   let app: INestApplication;
+  let accessToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -22,7 +26,22 @@ describe('Wam Mfugo API (e2e)', () => {
       }),
     );
     await app.init();
-  });
+
+    // Login via OTP: request-otp then verify
+    const authService = moduleFixture.get(AuthService);
+
+    // Create OTP directly (avoids HTTP round-trip + email sending)
+    const otpModule = await import('./../src/auth/otp.service');
+    const otpService = moduleFixture.get(otpModule.OtpService);
+    const otp = await otpService.createOtp(ADMIN_EMAIL, 'login');
+
+    // Verify via HTTP to exercise the full guard + JWT flow
+    const loginRes = await request(app.getHttpServer())
+      .post('/api/auth/verify-otp')
+      .send({ email: ADMIN_EMAIL, otp });
+
+    accessToken = loginRes.body.data.accessToken;
+  }, 30000);
 
   afterAll(async () => {
     await app.close();
@@ -36,7 +55,9 @@ describe('Wam Mfugo API (e2e)', () => {
   });
 
   it('/api/animals (GET)', async () => {
-    const res = await request(app.getHttpServer()).get('/api/animals');
+    const res = await request(app.getHttpServer())
+      .get('/api/animals')
+      .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
     const body = res.body as ApiResponse<Livestock[]>;
     expect(body.success).toBe(true);
@@ -56,6 +77,7 @@ describe('Wam Mfugo API (e2e)', () => {
 
     const created = await request(app.getHttpServer())
       .post('/api/animals')
+      .set('Authorization', `Bearer ${accessToken}`)
       .send(valid);
     expect(created.status).toBe(201);
     const createdBody = created.body as ApiResponse<Livestock>;
@@ -63,12 +85,15 @@ describe('Wam Mfugo API (e2e)', () => {
 
     const invalid = await request(app.getHttpServer())
       .post('/api/animals')
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({ ...valid, name: 'A' });
     expect(invalid.status).toBe(400);
   });
 
   it('/api/stats (GET)', async () => {
-    const res = await request(app.getHttpServer()).get('/api/stats');
+    const res = await request(app.getHttpServer())
+      .get('/api/stats')
+      .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
     const body = res.body as ApiResponse<{ totalAnimals: number }>;
     expect(body.data.totalAnimals).toBeGreaterThan(0);
@@ -87,6 +112,7 @@ describe('Wam Mfugo API (e2e)', () => {
 
     const ok = await request(app.getHttpServer())
       .post('/api/kiamis/register')
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({ ...base, ownerNationalID: '1234567' });
     expect(ok.status).toBe(201);
     const okBody = ok.body as {
@@ -98,6 +124,7 @@ describe('Wam Mfugo API (e2e)', () => {
 
     const bad = await request(app.getHttpServer())
       .post('/api/kiamis/register')
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({ ...base, ownerNationalID: 'ABC123' });
     expect(bad.status).toBe(400);
   });
