@@ -4,7 +4,12 @@ import type { OtpRepository, OtpRecord } from './otp.repository';
 export class PrismaOtpRepository implements OtpRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: { email: string; code: string; expiresAt: Date; purpose: string }): Promise<OtpRecord> {
+  async create(data: {
+    email: string;
+    code: string;
+    expiresAt: Date;
+    purpose: string;
+  }): Promise<OtpRecord> {
     const row = await this.prisma.otpCode.create({
       data: {
         email: data.email,

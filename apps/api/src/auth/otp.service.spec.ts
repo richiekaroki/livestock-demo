@@ -10,7 +10,7 @@ describe('OtpService', () => {
   beforeEach(() => {
     otpRepo = new InMemoryOtpRepository();
     auditRepo = new InMemoryAuditRepository();
-    service = new OtpService(otpRepo as any, auditRepo as any);
+    service = new OtpService(otpRepo, auditRepo);
   });
 
   it('generates a 6-digit OTP', () => {
@@ -35,7 +35,11 @@ describe('OtpService', () => {
 
   it('rejects an invalid OTP', async () => {
     await service.createOtp('test@example.com', 'login');
-    const result = await service.verifyOtp('test@example.com', '000000', 'login');
+    const result = await service.verifyOtp(
+      'test@example.com',
+      '000000',
+      'login',
+    );
     expect(result.valid).toBe(false);
     expect(result.reason).toBeDefined();
   });

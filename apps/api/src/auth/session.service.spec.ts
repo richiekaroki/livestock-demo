@@ -7,11 +7,16 @@ describe('SessionService', () => {
 
   beforeEach(() => {
     repo = new InMemorySessionRepository();
-    service = new SessionService(repo as any);
+    service = new SessionService(repo);
   });
 
   it('creates a session', async () => {
-    const session = await service.createSession(1, 'refresh-token-123', 'Chrome', '127.0.0.1');
+    const session = await service.createSession(
+      1,
+      'refresh-token-123',
+      'Chrome',
+      '127.0.0.1',
+    );
     expect(session.id).toBeGreaterThan(0);
     expect(session.device).toBe('Chrome');
     expect(session.ip).toBe('127.0.0.1');
@@ -57,7 +62,13 @@ describe('SessionService', () => {
 
   it('rotates session (deletes old, creates new)', async () => {
     const old = await service.createSession(1, 'old-token');
-    const newSession = await service.rotateSession(old.id, 1, 'new-token', 'Firefox', '10.0.0.1');
+    const newSession = await service.rotateSession(
+      old.id,
+      1,
+      'new-token',
+      'Firefox',
+      '10.0.0.1',
+    );
 
     expect(newSession.id).not.toBe(old.id);
     const sessions = await service.listSessions(1);

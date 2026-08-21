@@ -11,7 +11,12 @@ export interface OtpRecord {
 }
 
 export interface OtpRepository {
-  create(data: { email: string; code: string; expiresAt: Date; purpose: string }): Promise<OtpRecord>;
+  create(data: {
+    email: string;
+    code: string;
+    expiresAt: Date;
+    purpose: string;
+  }): Promise<OtpRecord>;
   findValid(email: string, purpose: string): Promise<OtpRecord | null>;
   markUsed(id: number): Promise<void>;
   deleteExpired(): Promise<void>;

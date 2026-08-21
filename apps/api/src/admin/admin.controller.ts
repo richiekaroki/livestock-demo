@@ -32,13 +32,22 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Get('users')
-  @ApiQuery({ name: 'role', required: false, enum: ['admin', 'field_agent', 'farmer'] })
+  @ApiQuery({
+    name: 'role',
+    required: false,
+    enum: ['admin', 'field_agent', 'farmer'],
+  })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'isActive', required: false, enum: ['true', 'false'] })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 50 })
   async listUsers(
-    @Query() query: AuditLogQueryDto & { role?: string; isActive?: string; search?: string },
+    @Query()
+    query: AuditLogQueryDto & {
+      role?: string;
+      isActive?: string;
+      search?: string;
+    },
   ) {
     const filters: Record<string, unknown> = {
       role: query.role,
@@ -49,7 +58,7 @@ export class AdminController {
     if (query.isActive !== undefined) {
       filters.isActive = query.isActive === 'true';
     }
-    const data = await this.adminService.listUsers(filters as any);
+    const data = await this.adminService.listUsers(filters);
     return { success: true, ...data };
   }
 

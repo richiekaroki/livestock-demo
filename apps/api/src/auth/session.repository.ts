@@ -14,7 +14,13 @@ export interface SessionRecord {
 }
 
 export interface SessionRepository {
-  create(data: { userId: number; refreshTokenHash: string; device?: string; ip?: string; expiresAt: Date }): Promise<SessionRecord>;
+  create(data: {
+    userId: number;
+    refreshTokenHash: string;
+    device?: string;
+    ip?: string;
+    expiresAt: Date;
+  }): Promise<SessionRecord>;
   findByRefreshTokenHash(hash: string): Promise<SessionRecord | null>;
   listByUserId(userId: number): Promise<SessionInfo[]>;
   delete(id: number): Promise<void>;

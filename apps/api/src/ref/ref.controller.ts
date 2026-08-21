@@ -4,7 +4,10 @@ import { KENYA_COUNTIES, ANIMAL_TYPES } from '@wam-mfugo/shared';
 import type { ApiResponse, County, AnimalTypeInfo } from '@wam-mfugo/shared';
 import { PaginatedDto } from '../common/pagination';
 
-function paginate<T>(data: T[], query: PaginatedDto): { data: T[]; total: number; page: number; limit: number } {
+function paginate<T>(
+  data: T[],
+  query: PaginatedDto,
+): { data: T[]; total: number; page: number; limit: number } {
   const page = query.page ?? 1;
   const limit = query.limit ?? 0;
   if (!limit) return { data, total: data.length, page: 1, limit: 0 };

@@ -1,5 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { SESSION_REPOSITORY, type SessionRepository } from './session.repository';
+import {
+  SESSION_REPOSITORY,
+  type SessionRepository,
+} from './session.repository';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -22,8 +25,16 @@ export class SessionService {
     refreshToken: string,
     device?: string,
     ip?: string,
-  ): Promise<{ id: number; device?: string; ip?: string; lastActive: string; createdAt: string }> {
-    const expiresAt = new Date(Date.now() + this.refreshExpiresInDays * 24 * 60 * 60 * 1000);
+  ): Promise<{
+    id: number;
+    device?: string;
+    ip?: string;
+    lastActive: string;
+    createdAt: string;
+  }> {
+    const expiresAt = new Date(
+      Date.now() + this.refreshExpiresInDays * 24 * 60 * 60 * 1000,
+    );
     const hash = this.hashToken(refreshToken);
 
     const session = await this.sessionRepo.create({

@@ -24,12 +24,16 @@ export class EmailService {
     purpose: 'login' | 'register',
     name?: string,
   ): Promise<void> {
-    const templateFile = purpose === 'register' ? 'otp-register.html' : 'otp-login.html';
+    const templateFile =
+      purpose === 'register' ? 'otp-register.html' : 'otp-login.html';
     const expiresIn = process.env.OTP_EXPIRY_MINUTES || '5';
 
     let html: string;
     try {
-      html = fs.readFileSync(path.join(this.templatesDir, templateFile), 'utf-8');
+      html = fs.readFileSync(
+        path.join(this.templatesDir, templateFile),
+        'utf-8',
+      );
     } catch {
       html = this.getFallbackTemplate(code, purpose, expiresIn, name);
     }
@@ -39,9 +43,10 @@ export class EmailService {
       .replace(/\{\{expiresIn\}\}/g, expiresIn)
       .replace(/\{\{name\}\}/g, name || 'there');
 
-    const subject = purpose === 'register'
-      ? 'Verify Your Wam Mfugo Account'
-      : 'Your Wam Mfugo Login Code';
+    const subject =
+      purpose === 'register'
+        ? 'Verify Your Wam Mfugo Account'
+        : 'Your Wam Mfugo Login Code';
 
     const options: EmailOptions = { to, subject, html };
 
@@ -85,9 +90,10 @@ export class EmailService {
     expiresIn: string,
     name?: string,
   ): string {
-    const greeting = purpose === 'register'
-      ? `Welcome to Wam Mfugo, ${name || 'there'}!`
-      : `Hello ${name || 'there'},`;
+    const greeting =
+      purpose === 'register'
+        ? `Welcome to Wam Mfugo, ${name || 'there'}!`
+        : `Hello ${name || 'there'},`;
 
     return `
 <!DOCTYPE html>

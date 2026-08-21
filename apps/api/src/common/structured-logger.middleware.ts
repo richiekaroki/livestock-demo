@@ -7,8 +7,7 @@ export function structuredLogger(
   next: NextFunction,
 ) {
   const started = Date.now();
-  const requestId =
-    req.headers['x-request-id'] || 'unknown';
+  const requestId = req.headers['x-request-id'] || 'unknown';
   const log = new Logger('HTTP');
 
   res.on('finish', () => {

@@ -37,12 +37,12 @@ export class PrismaUserRepository implements UserRepository {
 
   async findByEmail(email: string): Promise<User | null> {
     const row = await this.prisma.user.findUnique({ where: { email } });
-    return row ? toDomain(row as unknown as UserRow) : null;
+    return row ? toDomain(row) : null;
   }
 
   async findById(id: number): Promise<User | null> {
     const row = await this.prisma.user.findUnique({ where: { id } });
-    return row ? toDomain(row as unknown as UserRow) : null;
+    return row ? toDomain(row) : null;
   }
 
   async create(data: {
@@ -63,12 +63,23 @@ export class PrismaUserRepository implements UserRepository {
         subCounty: data.subCounty,
       },
     });
-    return toDomain(row as unknown as UserRow);
+    return toDomain(row);
   }
 
   async update(
     id: number,
-    data: Partial<Pick<User, 'name' | 'phone' | 'county' | 'subCounty' | 'role' | 'isActive' | 'failedOtpAttempts'>> & { lockedUntil?: string | null },
+    data: Partial<
+      Pick<
+        User,
+        | 'name'
+        | 'phone'
+        | 'county'
+        | 'subCounty'
+        | 'role'
+        | 'isActive'
+        | 'failedOtpAttempts'
+      >
+    > & { lockedUntil?: string | null },
   ): Promise<User> {
     const row = await this.prisma.user.update({
       where: { id },
@@ -79,20 +90,28 @@ export class PrismaUserRepository implements UserRepository {
         ...(data.subCounty !== undefined && { subCounty: data.subCounty }),
         ...(data.role !== undefined && { role: data.role }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
-        ...(data.failedOtpAttempts !== undefined && { failedOtpAttempts: data.failedOtpAttempts }),
+        ...(data.failedOtpAttempts !== undefined && {
+          failedOtpAttempts: data.failedOtpAttempts,
+        }),
         ...(data.lockedUntil !== undefined && {
           lockedUntil: data.lockedUntil ? new Date(data.lockedUntil) : null,
         }),
       },
     });
-    return toDomain(row as unknown as UserRow);
+    return toDomain(row);
   }
 
-  async list(filters?: { role?: string; isActive?: boolean; search?: string }): Promise<User[]> {
+  async list(filters?: {
+    role?: string;
+    isActive?: boolean;
+    search?: string;
+  }): Promise<User[]> {
     const rows = await this.prisma.user.findMany({
       where: {
         ...(filters?.role ? { role: filters.role } : {}),
-        ...(filters?.isActive !== undefined ? { isActive: filters.isActive } : {}),
+        ...(filters?.isActive !== undefined
+          ? { isActive: filters.isActive }
+          : {}),
         ...(filters?.search
           ? {
               OR: [
@@ -104,14 +123,19 @@ export class PrismaUserRepository implements UserRepository {
       },
       orderBy: { createdAt: 'desc' },
     });
-    return rows.map((r) => toDomain(r as unknown as UserRow));
+    return rows.map((r) => toDomain(r));
   }
 
-  async count(filters?: { role?: string; isActive?: boolean }): Promise<number> {
+  async count(filters?: {
+    role?: string;
+    isActive?: boolean;
+  }): Promise<number> {
     return this.prisma.user.count({
       where: {
         ...(filters?.role ? { role: filters.role } : {}),
-        ...(filters?.isActive !== undefined ? { isActive: filters.isActive } : {}),
+        ...(filters?.isActive !== undefined
+          ? { isActive: filters.isActive }
+          : {}),
       },
     });
   }

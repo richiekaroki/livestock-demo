@@ -39,7 +39,12 @@ export class AuthController {
     @Req() req: { ip?: string; headers: Record<string, string> },
   ): Promise<ApiResponse<AuthResponse>> {
     const device = req.headers['user-agent'];
-    const data = await this.authService.verifyOtp(dto.email, dto.otp, req.ip, device);
+    const data = await this.authService.verifyOtp(
+      dto.email,
+      dto.otp,
+      req.ip,
+      device,
+    );
     return { success: true, data };
   }
 
@@ -84,7 +89,12 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(
-    @Req() req: { user: { sub: number }; ip?: string; body: { sessionId?: number } },
+    @Req()
+    req: {
+      user: { sub: number };
+      ip?: string;
+      body: { sessionId?: number };
+    },
   ): Promise<ApiResponse<{ message: string }>> {
     await this.authService.logout(req.user.sub, req.body?.sessionId, req.ip);
     return { success: true, data: { message: 'Logged out' } };

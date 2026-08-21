@@ -13,7 +13,25 @@ export interface UserRepository {
     county: string;
     subCounty?: string;
   }): Promise<User>;
-  update(id: number, data: Partial<Pick<User, 'name' | 'phone' | 'county' | 'subCounty' | 'role' | 'isActive' | 'failedOtpAttempts'>> & { lockedUntil?: string | null }): Promise<User>;
-  list(filters?: { role?: string; isActive?: boolean; search?: string }): Promise<User[]>;
+  update(
+    id: number,
+    data: Partial<
+      Pick<
+        User,
+        | 'name'
+        | 'phone'
+        | 'county'
+        | 'subCounty'
+        | 'role'
+        | 'isActive'
+        | 'failedOtpAttempts'
+      >
+    > & { lockedUntil?: string | null },
+  ): Promise<User>;
+  list(filters?: {
+    role?: string;
+    isActive?: boolean;
+    search?: string;
+  }): Promise<User[]>;
   count(filters?: { role?: string; isActive?: boolean }): Promise<number>;
 }

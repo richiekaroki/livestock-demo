@@ -1,4 +1,10 @@
-import { IsEmail, IsString, IsOptional, IsIn, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  IsOptional,
+  IsIn,
+  MinLength,
+} from 'class-validator';
 import type { UserRole } from '@wam-mfugo/shared';
 
 const validRoles: UserRole[] = ['admin', 'field_agent', 'farmer'];

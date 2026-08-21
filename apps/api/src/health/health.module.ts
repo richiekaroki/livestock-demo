@@ -7,8 +7,7 @@ import { PrismaService } from '../common/prisma.service';
   providers: [
     {
       provide: PrismaService,
-      useFactory: () =>
-        process.env.DATABASE_URL ? new PrismaService() : null,
+      useFactory: () => (process.env.DATABASE_URL ? new PrismaService() : null),
     },
   ],
 })
