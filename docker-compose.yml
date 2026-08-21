@@ -2,6 +2,10 @@
 # Usage: docker compose up --build
 #   API  -> http://localhost:4000/api        (docs: /api/docs)
 #   Web  -> http://localhost:5173
+#
+# Before running, create apps/api/.env with at minimum:
+#   JWT_SECRET=<any-random-string>
+#   CORS_ORIGIN=http://localhost:5173
 services:
   db:
     image: postgres:16-alpine
@@ -23,15 +27,15 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+    env_file:
+      - path: apps/api/.env
+        required: false
     environment:
       PORT: 4000
       DATABASE_URL: postgresql://wam:wam@db:5432/wam_mfugo?schema=public
-      JWT_SECRET: compose-dev-secret-change-me
       JWT_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
       EMAIL_PROVIDER: console
-      DEFAULT_ADMIN_EMAIL: rkabue23@gmail.com
-      CORS_ORIGIN: "*"
     ports:
       - "4000:4000"
     depends_on:
