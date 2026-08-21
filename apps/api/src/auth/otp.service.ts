@@ -32,6 +32,8 @@ export class OtpService {
   }
 
   async createOtp(email: string, purpose: string): Promise<string> {
+    await this.otpRepo.invalidateAll(email, purpose);
+
     const otp = this.generateOtp();
     const hashedCode = this.hashOtp(otp);
     const expiresAt = new Date(Date.now() + this.otpExpiryMinutes * 60 * 1000);

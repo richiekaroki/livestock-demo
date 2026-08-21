@@ -59,6 +59,13 @@ export class PrismaOtpRepository implements OtpRepository {
     });
   }
 
+  async invalidateAll(email: string, purpose: string): Promise<void> {
+    await this.prisma.otpCode.updateMany({
+      where: { email, purpose, used: false },
+      data: { used: true },
+    });
+  }
+
   async deleteExpired(): Promise<void> {
     await this.prisma.otpCode.deleteMany({
       where: { expiresAt: { lt: new Date() } },

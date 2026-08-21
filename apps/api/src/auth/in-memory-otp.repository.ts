@@ -45,6 +45,15 @@ export class InMemoryOtpRepository implements OtpRepository {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
+  async invalidateAll(email: string, purpose: string): Promise<void> {
+    for (const otp of this.otps) {
+      if (otp.email === email && otp.purpose === purpose && !otp.used) {
+        otp.used = true;
+      }
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
   async deleteExpired(): Promise<void> {
     const now = new Date();
     this.otps = this.otps.filter((o) => o.expiresAt > now);

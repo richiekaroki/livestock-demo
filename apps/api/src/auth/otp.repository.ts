@@ -19,5 +19,6 @@ export interface OtpRepository {
   }): Promise<OtpRecord>;
   findValid(email: string, purpose: string): Promise<OtpRecord | null>;
   markUsed(id: number): Promise<void>;
+  invalidateAll(email: string, purpose: string): Promise<void>;
   deleteExpired(): Promise<void>;
 }
