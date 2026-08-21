@@ -1,222 +1,177 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+// src/pages/admin/UserList.tsx
+import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
-interface UserRow {
+interface User {
   id: number;
   email: string;
   name: string;
   phone: string;
   role: string;
   county: string;
-  subCounty?: string;
   isActive: boolean;
   createdAt: string;
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
-
-const roleBadgeColors: Record<string, string> = {
-  admin: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
-  field_agent: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  farmer: 'bg-green-500/10 text-green-600 border-green-500/20',
-};
-
 export default function UserList() {
-  const { accessToken } = useAuth();
-  const [users, setUsers] = useState<UserRow[]>([]);
+  const { t } = useTranslation();
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
-  const fetchUsers = async () => {
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
     setLoading(true);
-    setError('');
+    setError(null);
     try {
-      const params = new URLSearchParams();
-      if (search) params.set('search', search);
-      if (roleFilter) params.set('role', roleFilter);
-      if (statusFilter) params.set('isActive', statusFilter === 'active' ? 'true' : 'false');
-
-      const res = await fetch(`${API_BASE}/admin/users?${params}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+      const res = await fetch("/api/admin/users", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to load users');
-      setUsers(data.users || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load users');
+      if (data.users) setUsers(data.users);
+    } catch {
+      setError(t("admin.users_load_failed"));
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, search, roleFilter, statusFilter]);
+  const filteredUsers = useMemo(() => {
+    return users.filter((u) => {
+      const matchSearch = !search || u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
+      const matchRole = !roleFilter || u.role === roleFilter;
+      const matchStatus = !statusFilter || (statusFilter === "active" ? u.isActive : !u.isActive);
+      return matchSearch && matchRole && matchStatus;
+    });
+  }, [users, search, roleFilter, statusFilter]);
 
-  const toggleActive = async (user: UserRow) => {
+  const handleDeactivate = async (userId: number) => {
     try {
-      const res = await fetch(`${API_BASE}/admin/users/${user.id}`, {
-        method: 'PATCH',
+      await fetch(`/api/admin/users/${userId}`, {
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ isActive: !user.isActive }),
+        body: JSON.stringify({ isActive: false }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Update failed');
-      fetchUsers();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Update failed');
+      loadUsers();
+    } catch {
+      setError(t("admin.users_update_failed"));
     }
   };
 
-  const changeRole = async (user: UserRow, role: string) => {
+  const handleRevokeSessions = async (userId: number) => {
     try {
-      const res = await fetch(`${API_BASE}/admin/users/${user.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ role }),
+      await fetch(`/api/admin/users/${userId}/revoke-sessions`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Update failed');
-      fetchUsers();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Update failed');
-    }
-  };
-
-  const revokeSessions = async (userId: number) => {
-    try {
-      const res = await fetch(`${API_BASE}/admin/users/${userId}/revoke-sessions`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to revoke sessions');
-      fetchUsers();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to revoke sessions');
+    } catch {
+      setError(t("admin.users_revoke_failed"));
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto py-8">
-      <h1 className="text-2xl font-bold text-text-primary mb-6">User Management</h1>
+    <div className="max-w-7xl mx-auto py-8 px-4">
+      <h1 className="text-3xl font-bold text-text-primary mb-8">
+        {t("admin.users_title")}
+      </h1>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm">
-          {error}
-        </div>
-      )}
-
-      <div className="flex flex-wrap gap-3 mb-6">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name or email..."
-          className="px-4 py-2 bg-bg-secondary border border-border rounded-lg text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/50"
+          placeholder={t("admin.users_search")}
+          className="input-field flex-1"
         />
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="px-4 py-2 bg-bg-secondary border border-border rounded-lg text-sm text-text-primary focus:outline-none"
+          className="input-field w-full sm:w-auto"
         >
-          <option value="">All Roles</option>
-          <option value="admin">Admin</option>
-          <option value="field_agent">Field Agent</option>
-          <option value="farmer">Farmer</option>
+          <option value="">{t("admin.users_all_roles")}</option>
+          <option value="admin">{t("admin.users_admin")}</option>
+          <option value="field_agent">{t("admin.users_field_agent")}</option>
+          <option value="farmer">{t("admin.users_farmer")}</option>
         </select>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 bg-bg-secondary border border-border rounded-lg text-sm text-text-primary focus:outline-none"
+          className="input-field w-full sm:w-auto"
         >
-          <option value="">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+          <option value="">{t("admin.users_all_status")}</option>
+          <option value="active">{t("admin.users_active")}</option>
+          <option value="inactive">{t("admin.users_inactive")}</option>
         </select>
       </div>
 
-      <div className="bg-bg-secondary border border-border rounded-xl overflow-hidden">
-        {loading ? (
-          <div className="p-8 text-center text-text-secondary">Loading users...</div>
-        ) : users.length === 0 ? (
-          <div className="p-8 text-center text-text-secondary">No users found</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left">
-                  <th className="px-4 py-3 text-text-tertiary font-medium">Name</th>
-                  <th className="px-4 py-3 text-text-tertiary font-medium">Email</th>
-                  <th className="px-4 py-3 text-text-tertiary font-medium">Role</th>
-                  <th className="px-4 py-3 text-text-tertiary font-medium">County</th>
-                  <th className="px-4 py-3 text-text-tertiary font-medium">Status</th>
-                  <th className="px-4 py-3 text-text-tertiary font-medium">Created</th>
-                  <th className="px-4 py-3 text-text-tertiary font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.id} className="border-b border-border/50 hover:bg-bg-primary/50 transition-colors">
-                    <td className="px-4 py-3 text-text-primary font-medium">{user.name}</td>
-                    <td className="px-4 py-3 text-text-secondary">{user.email}</td>
-                    <td className="px-4 py-3">
-                      <select
-                        value={user.role}
-                        onChange={(e) => changeRole(user, e.target.value)}
-                        className={`px-2 py-1 rounded-lg border text-xs font-medium ${roleBadgeColors[user.role] || ''}`}
+      {loading && <p className="text-text-secondary">{t("admin.users_loading")}</p>}
+      {error && <p className="text-error">{error}</p>}
+
+      {!loading && filteredUsers.length === 0 && (
+        <p className="text-text-secondary">{t("admin.users_empty")}</p>
+      )}
+
+      {!loading && filteredUsers.length > 0 && (
+        <div className="card overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left p-3 font-medium text-text-secondary">{t("admin.users_col_name")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("admin.users_col_email")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("admin.users_col_role")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("admin.users_col_county")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("admin.users_col_status")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("admin.users_col_actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map((user) => (
+                <tr key={user.id} className="border-b border-border hover:bg-bg-secondary transition-colors">
+                  <td className="p-3 font-medium">{user.name}</td>
+                  <td className="p-3 text-text-secondary">{user.email}</td>
+                  <td className="p-3">
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-accent/10 text-accent capitalize">
+                      {user.role === "admin" ? t("admin.users_admin") : user.role === "field_agent" ? t("admin.users_field_agent") : t("admin.users_farmer")}
+                    </span>
+                  </td>
+                  <td className="p-3 text-text-secondary">{user.county}</td>
+                  <td className="p-3">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${user.isActive ? "bg-success/10 text-success" : "bg-error/10 text-error"}`}>
+                      {user.isActive ? t("admin.users_active") : t("admin.users_inactive")}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleDeactivate(user.id)}
+                        className="text-xs text-error hover:text-error/80 transition-colors cursor-pointer"
                       >
-                        <option value="admin">Admin</option>
-                        <option value="field_agent">Field Agent</option>
-                        <option value="farmer">Farmer</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-3 text-text-secondary">{user.county}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        user.isActive
-                          ? 'bg-green-500/10 text-green-600'
-                          : 'bg-red-500/10 text-red-600'
-                      }`}>
-                        {user.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-text-tertiary">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => toggleActive(user)}
-                          className="px-2 py-1 text-xs font-medium rounded-lg border border-border hover:bg-bg-primary transition-colors"
-                        >
-                          {user.isActive ? 'Deactivate' : 'Activate'}
-                        </button>
-                        <button
-                          onClick={() => revokeSessions(user.id)}
-                          className="px-2 py-1 text-xs font-medium rounded-lg border border-border hover:bg-bg-primary transition-colors"
-                        >
-                          Revoke Sessions
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                        {user.isActive ? t("admin.users_deactivate") : t("admin.users_activate")}
+                      </button>
+                      <button
+                        onClick={() => handleRevokeSessions(user.id)}
+                        className="text-xs text-warning hover:text-warning/80 transition-colors cursor-pointer"
+                      >
+                        {t("admin.users_revoke_sessions")}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

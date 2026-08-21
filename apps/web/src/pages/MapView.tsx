@@ -1,5 +1,6 @@
 // src/pages/MapView.tsx
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import FilterBar from "../components/filters/FilterBar";
 import LivestockMap from "../components/map/LivestockMap";
 import { useLivestockStore } from "../store/livestockStore";
@@ -35,10 +36,11 @@ function ActiveFilterChips({
   filters: { type?: string; county?: string; health?: string };
   onRemove: (key: "type" | "county" | "health") => void;
 }) {
+  const { t } = useTranslation();
   const chips: { key: keyof typeof filters; label: string }[] = [];
-  if (filters.type) chips.push({ key: "type", label: `Type: ${filters.type}` });
-  if (filters.health) chips.push({ key: "health", label: `Health: ${filters.health}` });
-  if (filters.county) chips.push({ key: "county", label: `County: ${filters.county}` });
+  if (filters.type) chips.push({ key: "type", label: `${t("dashboard.type_filter")} ${filters.type}` });
+  if (filters.health) chips.push({ key: "health", label: `${t("dashboard.health_filter")} ${filters.health}` });
+  if (filters.county) chips.push({ key: "county", label: `${t("dashboard.county_filter")} ${filters.county}` });
 
   if (chips.length === 0) return null;
 
@@ -64,6 +66,7 @@ function ActiveFilterChips({
 }
 
 export default function MapView({ data, allData, loading }: MapViewProps) {
+  const { t } = useTranslation();
   const filters = useLivestockStore((s) => s.filters);
   const updateFilter = useLivestockStore((s) => s.updateFilter);
 
@@ -92,10 +95,10 @@ export default function MapView({ data, allData, loading }: MapViewProps) {
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
-            Livestock Map
+            {t("map.title")}
           </h1>
           <p className="text-sm text-text-secondary mt-1">
-            Visualize animal locations and health status across Kenya
+            {t("map.desc")}
           </p>
         </div>
         <div className="w-full sm:w-auto sm:min-w-[280px]">
@@ -119,23 +122,23 @@ export default function MapView({ data, allData, loading }: MapViewProps) {
         ) : stats ? (
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm" aria-label="Map statistics summary" aria-live="polite" aria-atomic="true">
             <div className="flex items-center gap-2">
-              <span className="text-text-tertiary">Showing:</span>
+              <span className="text-text-tertiary">{t("map.showing")}</span>
               <span className="font-semibold font-mono text-accent">
                 {data.length.toLocaleString()}
               </span>
               <span className="text-text-tertiary">
-                of {stats.total.toLocaleString()} animals
+                {t("dashboard.of")} {stats.total.toLocaleString()} {t("map.animals")}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-text-tertiary">Across:</span>
+              <span className="text-text-tertiary">{t("map.across")}</span>
               <span className="font-semibold font-mono text-text-primary">
                 {stats.counties}
               </span>
-              <span className="text-text-tertiary">counties</span>
+              <span className="text-text-tertiary">{t("map.counties")}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-text-tertiary">Health rate:</span>
+              <span className="text-text-tertiary">{t("map.health_rate")}</span>
               <span className="font-semibold font-mono text-success">
                 {stats.healthyPercent}%
               </span>
@@ -147,7 +150,7 @@ export default function MapView({ data, allData, loading }: MapViewProps) {
                   {stats.sick}
                 </span>
                 <span className="text-text-tertiary">
-                  {stats.sick === 1 ? "animal" : "animals"} need attention
+                  {stats.sick === 1 ? t("home.animal_needs") : t("home.animals_needs")}{t("map.need_attention")}
                 </span>
               </div>
             )}

@@ -21,13 +21,17 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { toCsv } from '../common/csv';
+import { EventsGateway } from '../events/events.gateway';
 
 @ApiTags('animals')
 @ApiBearerAuth('access-token')
 @Controller('animals')
 @UseGuards(JwtAuthGuard)
 export class AnimalsController {
-  constructor(private readonly animals: AnimalsService) {}
+  constructor(
+    private readonly animals: AnimalsService,
+    private readonly events: EventsGateway,
+  ) {}
 
   @Get()
   @ApiQuery({ name: 'type', required: false, example: 'Cattle' })
@@ -87,6 +91,11 @@ export class AnimalsController {
   @Roles('admin', 'field_agent')
   async create(@Body() dto: CreateAnimalDto): Promise<ApiResponse<Livestock>> {
     const data = await this.animals.create(dto);
+    this.events.broadcastAnimalEvent({
+      type: 'created',
+      animal: data as unknown as Record<string, unknown>,
+      timestamp: new Date().toISOString(),
+    });
     return { success: true, data };
   }
 
@@ -101,6 +110,11 @@ export class AnimalsController {
     if (!data) {
       return { success: false, error: 'Animal not found', data: null };
     }
+    this.events.broadcastAnimalEvent({
+      type: 'updated',
+      animal: data as unknown as Record<string, unknown>,
+      timestamp: new Date().toISOString(),
+    });
     return { success: true, data };
   }
 }

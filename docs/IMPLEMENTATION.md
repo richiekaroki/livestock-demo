@@ -50,6 +50,10 @@ No credit card required on Vercel, Neon, Expo, or GitHub. Render free tier works
 | Docker (API + web + Postgres) | **READY** — Dockerfiles + docker-compose.yml validated; image build needs 6-8 GB RAM | M10 |
 | CI auto-deploy | **READY** — `.github/workflows/deploy.yml` (Vercel + Render) + `render.yaml` Blueprint | M10 |
 | Package cleanup | **DONE** — removed unused deps (react-is, expo-symbols, expo-web-browser), moved @types/* to devDeps | M10 |
+| Swahili/English i18n | **DONE** — react-i18next, EN/SW translations (200+ keys), language switcher | M11 |
+| Vaccination reminders (email) | **DONE** — CRUD API, cron scheduler (8AM daily), 3-day advance email reminders | M11 |
+| WebSockets live stats | **DONE** — NestJS gateway, socket.io, live indicator on dashboard | M11 |
+| Playwright e2e suite | **DONE** — 15 auth flow tests (login, register, protected routes) | M11 |
 
 ---
 
@@ -340,6 +344,29 @@ Swagger docs, pagination, CSV exports, security headers, structured logging, Doc
 
 ---
 
+### M11 — Portfolio Polish: i18n, Vaccinations, WebSockets, E2E (done)
+
+Swahili/English i18n, vaccination email reminders, live WebSocket stats, Playwright e2e tests.
+
+**What it adds:**
+
+- **i18n:** `react-i18next` with 200+ translated keys (EN/SW), language switcher in navbar, localStorage persistence
+- **Vaccinations:** CRUD API (`/api/vaccinations`), `@nestjs/schedule` daily cron (8AM), email reminders 3 days before `nextDueDate`, reminder email template
+- **WebSockets:** NestJS `EventsGateway` with Socket.io, `subscribe:stats` + `subscribe:animal-events` channels, `LiveIndicator` component on dashboard, animal event broadcast on create/update
+- **Playwright e2e:** 15 tests across login, register, and protected route flows; `playwright.config.ts` with Chromium + webServer auto-start
+
+**Done when:**
+
+- [x] `tsc -b apps/web` passes
+- [x] `tsc -b apps/api` passes
+- [x] Language switcher toggles EN/SW on all pages
+- [x] Vaccination CRUD works via API
+- [x] Reminder cron logs upcoming vaccinations
+- [x] WebSocket gateway broadcasts animal events
+- [x] Playwright config + 15 auth flow tests in `apps/web/e2e/`
+
+---
+
 ## 3. CI (GitHub Actions, free)
 
 **`ci.yml`** — runs on push/PR:
@@ -384,8 +411,9 @@ Updated with:
 | 7 | M7 CI | ~0.5 day | Automated checks |
 | 8 | M9 auth | ~2–3 days | Passwordless OTP + roles |
 | 9 | M8 deployment | ~0.5 day | Needs account credentials |
+| 10 | M11 i18n + vaccinations + WebSockets + e2e | ~4–6 days | Portfolio polish, Kenyan market features |
 
-**Total: ~7–9 focused days** to a full-stack, mobile, live, biometric-capable, authenticated portfolio.
+**Total: ~12–17 focused days** to a full-stack, mobile, live, biometric-capable, authenticated, i18n-enabled portfolio.
 
 ---
 
@@ -395,8 +423,11 @@ Updated with:
 - **Gov integration:** KALRO vet records + KIAMIS registration with Kenyan National ID validation — exact vocabulary in the job post.
 - **Data-driven:** 47 Kenya counties, 6 animal types with breeds, deterministic demo generator — no hard-coded data.
 - **Perf discipline:** lazy-loaded dashboard, memoized filters/cards, single-pass stats loops, shared `useOnlineStatus`.
-- **Testing:** 151 web + 21 API tests, type-checked and lint-clean.
+- **Testing:** 151 web + 21 API + 15 Playwright e2e tests, type-checked and lint-clean.
 - **Monorepo craft:** npm workspaces, shared `@wam-mfugo/shared` package (types + ref data + generator), Prisma repo abstraction with in-memory fallback.
 - **Auth:** Passwordless email OTP, no passwords stored, role-based access with JWT access+refresh, rate limiting + lockout, audit trail, session management, admin user management — eliminates password recovery entirely.
+- **i18n:** Swahili/English via react-i18next with 200+ translated keys, language switcher, localStorage persistence — demonstrates Kenyan market awareness.
+- **Domain features:** Vaccination records with CRUD API, daily cron scheduler for email reminders (3-day advance), shows livestock management domain knowledge.
+- **Real-time:** WebSocket gateway (Socket.io) broadcasting animal events, live dashboard indicator — shows modern architecture awareness.
 - **API docs:** Swagger UI at `/api/docs`, `@ApiTags` + `@ApiBearerAuth` decorators, OpenAPI JSON export.
 - **Ops:** Helmet security headers, structured JSON logging with request IDs, pagination, CSV exports, health check with DB ping, Docker multi-stage builds, CI auto-deploy (Vercel + Render).

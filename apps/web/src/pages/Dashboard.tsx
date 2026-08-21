@@ -1,5 +1,6 @@
 // src/pages/Dashboard.tsx
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import HealthAlerts from "../components/alerts/HealthAlerts";
 import AnimalList from "../components/animals/AnimalList";
 import RegistrationForm from "../components/animals/RegistrationForm";
@@ -9,8 +10,10 @@ import ExportButton from "../components/export/ExportButton";
 import FilterBar from "../components/filters/FilterBar";
 import SearchBar from "../components/search/SearchBar";
 import KALROSyncStatus from "../components/sync/KALROSyncStatus";
+import LiveIndicator from "../components/dashboard/LiveIndicator";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import { useAutoRefresh } from "../hooks/useAutoRefresh";
+import { useWebSocket } from "../hooks/useWebSocket";
 import { useLivestockStore } from "../store/livestockStore";
 import type { AnimalStats, Livestock } from "@wam-mfugo/shared";
 import { debounce } from "../utils/debounce";
@@ -29,13 +32,6 @@ const AnalyticsDashboard = lazy(
   () => import("../components/analytics/AnalyticsDashboard")
 );
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "overview", label: "Overview" },
-  { id: "animals", label: "Animals" },
-  { id: "analytics", label: "Analytics" },
-  { id: "register", label: "Register" },
-];
-
 export default function Dashboard({
   data,
   filteredData: initialFilteredData,
@@ -43,11 +39,20 @@ export default function Dashboard({
   error,
   refetch,
 }: DashboardProps) {
+  const { t } = useTranslation();
+  const { connected: wsConnected } = useWebSocket();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const filters = useLivestockStore((s) => s.filters);
   const updateFilter = useLivestockStore((s) => s.updateFilter);
+
+  const TABS: { id: Tab; label: string }[] = [
+    { id: "overview", label: t("dashboard.tab_overview") },
+    { id: "animals", label: t("dashboard.tab_animals") },
+    { id: "analytics", label: t("dashboard.tab_analytics") },
+    { id: "register", label: t("dashboard.tab_register") },
+  ];
 
   const updateDebouncedQuery = useMemo(
     () => debounce((q: string) => setDebouncedQuery(q), 200),
@@ -144,13 +149,13 @@ export default function Dashboard({
       setActiveTab(TABS[newIndex].id);
       tabRefs.current[newIndex]?.focus();
     },
-    []
+    [TABS]
   );
 
   if (loading && !data.length) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <LoadingSpinner text="Loading livestock data..." />
+        <LoadingSpinner text={t("dashboard.loading")} />
       </div>
     );
   }
@@ -168,14 +173,15 @@ export default function Dashboard({
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold text-text-primary mb-1 tracking-tight">
-              Livestock Dashboard
+              {t("dashboard.title")}
             </h1>
             <p className="text-text-secondary">
-              Manage and monitor your livestock inventory across{" "}
-              <span className="font-semibold text-accent">{stats?.counties || 0}</span> counties
+              {t("dashboard.desc")}{" "}
+              <span className="font-semibold text-accent">{stats?.counties || 0}</span> {t("home.stats_counties")}
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <LiveIndicator connected={wsConnected} />
             <KALROSyncStatus />
           </div>
         </div>
@@ -244,7 +250,7 @@ export default function Dashboard({
               <SearchBar
                 query={searchQuery}
                 onQueryChange={handleSearchChange}
-                placeholder="Search animals by name, owner, type, county, or ID..."
+                placeholder={t("dashboard.search_placeholder")}
               />
             </div>
 
@@ -253,19 +259,19 @@ export default function Dashboard({
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-sm text-text-secondary">
-                      Showing{" "}
+                      {t("dashboard.showing")}{" "}
                       <span className="font-semibold text-accent">
                         {displayData.length}
                       </span>{" "}
-                      of{" "}
+                      {t("dashboard.of")}{" "}
                       <span className="font-semibold text-text-primary">
                         {data.length}
                       </span>{" "}
-                      animals
-                      {filters.type && ` \u2022 Type: ${filters.type}`}
-                      {filters.health && ` \u2022 Health: ${filters.health}`}
-                      {filters.county && ` \u2022 County: ${filters.county}`}
-                      {searchQuery && " \u2022 Search Active"}
+                      {t("dashboard.animals")}
+                      {filters.type && ` \u2022 ${t("dashboard.type_filter")} ${filters.type}`}
+                      {filters.health && ` \u2022 ${t("dashboard.health_filter")} ${filters.health}`}
+                      {filters.county && ` \u2022 ${t("dashboard.county_filter")} ${filters.county}`}
+                      {searchQuery && ` \u2022 ${t("dashboard.search_active")}`}
                     </p>
                   </div>
                 </div>
@@ -279,7 +285,7 @@ export default function Dashboard({
         {/* Tab: Analytics */}
         {activeTab === "analytics" && (
           <div role="tabpanel" id="panel-analytics" aria-labelledby="tab-analytics">
-            <Suspense fallback={<LoadingSpinner text="Loading analytics..." />}>
+            <Suspense fallback={<LoadingSpinner text={t("dashboard.loading_analytics")} />}>
               <AnalyticsDashboard data={initialFilteredData} />
             </Suspense>
           </div>

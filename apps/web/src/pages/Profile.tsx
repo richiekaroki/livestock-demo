@@ -1,136 +1,149 @@
-import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { KENYA_COUNTIES } from '@wam-mfugo/shared';
-
-const counties = KENYA_COUNTIES;
+// src/pages/Profile.tsx
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "../contexts/AuthContext";
+import { useCounties } from "../hooks/useCounties";
 
 export default function Profile() {
   const { user, updateProfile } = useAuth();
-  const [form, setForm] = useState({
-    name: user?.name || '',
-    phone: user?.phone || '',
-    county: user?.county || '',
-    subCounty: user?.subCounty || '',
-  });
-  const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const { counties } = useCounties();
+  const { t } = useTranslation();
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [county, setCounty] = useState("");
+  const [subCounty, setSubCounty] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name || "");
+      setPhone(user.phone || "");
+      setCounty(user.county || "");
+      setSubCounty(user.subCounty || "");
+    }
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
-    setError('');
-    setSuccess('');
+    setLoading(true);
+    setMessage(null);
     try {
-      await updateProfile(form);
-      setSuccess('Profile updated successfully');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Update failed');
+      await updateProfile({ name, phone, county, subCounty });
+      setMessage(t("profile.update_success"));
+    } catch {
+      setMessage(t("profile.update_failed"));
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
-  if (!user) return null;
-
   return (
-    <div className="max-w-2xl mx-auto py-8">
-      <h1 className="text-2xl font-bold text-text-primary mb-6">My Profile</h1>
+    <div className="max-w-2xl mx-auto py-8 px-4">
+      <h1 className="text-3xl font-bold text-text-primary mb-8">
+        {t("profile.title")}
+      </h1>
 
-      <div className="bg-bg-secondary border border-border rounded-xl p-6 shadow-sm">
-        {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-600 text-sm">
-            {success}
-          </div>
-        )}
+      <form onSubmit={handleSubmit} className="card p-6 space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-text-primary mb-1">
+            {t("profile.email")}
+          </label>
+          <input
+            type="email"
+            value={user?.email || ""}
+            disabled
+            className="input-field w-full opacity-60 cursor-not-allowed"
+          />
+          <p className="text-xs text-text-tertiary mt-1">{t("profile.email_readonly")}</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Email</label>
-            <input
-              type="email"
-              value={user.email}
-              disabled
-              className="w-full px-4 py-2.5 bg-bg-primary border border-border rounded-lg text-text-tertiary cursor-not-allowed"
-            />
-            <p className="mt-1 text-xs text-text-tertiary">Email cannot be changed</p>
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-text-primary mb-1">
+            {t("profile.role")}
+          </label>
+          <input
+            type="text"
+            value={user?.role || ""}
+            disabled
+            className="input-field w-full opacity-60 cursor-not-allowed capitalize"
+          />
+          <p className="text-xs text-text-tertiary mt-1">{t("profile.role_readonly")}</p>
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Role</label>
-            <input
-              type="text"
-              value={user.role.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-              disabled
-              className="w-full px-4 py-2.5 bg-bg-primary border border-border rounded-lg text-text-tertiary cursor-not-allowed"
-            />
-            <p className="mt-1 text-xs text-text-tertiary">Role can only be changed by an admin</p>
-          </div>
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-text-primary mb-1">
+            {t("profile.name")}
+          </label>
+          <input
+            id="name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            className="input-field w-full"
+          />
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Full Name</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-              minLength={2}
-              className="w-full px-4 py-2.5 bg-bg-primary border border-border rounded-lg text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
-            />
-          </div>
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-text-primary mb-1">
+            {t("profile.phone")}
+          </label>
+          <input
+            id="phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder={t("profile.phone_placeholder")}
+            className="input-field w-full"
+          />
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Phone</label>
-            <input
-              type="tel"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="w-full px-4 py-2.5 bg-bg-primary border border-border rounded-lg text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
-              placeholder="+254700000000"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">County</label>
-            <select
-              value={form.county}
-              onChange={(e) => setForm({ ...form, county: e.target.value })}
-              className="w-full px-4 py-2.5 bg-bg-primary border border-border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
-            >
-              <option value="">Select county</option>
-              {counties.map((c) => (
-                <option key={c.code} value={c.name}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Sub-County</label>
-            <input
-              type="text"
-              value={form.subCounty}
-              onChange={(e) => setForm({ ...form, subCounty: e.target.value })}
-              className="w-full px-4 py-2.5 bg-bg-primary border border-border rounded-lg text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
-              placeholder="Optional"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full py-2.5 bg-accent text-white rounded-lg font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+        <div>
+          <label htmlFor="county" className="block text-sm font-medium text-text-primary mb-1">
+            {t("profile.county")}
+          </label>
+          <select
+            id="county"
+            value={county}
+            onChange={(e) => setCounty(e.target.value)}
+            className="input-field w-full"
           >
-            {saving ? 'Saving...' : 'Save Changes'}
-          </button>
-        </form>
-      </div>
+            <option value="">{t("profile.county_placeholder")}</option>
+            {counties.map((c) => (
+              <option key={c.name} value={c.name}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="subCounty" className="block text-sm font-medium text-text-primary mb-1">
+            {t("profile.sub_county")}
+          </label>
+          <input
+            id="subCounty"
+            type="text"
+            value={subCounty}
+            onChange={(e) => setSubCounty(e.target.value)}
+            placeholder={t("profile.sub_county_optional")}
+            className="input-field w-full"
+          />
+        </div>
+
+        {message && (
+          <p className={`text-sm ${message.includes("success") || message.includes("fanikio") ? "text-success" : "text-error"}`}>
+            {message}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn btn-primary"
+        >
+          {loading ? t("profile.saving") : t("profile.save")}
+        </button>
+      </form>
     </div>
   );
 }

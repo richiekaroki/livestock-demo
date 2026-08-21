@@ -1,179 +1,190 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { KENYA_COUNTIES } from '@wam-mfugo/shared';
-
-const counties = KENYA_COUNTIES;
+// src/pages/Register.tsx
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "../contexts/AuthContext";
+import { useCounties } from "../hooks/useCounties";
 
 export default function Register() {
-  const { register, verifyRegistration, isLoading } = useAuth();
-  const navigate = useNavigate();
-  const [step, setStep] = useState<'form' | 'otp'>('form');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    county: '',
-  });
-  const [otp, setOtp] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [county, setCounty] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState<"form" | "otp">("form");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { register, verifyOtp } = useAuth();
+  const { counties } = useCounties();
+  const { t } = useTranslation();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setLoading(true);
+    setError(null);
     try {
-      const result = await register(form);
-      setSuccess(result.message);
-      setStep('otp');
+      await register({ name, email, phone, county });
+      setStep("otp");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      setError(t("auth.register_failed"));
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setLoading(true);
+    setError(null);
     try {
-      await verifyRegistration(form.email, otp);
-      navigate('/dashboard');
+      await verifyOtp(email, otp);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Verification failed');
+      setError(t("auth.register_verify_failed"));
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg-primary px-4 py-8">
+    <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent flex items-center justify-center">
-            <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 7V5c0-1.1.9-2 2-2h2" />
-              <path d="M17 3h2c1.1 0 2 .9 2 2v2" />
-              <path d="M21 17v2c0 1.1-.9 2-2 2h-2" />
-              <path d="M7 21H5c-1.1 0-2-.9-2-2v-2" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-text-primary">Create Account</h1>
-          <p className="text-text-secondary mt-1">Join Wam Mfugo today</p>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">
+            {t("auth.register_title")}
+          </h1>
+          <p className="text-text-secondary">
+            {t("auth.register_subtitle")}
+          </p>
         </div>
 
-        <div className="bg-bg-secondary border border-border rounded-xl p-6 shadow-sm">
-          {error && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm">
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-600 text-sm">
-              {success}
-            </div>
-          )}
-
-          {step === 'form' ? (
+        <div className="card p-6">
+          {step === "form" ? (
             <form onSubmit={handleRegister} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1">Full Name</label>
+                <label htmlFor="name" className="block text-sm font-medium text-text-primary mb-1">
+                  {t("auth.register_name")}
+                </label>
                 <input
+                  id="name"
                   type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={t("auth.register_name_placeholder")}
                   required
-                  minLength={2}
-                  className="w-full px-4 py-2.5 bg-bg-primary border border-border rounded-lg text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
-                  placeholder="Richard Karoki"
+                  className="input-field w-full"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1">Email</label>
+                <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-1">
+                  {t("auth.register_email")}
+                </label>
                 <input
+                  id="email"
                   type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t("auth.register_email_placeholder")}
                   required
-                  className="w-full px-4 py-2.5 bg-bg-primary border border-border rounded-lg text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
-                  placeholder="you@example.com"
+                  className="input-field w-full"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1">Phone</label>
+                <label htmlFor="phone" className="block text-sm font-medium text-text-primary mb-1">
+                  {t("auth.register_phone")}
+                </label>
                 <input
+                  id="phone"
                   type="tel"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder={t("auth.register_phone_placeholder")}
                   required
-                  className="w-full px-4 py-2.5 bg-bg-primary border border-border rounded-lg text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
-                  placeholder="+254700000000"
+                  className="input-field w-full"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1">County</label>
+                <label htmlFor="county" className="block text-sm font-medium text-text-primary mb-1">
+                  {t("auth.register_county")}
+                </label>
                 <select
-                  value={form.county}
-                  onChange={(e) => setForm({ ...form, county: e.target.value })}
+                  id="county"
+                  value={county}
+                  onChange={(e) => setCounty(e.target.value)}
                   required
-                  className="w-full px-4 py-2.5 bg-bg-primary border border-border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
+                  className="input-field w-full"
                 >
-                  <option value="">Select county</option>
+                  <option value="">{t("auth.register_county_placeholder")}</option>
                   {counties.map((c) => (
-                    <option key={c.code} value={c.name}>
-                      {c.name}
-                    </option>
+                    <option key={c.name} value={c.name}>{c.name}</option>
                   ))}
                 </select>
               </div>
+
+              {error && (
+                <p className="text-sm text-error">{error}</p>
+              )}
+
               <button
                 type="submit"
-                disabled={isLoading}
-                className="w-full py-2.5 bg-accent text-white rounded-lg font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+                disabled={loading || !name || !email || !phone || !county}
+                className="btn btn-primary w-full"
               >
-                {isLoading ? 'Creating account...' : 'Create Account'}
+                {loading ? t("auth.register_submitting") : t("auth.register_submit")}
               </button>
             </form>
           ) : (
             <form onSubmit={handleVerifyOtp} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1">Verification Code</label>
+                <label htmlFor="otp" className="block text-sm font-medium text-text-primary mb-1">
+                  {t("auth.register_verify_title")}
+                </label>
                 <input
+                  id="otp"
                   type="text"
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  required
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder={t("auth.register_verify_placeholder")}
                   maxLength={6}
-                  className="w-full px-4 py-2.5 bg-bg-primary border border-border rounded-lg text-text-primary text-center text-2xl tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
-                  placeholder="000000"
-                  autoFocus
+                  required
+                  className="input-field w-full text-center text-2xl tracking-[0.5em] font-mono"
                 />
-                <p className="mt-2 text-sm text-text-tertiary text-center">
-                  Enter the 6-digit code sent to {form.email}
+                <p className="text-sm text-text-secondary mt-1">
+                  {t("auth.register_verify_desc")} {email}
                 </p>
               </div>
+
+              {error && (
+                <p className="text-sm text-error">{error}</p>
+              )}
+
               <button
                 type="submit"
-                disabled={isLoading || otp.length !== 6}
-                className="w-full py-2.5 bg-accent text-white rounded-lg font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+                disabled={loading || otp.length !== 6}
+                className="btn btn-primary w-full"
               >
-                {isLoading ? 'Verifying...' : 'Verify & Sign In'}
+                {loading ? t("auth.register_verifying") : t("auth.register_verify")}
               </button>
+
               <button
                 type="button"
-                onClick={() => { setStep('form'); setOtp(''); setError(''); }}
-                className="w-full py-2.5 text-text-secondary hover:text-text-primary transition-colors text-sm"
+                onClick={() => { setStep("form"); setOtp(""); setError(null); }}
+                className="btn btn-ghost w-full"
               >
-                Back to form
+                {t("auth.register_back")}
               </button>
             </form>
           )}
-
-          <div className="mt-6 text-center text-sm text-text-secondary">
-            Already have an account?{' '}
-            <Link to="/login" className="text-accent hover:text-accent/80 font-medium">
-              Sign in
-            </Link>
-          </div>
         </div>
+
+        <p className="text-center mt-6 text-sm text-text-secondary">
+          {t("auth.register_has_account")}{" "}
+          <Link to="/login" className="text-accent hover:text-accent-hover font-medium">
+            {t("auth.register_login_link")}
+          </Link>
+        </p>
       </div>
     </div>
   );

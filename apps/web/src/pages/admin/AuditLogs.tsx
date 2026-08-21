@@ -1,140 +1,127 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+// src/pages/admin/AuditLogs.tsx
+import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
-interface AuditLogRow {
+interface AuditLog {
   id: number;
   event: string;
-  email?: string;
-  userId?: number;
-  ip?: string;
-  metadata?: string;
+  email: string;
+  ip: string;
   createdAt: string;
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
-
-const eventColors: Record<string, string> = {
-  otp_requested: 'bg-blue-500/10 text-blue-600',
-  otp_verified: 'bg-green-500/10 text-green-600',
-  otp_failed: 'bg-red-500/10 text-red-600',
-  account_locked: 'bg-red-500/10 text-red-600',
-  account_unlocked: 'bg-green-500/10 text-green-600',
-  login_success: 'bg-green-500/10 text-green-600',
-  logout: 'bg-gray-500/10 text-gray-600',
-  token_refreshed: 'bg-blue-500/10 text-blue-600',
-  account_created: 'bg-purple-500/10 text-purple-600',
-  account_deactivated: 'bg-red-500/10 text-red-600',
-};
-
-const eventLabel = (event: string) =>
-  event.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-
 export default function AuditLogs() {
-  const { accessToken } = useAuth();
-  const [logs, setLogs] = useState<AuditLogRow[]>([]);
+  const { t } = useTranslation();
+  const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [eventFilter, setEventFilter] = useState('');
-  const [emailSearch, setEmailSearch] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [eventFilter, setEventFilter] = useState("");
+  const [emailFilter, setEmailFilter] = useState("");
 
-  const fetchLogs = async () => {
+  useEffect(() => {
+    loadLogs();
+  }, []);
+
+  const loadLogs = async () => {
     setLoading(true);
-    setError('');
+    setError(null);
     try {
-      const params = new URLSearchParams();
-      if (eventFilter) params.set('event', eventFilter);
-      if (emailSearch) params.set('email', emailSearch);
-
-      const res = await fetch(`${API_BASE}/admin/audit-logs?${params}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+      const res = await fetch("/api/admin/audit-logs", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to load audit logs');
-      setLogs(data.entries || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load audit logs');
+      if (data.success) setLogs(data.data);
+    } catch {
+      setError(t("admin.audit_load_failed"));
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchLogs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, eventFilter, emailSearch]);
+  const filteredLogs = useMemo(() => {
+    return logs.filter((log) => {
+      const matchEvent = !eventFilter || log.event === eventFilter;
+      const matchEmail = !emailFilter || log.email.toLowerCase().includes(emailFilter.toLowerCase());
+      return matchEvent && matchEmail;
+    });
+  }, [logs, eventFilter, emailFilter]);
+
+  const eventOptions = [
+    { value: "", label: t("admin.audit_all_events") },
+    { value: "otp_requested", label: t("admin.audit_otp_requested") },
+    { value: "otp_verified", label: t("admin.audit_otp_verified") },
+    { value: "otp_failed", label: t("admin.audit_otp_failed") },
+    { value: "login_success", label: t("admin.audit_login_success") },
+    { value: "logout", label: t("admin.audit_logout") },
+    { value: "account_created", label: t("admin.audit_account_created") },
+    { value: "account_locked", label: t("admin.audit_account_locked") },
+    { value: "token_refreshed", label: t("admin.audit_token_refreshed") },
+    { value: "account_deactivated", label: t("admin.audit_account_deactivated") },
+  ];
 
   return (
-    <div className="max-w-7xl mx-auto py-8">
-      <h1 className="text-2xl font-bold text-text-primary mb-6">Audit Logs</h1>
+    <div className="max-w-7xl mx-auto py-8 px-4">
+      <h1 className="text-3xl font-bold text-text-primary mb-8">
+        {t("admin.audit_title")}
+      </h1>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm">
-          {error}
-        </div>
-      )}
-
-      <div className="flex flex-wrap gap-3 mb-6">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <select
           value={eventFilter}
           onChange={(e) => setEventFilter(e.target.value)}
-          className="px-4 py-2 bg-bg-secondary border border-border rounded-lg text-sm text-text-primary focus:outline-none"
+          className="input-field w-full sm:w-auto"
         >
-          <option value="">All Events</option>
-          <option value="otp_requested">OTP Requested</option>
-          <option value="otp_verified">OTP Verified</option>
-          <option value="otp_failed">OTP Failed</option>
-          <option value="login_success">Login Success</option>
-          <option value="logout">Logout</option>
-          <option value="account_created">Account Created</option>
-          <option value="account_locked">Account Locked</option>
-          <option value="token_refreshed">Token Refreshed</option>
-          <option value="account_deactivated">Account Deactivated</option>
+          {eventOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
         </select>
         <input
           type="text"
-          value={emailSearch}
-          onChange={(e) => setEmailSearch(e.target.value)}
-          placeholder="Filter by email..."
-          className="px-4 py-2 bg-bg-secondary border border-border rounded-lg text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/50"
+          value={emailFilter}
+          onChange={(e) => setEmailFilter(e.target.value)}
+          placeholder={t("admin.audit_filter_email")}
+          className="input-field flex-1"
         />
       </div>
 
-      <div className="bg-bg-secondary border border-border rounded-xl overflow-hidden">
-        {loading ? (
-          <div className="p-8 text-center text-text-secondary">Loading audit logs...</div>
-        ) : logs.length === 0 ? (
-          <div className="p-8 text-center text-text-secondary">No audit logs found</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left">
-                  <th className="px-4 py-3 text-text-tertiary font-medium">Event</th>
-                  <th className="px-4 py-3 text-text-tertiary font-medium">Email</th>
-                  <th className="px-4 py-3 text-text-tertiary font-medium">IP</th>
-                  <th className="px-4 py-3 text-text-tertiary font-medium">Timestamp</th>
+      {loading && <p className="text-text-secondary">{t("admin.audit_loading")}</p>}
+      {error && <p className="text-error">{error}</p>}
+
+      {!loading && filteredLogs.length === 0 && (
+        <p className="text-text-secondary">{t("admin.audit_empty")}</p>
+      )}
+
+      {!loading && filteredLogs.length > 0 && (
+        <div className="card overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left p-3 font-medium text-text-secondary">{t("admin.audit_col_event")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("admin.audit_col_email")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("admin.audit_col_ip")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("admin.audit_col_timestamp")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredLogs.map((log) => (
+                <tr key={log.id} className="border-b border-border hover:bg-bg-secondary transition-colors">
+                  <td className="p-3">
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-accent/10 text-accent">
+                      {log.event}
+                    </span>
+                  </td>
+                  <td className="p-3 text-text-secondary">{log.email}</td>
+                  <td className="p-3 text-text-secondary font-mono text-xs">{log.ip}</td>
+                  <td className="p-3 text-text-secondary text-xs">
+                    {new Date(log.createdAt).toLocaleString()}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {logs.map((log) => (
-                  <tr key={log.id} className="border-b border-border/50 hover:bg-bg-primary/50 transition-colors">
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${eventColors[log.event] || 'bg-gray-500/10 text-gray-600'}`}>
-                        {eventLabel(log.event)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-text-secondary">{log.email || '-'}</td>
-                    <td className="px-4 py-3 text-text-tertiary">{log.ip || '-'}</td>
-                    <td className="px-4 py-3 text-text-tertiary">
-                      {new Date(log.createdAt).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

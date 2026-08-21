@@ -10,10 +10,13 @@ import { RefModule } from './ref/ref.module';
 import { FarmersModule } from './farmers/farmers.module';
 import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
+import { EventsModule } from './events/events.module';
+import { VaccinationsModule } from './vaccinations/vaccinations.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    EventsModule,
     AuthModule,
     AdminModule,
     AnimalsModule,
@@ -24,6 +27,7 @@ import { AdminModule } from './admin/admin.module';
     HealthModule,
     RefModule,
     FarmersModule,
+    VaccinationsModule,
   ],
 })
 export class AppModule {}

@@ -59,6 +59,16 @@ export class EmailService {
     }
   }
 
+  async sendEmail(options: EmailOptions): Promise<void> {
+    if (this.provider === 'smtp') {
+      await this.sendViaSmtp(options);
+    } else {
+      console.log(`\n[EMAIL] To: ${options.to}`);
+      console.log(`[EMAIL] Subject: ${options.subject}`);
+      console.log(`[EMAIL] (Demo mode — email not sent)\n`);
+    }
+  }
+
   private async sendViaSmtp(options: EmailOptions): Promise<void> {
     const nodemailer = await import('nodemailer').catch(() => null);
     if (!nodemailer) {

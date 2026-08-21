@@ -1,132 +1,137 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+// src/pages/Login.tsx
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Login() {
-  const { requestOtp, verifyOtp, isLoading } = useAuth();
-  const navigate = useNavigate();
-  const [step, setStep] = useState<'email' | 'otp'>('email');
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState<"email" | "otp">("email");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { requestOtp, verifyOtp } = useAuth();
+  const { t } = useTranslation();
 
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setLoading(true);
+    setError(null);
     try {
-      const result = await requestOtp(email);
-      setSuccess(result.message);
-      setStep('otp');
+      await requestOtp(email);
+      setStep("otp");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send OTP');
+      setError(t("auth.login_failed"));
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setLoading(true);
+    setError(null);
     try {
       await verifyOtp(email, otp);
-      navigate('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid OTP');
+      setError(t("auth.login_invalid_otp"));
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg-primary px-4">
+    <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent flex items-center justify-center">
-            <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 7V5c0-1.1.9-2 2-2h2" />
-              <path d="M17 3h2c1.1 0 2 .9 2 2v2" />
-              <path d="M21 17v2c0 1.1-.9 2-2 2h-2" />
-              <path d="M7 21H5c-1.1 0-2-.9-2-2v-2" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-text-primary">Wam Mfugo</h1>
-          <p className="text-text-secondary mt-1">Sign in to your account</p>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">
+            {t("app.name")}
+          </h1>
+          <p className="text-text-secondary">
+            {t("auth.login_title")}
+          </p>
         </div>
 
-        <div className="bg-bg-secondary border border-border rounded-xl p-6 shadow-sm">
-          {error && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm">
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-600 text-sm">
-              {success}
-            </div>
-          )}
-
-          {step === 'email' ? (
+        <div className="card p-6">
+          {step === "email" ? (
             <form onSubmit={handleRequestOtp} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1">Email</label>
+                <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-1">
+                  {t("auth.login_email")}
+                </label>
                 <input
+                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full px-4 py-2.5 bg-bg-primary border border-border rounded-lg text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
                   placeholder="you@example.com"
+                  required
+                  className="input-field w-full"
                 />
               </div>
+
+              {error && (
+                <p className="text-sm text-error">{error}</p>
+              )}
+
               <button
                 type="submit"
-                disabled={isLoading}
-                className="w-full py-2.5 bg-accent text-white rounded-lg font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+                disabled={loading || !email}
+                className="btn btn-primary w-full"
               >
-                {isLoading ? 'Sending...' : 'Send OTP'}
+                {loading ? t("auth.login_sending") : t("auth.login_send_otp")}
               </button>
             </form>
           ) : (
             <form onSubmit={handleVerifyOtp} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1">Verification Code</label>
+                <label htmlFor="otp" className="block text-sm font-medium text-text-primary mb-1">
+                  {t("auth.login_verify_title")}
+                </label>
                 <input
+                  id="otp"
                   type="text"
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  required
-                  maxLength={6}
-                  className="w-full px-4 py-2.5 bg-bg-primary border border-border rounded-lg text-text-primary text-center text-2xl tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
+                  onChange={(e) => setOtp(e.target.value)}
                   placeholder="000000"
-                  autoFocus
+                  maxLength={6}
+                  required
+                  className="input-field w-full text-center text-2xl tracking-[0.5em] font-mono"
                 />
-                <p className="mt-2 text-sm text-text-tertiary text-center">
-                  Enter the 6-digit code sent to {email}
+                <p className="text-sm text-text-secondary mt-1">
+                  {t("auth.login_verify_desc")} {email}
                 </p>
               </div>
+
+              {error && (
+                <p className="text-sm text-error">{error}</p>
+              )}
+
               <button
                 type="submit"
-                disabled={isLoading || otp.length !== 6}
-                className="w-full py-2.5 bg-accent text-white rounded-lg font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+                disabled={loading || otp.length !== 6}
+                className="btn btn-primary w-full"
               >
-                {isLoading ? 'Verifying...' : 'Verify'}
+                {loading ? t("auth.login_verifying") : t("auth.login_verify")}
               </button>
+
               <button
                 type="button"
-                onClick={() => { setStep('email'); setOtp(''); setError(''); }}
-                className="w-full py-2.5 text-text-secondary hover:text-text-primary transition-colors text-sm"
+                onClick={() => { setStep("email"); setOtp(""); setError(null); }}
+                className="btn btn-ghost w-full"
               >
-                Use a different email
+                {t("auth.login_different_email")}
               </button>
             </form>
           )}
-
-          <div className="mt-6 text-center text-sm text-text-secondary">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-accent hover:text-accent/80 font-medium">
-              Register
-            </Link>
-          </div>
         </div>
+
+        <p className="text-center mt-6 text-sm text-text-secondary">
+          {t("auth.login_no_account")}{" "}
+          <Link to="/register" className="text-accent hover:text-accent-hover font-medium">
+            {t("auth.login_register_link")}
+          </Link>
+        </p>
       </div>
     </div>
   );

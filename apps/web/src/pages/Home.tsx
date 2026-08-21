@@ -2,6 +2,7 @@
 
 import { Link } from "react-router-dom";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { Livestock } from "@wam-mfugo/shared";
 
 interface HomePageProps {
@@ -33,6 +34,7 @@ function StatsSkeleton() {
 }
 
 export default function HomePage({ data, loading, error, refetch }: HomePageProps) {
+  const { t } = useTranslation();
 
   const stats = useMemo(() => {
     if (!data.length) return null;
@@ -60,12 +62,11 @@ export default function HomePage({ data, loading, error, refetch }: HomePageProp
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <div className="max-w-2xl">
             <h1 className="text-3xl sm:text-4xl font-bold mb-3 leading-tight tracking-tight" style={{ textWrap: "balance" }}>
-              Livestock tracking
-              <span className="text-accent"> for Kenya</span>
+              {t("home.hero_title")}
+              <span className="text-accent">{t("home.hero_highlight")}</span>
             </h1>
             <p className="text-text-secondary text-base sm:text-lg leading-relaxed mb-6" style={{ textWrap: "pretty", maxWidth: "55ch" }}>
-              Register animals, monitor health across counties, and sync data to
-              KALRO — online or offline.
+              {t("home.hero_desc")}
             </p>
             <div className="flex flex-wrap gap-3">
               <Link to="/dashboard?tab=overview" className="btn btn-primary">
@@ -75,7 +76,7 @@ export default function HomePage({ data, loading, error, refetch }: HomePageProp
                   <rect x="14" y="14" width="7" height="7" rx="1" />
                   <rect x="3" y="14" width="7" height="7" rx="1" />
                 </svg>
-                Open Dashboard
+                {t("home.open_dashboard")}
               </Link>
               <Link to="/dashboard?tab=register" className="btn btn-ghost">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -84,7 +85,7 @@ export default function HomePage({ data, loading, error, refetch }: HomePageProp
                   <line x1="20" y1="8" x2="20" y2="14" />
                   <line x1="23" y1="11" x2="17" y2="11" />
                 </svg>
-                Register Animal
+                {t("home.register_animal")}
               </Link>
             </div>
           </div>
@@ -100,34 +101,34 @@ export default function HomePage({ data, loading, error, refetch }: HomePageProp
             <div className="flex items-center gap-3 text-sm">
               <span className="w-2 h-2 rounded-full bg-warning flex-shrink-0" />
               <span className="text-text-secondary">
-                Could not load data. Check your connection.
+                {t("home.stats_error")}
               </span>
               <button
                 onClick={() => refetch()}
                 aria-label="Retry loading livestock data"
                 className="text-xs text-accent hover:text-accent-hover font-medium cursor-pointer"
               >
-                Retry
+                {t("home.stats_retry")}
               </button>
             </div>
           ) : stats ? (
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm" aria-label="Livestock statistics summary" aria-live="polite" aria-atomic="true">
               <div className="flex items-center gap-2">
-                <span className="text-text-tertiary">Tracked:</span>
+                <span className="text-text-tertiary">{t("home.stats_tracked")}</span>
                 <span className="font-semibold font-mono text-text-primary">
                   {stats.total.toLocaleString()}
                 </span>
-                <span className="text-text-tertiary">animals</span>
+                <span className="text-text-tertiary">{t("home.stats_animals")}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-text-tertiary">Across:</span>
+                <span className="text-text-tertiary">{t("home.stats_across")}</span>
                 <span className="font-semibold font-mono text-text-primary">
                   {stats.counties}
                 </span>
-                <span className="text-text-tertiary">counties</span>
+                <span className="text-text-tertiary">{t("home.stats_counties")}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-text-tertiary">Health rate:</span>
+                <span className="text-text-tertiary">{t("home.stats_health_rate")}</span>
                 <span className="font-semibold font-mono text-success">
                   {stats.healthyPercent}%
                 </span>
@@ -142,16 +143,16 @@ export default function HomePage({ data, loading, error, refetch }: HomePageProp
                     {stats.sick}
                   </span>
                   <span className="text-text-tertiary">
-                    {stats.sick === 1 ? "animal" : "animals"} need attention
+                    {stats.sick === 1 ? t("home.animal_needs") : t("home.animals_needs")}
                   </span>
                 </Link>
               )}
             </div>
           ) : !loading && !error ? (
             <div className="text-sm text-text-secondary">
-              No animals registered yet.{" "}
+              {t("home.stats_no_data")}{" "}
               <Link to="/dashboard?tab=register" className="text-accent hover:text-accent-hover font-medium">
-                Register your first animal
+                {t("home.stats_register_first")}
               </Link>
             </div>
           ) : null}
@@ -162,7 +163,7 @@ export default function HomePage({ data, loading, error, refetch }: HomePageProp
       <section aria-label="Features" className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl sm:text-3xl font-bold mb-10 tracking-tight">
-            Manage your livestock
+            {t("home.features_title")}
           </h2>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -183,12 +184,10 @@ export default function HomePage({ data, loading, error, refetch }: HomePageProp
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-1 group-hover:text-accent transition-colors">
-                    Register animals
+                    {t("home.feature_register")}
                   </h3>
                   <p className="text-sm text-text-secondary leading-relaxed max-w-prose">
-                    Capture biometric data — nose prints for cattle, ear tags for
-                    goats, hump patterns for camels. Each animal gets a unique
-                    identity linked to its county and owner.
+                    {t("home.feature_register_desc")}
                   </p>
                 </div>
                 <svg className="w-5 h-5 text-text-tertiary group-hover:text-accent transition-colors flex-shrink-0 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -211,11 +210,10 @@ export default function HomePage({ data, loading, error, refetch }: HomePageProp
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-1 group-hover:text-success transition-colors">
-                    Track health status
+                    {t("home.feature_health")}
                   </h3>
                   <p className="text-sm text-text-secondary leading-relaxed">
-                    Mark animals as Healthy, Sick, Under Treatment, or Recovered.
-                    Outbreak alerts trigger when 3+ animals in a county show symptoms.
+                    {t("home.feature_health_desc")}
                   </p>
                 </div>
                 <svg className="w-5 h-5 text-text-tertiary group-hover:text-success transition-colors flex-shrink-0 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -240,11 +238,10 @@ export default function HomePage({ data, loading, error, refetch }: HomePageProp
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-1 group-hover:text-accent-gold transition-colors">
-                    See the county map
+                    {t("home.feature_map")}
                   </h3>
                   <p className="text-sm text-text-secondary leading-relaxed">
-                    Color-coded markers across 5 Kenyan counties. Cluster by
-                    region, filter by health status, and view heatmaps.
+                    {t("home.feature_map_desc")}
                   </p>
                 </div>
                 <svg className="w-5 h-5 text-text-tertiary group-hover:text-accent-gold transition-colors flex-shrink-0 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -261,32 +258,32 @@ export default function HomePage({ data, loading, error, refetch }: HomePageProp
         <section aria-label="Summary" className="py-12 px-4 bg-bg-secondary border-y border-border">
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-text-secondary text-sm leading-relaxed" style={{ maxWidth: "55ch", marginInline: "auto" }}>
-              From pastoralist communities in Marsabit to dairy farms in
-              Nakuru — <strong className="text-text-primary">{stats.total.toLocaleString()}</strong> animals
-              across <strong className="text-text-primary">{stats.counties}</strong> counties,
-              with <strong className="text-success">{stats.healthyPercent}%</strong> health rate.
+              {t("home.summary_from")} <strong className="text-text-primary">{stats.total.toLocaleString()}</strong> {t("home.stats_animals")}
+              {t("home.summary_across")}<strong className="text-text-primary">{stats.counties}</strong> {t("home.stats_counties")},
+              {" "}{t("home.stats_health_rate")}{" "}
+              <strong className="text-success">{stats.healthyPercent}%</strong>{t("home.summary_health_rate")}
               {stats.sick > 0 && (
-                <> <strong className="text-error">{stats.sick}</strong> {stats.sick === 1 ? "animal needs" : "animals need"} immediate attention.</>
+                <> <strong className="text-error">{stats.sick}</strong> {stats.sick === 1 ? t("home.animal_needs") : t("home.animals_needs")}{t("home.summary_needs_attention")}</>
               )}
             </p>
             <div className="flex flex-wrap justify-center gap-4 mt-6 text-xs text-text-tertiary" aria-hidden="true">
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-type-cattle" /> Cattle
+                <span className="w-2 h-2 rounded-full bg-type-cattle" /> {t("home.type_cattle")}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-type-goat" /> Goats
+                <span className="w-2 h-2 rounded-full bg-type-goat" /> {t("home.type_goats")}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-type-sheep" /> Sheep
+                <span className="w-2 h-2 rounded-full bg-type-sheep" /> {t("home.type_sheep")}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-type-camel" /> Camels
+                <span className="w-2 h-2 rounded-full bg-type-camel" /> {t("home.type_camels")}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-type-pig" /> Pigs
+                <span className="w-2 h-2 rounded-full bg-type-pig" /> {t("home.type_pigs")}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-type-chicken" /> Chickens
+                <span className="w-2 h-2 rounded-full bg-type-chicken" /> {t("home.type_chickens")}
               </span>
             </div>
           </div>

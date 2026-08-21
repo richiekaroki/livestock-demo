@@ -1,6 +1,8 @@
 // src/App.tsx
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Route, BrowserRouter as Router, Routes, useLocation } from "react-router-dom";
+import { I18nextProvider, useTranslation } from "react-i18next";
+import i18n from "./i18n";
 import { AuthProvider } from "./contexts/AuthContext";
 import Footer from "./components/layout/Footer";
 import MobileNav from "./components/layout/MobileNav";
@@ -24,6 +26,7 @@ const Register = lazy(() => import("./pages/Register"));
 const Profile = lazy(() => import("./pages/Profile"));
 const UserList = lazy(() => import("./pages/admin/UserList"));
 const AuditLogs = lazy(() => import("./pages/admin/AuditLogs"));
+const Vaccinations = lazy(() => import("./pages/Vaccinations"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 function AnimatedRoutes({
@@ -42,6 +45,7 @@ function AnimatedRoutes({
   const location = useLocation();
   const [displayLocation, setDisplayLocation] = useState(location);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (location.pathname !== displayLocation.pathname) {
@@ -60,7 +64,7 @@ function AnimatedRoutes({
         isTransitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
       }`}
     >
-      <Suspense fallback={<LoadingSpinner text="Loading page..." />}>
+      <Suspense fallback={<LoadingSpinner text={t("loading.default")} />}>
         <Routes location={displayLocation}>
           <Route
             path="/"
@@ -97,6 +101,7 @@ function AnimatedRoutes({
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute><RoleRoute allowedRoles={['admin']}><UserList /></RoleRoute></ProtectedRoute>} />
           <Route path="/admin/audit-logs" element={<ProtectedRoute><RoleRoute allowedRoles={['admin']}><AuditLogs /></RoleRoute></ProtectedRoute>} />
+          <Route path="/vaccinations" element={<ProtectedRoute><Vaccinations /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
@@ -104,10 +109,11 @@ function AnimatedRoutes({
   );
 }
 
-function App() {
+function AppContent() {
   const { data, loading, error, refetch } = useLiveData();
   const filters = useLivestockStore((s) => s.filters);
   const isOffline = !useOnlineStatus();
+  const { t } = useTranslation();
 
   // Apply filters
   const filteredData = useMemo(() => {
@@ -135,7 +141,7 @@ function App() {
             </svg>
           </div>
           <p className="text-sm text-text-secondary font-medium">
-            Loading livestock data...
+            {t("dashboard.loading")}
           </p>
         </div>
       </div>
@@ -176,6 +182,14 @@ function App() {
         </div>
       </AuthProvider>
     </Router>
+  );
+}
+
+function App() {
+  return (
+    <I18nextProvider i18n={i18n}>
+      <AppContent />
+    </I18nextProvider>
   );
 }
 

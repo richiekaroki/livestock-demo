@@ -1,18 +1,21 @@
 // src/components/layout/Navbar.tsx
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import ThemeToggle from "../ui/ThemeToggle";
+import LanguageSwitcher from "../ui/LanguageSwitcher";
 import UserMenu from "../UserMenu";
 import { useAuth } from "../../contexts/AuthContext";
-
-const navLinks = [
-  { name: "Home", path: "/" },
-  { name: "Dashboard", path: "/dashboard" },
-  { name: "Map View", path: "/map" },
-];
 
 export default function Navbar() {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation();
+
+  const navLinks = [
+    { key: "nav.home", path: "/" },
+    { key: "nav.dashboard", path: "/dashboard" },
+    { key: "nav.map", path: "/map" },
+  ];
 
   return (
     <nav className="sticky top-0 z-50 nav-backdrop border-b border-border">
@@ -38,7 +41,7 @@ export default function Navbar() {
             </div>
             <div className="flex flex-col leading-tight">
               <h1 className="text-lg font-bold text-text-primary tracking-tight">
-                Wam Mfugo
+                {t("app.name")}
               </h1>
               <p className="text-xs text-text-tertiary hidden sm:block">
                 Livestock Management
@@ -48,7 +51,7 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
-            {navLinks.map(({ name, path }) => {
+            {navLinks.map(({ key, path }) => {
               const isActive = location.pathname === path;
               return (
                 <Link
@@ -60,7 +63,7 @@ export default function Navbar() {
                       : "nav-link-inactive"
                   }`}
                 >
-                  {name}
+                  {t(key)}
                 </Link>
               );
             })}
@@ -68,6 +71,7 @@ export default function Navbar() {
 
           {/* Right Section */}
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             {isAuthenticated ? (
               <UserMenu />
             ) : (
@@ -75,7 +79,7 @@ export default function Navbar() {
                 to="/login"
                 className="px-4 py-2 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent/90 transition-colors"
               >
-                Sign In
+                {t("nav.login")}
               </Link>
             )}
             <div className="w-px h-6 bg-border"></div>
