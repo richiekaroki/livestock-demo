@@ -6,8 +6,10 @@ import {
   Patch,
   Post,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import type { ApiResponse, AuthResponse } from '@wam-mfugo/shared';
 import { AuthService } from './auth.service';
 import { RequestOtpDto } from './dto/request-otp.dto';
@@ -16,6 +18,28 @@ import { RegisterDto } from './dto/register.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { SessionService } from './session.service';
+
+const REFRESH_COOKIE = 'wam_refresh_token';
+const isProd = process.env.NODE_ENV === 'production';
+
+function setRefreshCookie(res: Response, token: string, expiresAt: Date) {
+  res.cookie(REFRESH_COOKIE, token, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: 'strict',
+    path: '/',
+    expires: expiresAt,
+  });
+}
+
+function clearRefreshCookie(res: Response) {
+  res.clearCookie(REFRESH_COOKIE, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: 'strict',
+    path: '/',
+  });
+}
 
 @Controller('auth')
 export class AuthController {
@@ -37,7 +61,8 @@ export class AuthController {
   async verifyOtp(
     @Body() dto: VerifyOtpDto,
     @Req() req: { ip?: string; headers: Record<string, string> },
-  ): Promise<ApiResponse<AuthResponse>> {
+    @Res() res: Response,
+  ): Promise<void> {
     const device = req.headers['user-agent'];
     const data = await this.authService.verifyOtp(
       dto.email,
@@ -45,7 +70,18 @@ export class AuthController {
       req.ip,
       device,
     );
-    return { success: true, data };
+
+    const refreshExpires = new Date();
+    refreshExpires.setDate(refreshExpires.getDate() + 7);
+    setRefreshCookie(res, data.refreshToken, refreshExpires);
+
+    res.json({
+      success: true,
+      data: {
+        ...data,
+        refreshToken: undefined,
+      },
+    });
   }
 
   @Post('register')
@@ -61,7 +97,8 @@ export class AuthController {
   async verifyRegistration(
     @Body() dto: VerifyOtpDto,
     @Req() req: { ip?: string; headers: Record<string, string> },
-  ): Promise<ApiResponse<AuthResponse>> {
+    @Res() res: Response,
+  ): Promise<void> {
     const device = req.headers['user-agent'];
     const data = await this.authService.verifyRegistration(
       dto.email,
@@ -69,21 +106,52 @@ export class AuthController {
       req.ip,
       device,
     );
-    return { success: true, data };
+
+    const refreshExpires = new Date();
+    refreshExpires.setDate(refreshExpires.getDate() + 7);
+    setRefreshCookie(res, data.refreshToken, refreshExpires);
+
+    res.json({
+      success: true,
+      data: {
+        ...data,
+        refreshToken: undefined,
+      },
+    });
   }
 
   @Post('refresh')
   async refresh(
-    @Body() body: { refreshToken: string },
-    @Req() req: { ip?: string; headers: Record<string, string> },
-  ): Promise<ApiResponse<AuthResponse>> {
+    @Req() req: { ip?: string; headers: Record<string, string>; cookies?: Record<string, string> },
+    @Res() res: Response,
+  ): Promise<void> {
+    const refreshToken = req.cookies?.[REFRESH_COOKIE];
+    if (!refreshToken) {
+      res.status(401).json({
+        success: false,
+        message: 'No refresh token provided',
+      });
+      return;
+    }
+
     const device = req.headers['user-agent'];
     const data = await this.authService.refreshToken(
-      body.refreshToken,
+      refreshToken,
       req.ip,
       device,
     );
-    return { success: true, data };
+
+    const refreshExpires = new Date();
+    refreshExpires.setDate(refreshExpires.getDate() + 7);
+    setRefreshCookie(res, data.refreshToken, refreshExpires);
+
+    res.json({
+      success: true,
+      data: {
+        ...data,
+        refreshToken: undefined,
+      },
+    });
   }
 
   @UseGuards(JwtAuthGuard)
@@ -95,9 +163,11 @@ export class AuthController {
       ip?: string;
       body: { sessionId?: number };
     },
-  ): Promise<ApiResponse<{ message: string }>> {
+    @Res() res: Response,
+  ): Promise<void> {
     await this.authService.logout(req.user.sub, req.body?.sessionId, req.ip);
-    return { success: true, data: { message: 'Logged out' } };
+    clearRefreshCookie(res);
+    res.json({ success: true, data: { message: 'Logged out' } });
   }
 
   @UseGuards(JwtAuthGuard)

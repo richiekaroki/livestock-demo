@@ -6,7 +6,6 @@ const TIMEOUT_MS = config.api.timeout;
 const RETRY_ATTEMPTS = config.api.retryAttempts;
 
 const TOKEN_KEY = "wam_auth_token";
-const REFRESH_KEY = "wam_auth_refresh";
 
 interface RequestOptions extends RequestInit {
   retries?: number;
@@ -20,35 +19,23 @@ function getToken(): string | null {
   }
 }
 
-function getRefreshToken(): string | null {
-  try {
-    return localStorage.getItem(REFRESH_KEY);
-  } catch {
-    return null;
-  }
-}
-
 let refreshPromise: Promise<boolean> | null = null;
 
 async function tryRefresh(): Promise<boolean> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) return false;
-
   const res = await fetch(`${BASE_URL}/auth/refresh`, {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
   });
   if (!res.ok) return false;
 
   const data = (await res.json()) as {
     success: boolean;
-    data?: { accessToken: string; refreshToken: string };
+    data?: { accessToken: string };
   };
   if (!data.success || !data.data) return false;
 
   localStorage.setItem(TOKEN_KEY, data.data.accessToken);
-  localStorage.setItem(REFRESH_KEY, data.data.refreshToken);
   return true;
 }
 
@@ -63,6 +50,7 @@ async function request<T>(path: string, init: RequestOptions = {}): Promise<T> {
     const res = await fetch(`${BASE_URL}${path}`, {
       ...init,
       signal: controller.signal,
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -84,7 +72,6 @@ async function request<T>(path: string, init: RequestOptions = {}): Promise<T> {
       // Refresh failed, clear auth
       try {
         localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(REFRESH_KEY);
       } catch {
         // localStorage may be unavailable
       }

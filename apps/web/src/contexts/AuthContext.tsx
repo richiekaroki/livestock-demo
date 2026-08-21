@@ -31,7 +31,6 @@ const AuthContext = createContext<AuthContextType | null>(null);
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 const TOKEN_KEY = 'wam_auth_token';
 const USER_KEY = 'wam_auth_user';
-const REFRESH_KEY = 'wam_auth_refresh';
 
 function getToken(): string | null {
   try {
@@ -53,13 +52,11 @@ function getUser(): Omit<User, 'failedOtpAttempts' | 'lockedUntil'> | null {
 function saveAuth(auth: AuthResponse) {
   localStorage.setItem(TOKEN_KEY, auth.accessToken);
   localStorage.setItem(USER_KEY, JSON.stringify(auth.user));
-  localStorage.setItem(REFRESH_KEY, auth.refreshToken);
 }
 
 function clearAuth() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
-  localStorage.removeItem(REFRESH_KEY);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -143,20 +140,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     const token = getToken();
-    if (token) {
-      fetch(`${API_BASE}/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      }).catch(() => {});
-    }
     clearAuth();
     setUser(null);
     setAccessToken(null);
+    if (token) {
+      try {
+        await fetch(`${API_BASE}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } catch {
+        // API unreachable, session will expire naturally
+      }
+    }
   }, []);
 
   const updateProfile = useCallback(async (profileData: {

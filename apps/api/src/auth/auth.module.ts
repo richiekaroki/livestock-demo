@@ -26,7 +26,7 @@ import { InMemoryAuditRepository } from './in-memory-audit.repository';
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'dev-secret-change-me',
+      secret: process.env.JWT_SECRET,
       signOptions: {
         expiresIn: (process.env.JWT_EXPIRES_IN || '15m') as unknown as number,
       },

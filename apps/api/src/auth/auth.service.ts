@@ -38,23 +38,20 @@ export class AuthService {
     const user = await this.userRepo.findByEmail(email);
 
     if (user && !user.isActive) {
-      throw new UnauthorizedException('Account is deactivated');
+      return { message: 'If an account exists, an OTP has been sent.' };
     }
 
     if (
       user &&
       this.otpService.isLocked(user.failedOtpAttempts, user.lockedUntil)
     ) {
-      const seconds = this.otpService.getLockoutSeconds(user.lockedUntil!);
-      throw new UnauthorizedException(
-        `Account locked. Try again in ${Math.ceil(seconds / 60)} minutes.`,
-      );
+      return { message: 'If an account exists, an OTP has been sent.' };
     }
 
     const otp = await this.otpService.createOtp(email, 'login');
     await this.emailService.sendOtpEmail(email, otp, 'login', user?.name);
 
-    return { message: 'OTP sent to your email' };
+    return { message: 'If an account exists, an OTP has been sent.' };
   }
 
   async verifyOtp(
@@ -66,18 +63,15 @@ export class AuthService {
     const user = await this.userRepo.findByEmail(email);
 
     if (!user) {
-      throw new UnauthorizedException('No account found with this email');
+      throw new UnauthorizedException('Invalid email or OTP code');
     }
 
     if (!user.isActive) {
-      throw new UnauthorizedException('Account is deactivated');
+      throw new UnauthorizedException('Invalid email or OTP code');
     }
 
     if (this.otpService.isLocked(user.failedOtpAttempts, user.lockedUntil)) {
-      const seconds = this.otpService.getLockoutSeconds(user.lockedUntil!);
-      throw new UnauthorizedException(
-        `Account locked. Try again in ${Math.ceil(seconds / 60)} minutes.`,
-      );
+      throw new UnauthorizedException('Invalid email or OTP code');
     }
 
     const result = await this.otpService.verifyOtp(email, otp, 'login', ip);
@@ -101,7 +95,7 @@ export class AuthService {
         });
       }
 
-      throw new UnauthorizedException(result.reason);
+      throw new UnauthorizedException('Invalid email or OTP code');
     }
 
     await this.userRepo.update(user.id, {
@@ -159,12 +153,12 @@ export class AuthService {
   ): Promise<AuthResponse> {
     const result = await this.otpService.verifyOtp(email, otp, 'register', ip);
     if (!result.valid) {
-      throw new UnauthorizedException(result.reason);
+      throw new UnauthorizedException('Invalid email or OTP code');
     }
 
     const user = await this.userRepo.findByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('Account not found');
+      throw new UnauthorizedException('Invalid email or OTP code');
     }
 
     return this.issueTokens(user.id, user.email, user.role, ip, device);
