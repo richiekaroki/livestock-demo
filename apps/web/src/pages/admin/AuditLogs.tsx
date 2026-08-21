@@ -1,5 +1,5 @@
 // src/pages/admin/AuditLogs.tsx
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 interface AuditLog {
@@ -18,11 +18,7 @@ export default function AuditLogs() {
   const [eventFilter, setEventFilter] = useState("");
   const [emailFilter, setEmailFilter] = useState("");
 
-  useEffect(() => {
-    loadLogs();
-  }, []);
-
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -36,7 +32,11 @@ export default function AuditLogs() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
 
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {

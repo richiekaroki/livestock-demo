@@ -1,4 +1,4 @@
-import { test, expect, requestOtp } from "../helpers";
+import { test, expect } from "../helpers";
 
 test.describe("Login Flow", () => {
   test("loads login page with email form", async ({ page }) => {

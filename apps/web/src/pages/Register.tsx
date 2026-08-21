@@ -25,7 +25,7 @@ export default function Register() {
     try {
       await register({ name, email, phone, county });
       setStep("otp");
-    } catch (err) {
+    } catch {
       setError(t("auth.register_failed"));
     } finally {
       setLoading(false);
@@ -38,7 +38,7 @@ export default function Register() {
     setError(null);
     try {
       await verifyOtp(email, otp);
-    } catch (err) {
+    } catch {
       setError(t("auth.register_verify_failed"));
     } finally {
       setLoading(false);

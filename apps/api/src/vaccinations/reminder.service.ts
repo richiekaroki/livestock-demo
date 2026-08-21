@@ -37,23 +37,14 @@ export class ReminderService {
           })
         : 'N/A';
 
-      const html = this.getReminderTemplate({
-        animalName: record.animalName || 'Unknown',
-        animalType: record.animalType || 'Unknown',
-        vaccinationType: record.type,
-        dueDate,
-        veterinarian: record.veterinarian,
-        batchNumber: record.batchNumber,
-        owner: record.owner || 'Unknown',
-        county: record.county || 'Unknown',
-      });
-
       // Send to the farmer/owner — in production, look up user email by owner
       // For demo, log to console
       this.logger.log(
         `[REMINDER] Vaccination due for ${record.animalName} (${record.animalType}): ${record.type} on ${dueDate}`,
       );
-      this.logger.log(`[REMINDER] Owner: ${record.owner}, County: ${record.county}`);
+      this.logger.log(
+        `[REMINDER] Owner: ${record.owner}, County: ${record.county}`,
+      );
 
       // In production, uncomment to send email:
       // await this.email.sendEmail({

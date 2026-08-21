@@ -5,7 +5,6 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   ConnectedSocket,
-  MessageBody,
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
@@ -43,12 +42,16 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleConnection(client: Socket) {
     this.connectedClients.add(client.id);
-    this.logger.log(`Client connected: ${client.id} (total: ${this.connectedClients.size})`);
+    this.logger.log(
+      `Client connected: ${client.id} (total: ${this.connectedClients.size})`,
+    );
   }
 
   handleDisconnect(client: Socket) {
     this.connectedClients.delete(client.id);
-    this.logger.log(`Client disconnected: ${client.id} (total: ${this.connectedClients.size})`);
+    this.logger.log(
+      `Client disconnected: ${client.id} (total: ${this.connectedClients.size})`,
+    );
   }
 
   @SubscribeMessage('subscribe:stats')

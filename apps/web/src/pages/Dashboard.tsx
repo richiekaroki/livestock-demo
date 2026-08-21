@@ -47,12 +47,15 @@ export default function Dashboard({
   const filters = useLivestockStore((s) => s.filters);
   const updateFilter = useLivestockStore((s) => s.updateFilter);
 
-  const TABS: { id: Tab; label: string }[] = [
-    { id: "overview", label: t("dashboard.tab_overview") },
-    { id: "animals", label: t("dashboard.tab_animals") },
-    { id: "analytics", label: t("dashboard.tab_analytics") },
-    { id: "register", label: t("dashboard.tab_register") },
-  ];
+  const TABS = useMemo<{ id: Tab; label: string }[]>(
+    () => [
+      { id: "overview", label: t("dashboard.tab_overview") },
+      { id: "animals", label: t("dashboard.tab_animals") },
+      { id: "analytics", label: t("dashboard.tab_analytics") },
+      { id: "register", label: t("dashboard.tab_register") },
+    ],
+    [t]
+  );
 
   const updateDebouncedQuery = useMemo(
     () => debounce((q: string) => setDebouncedQuery(q), 200),

@@ -12,7 +12,11 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { VaccinationsService } from './vaccinations.service';
-import { CreateVaccinationDto, UpdateVaccinationDto, VaccinationQueryDto } from './dto/vaccination.dto';
+import {
+  CreateVaccinationDto,
+  UpdateVaccinationDto,
+  VaccinationQueryDto,
+} from './dto/vaccination.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -39,7 +43,10 @@ export class VaccinationsController {
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles('admin', 'field_agent')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateVaccinationDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateVaccinationDto,
+  ) {
     return this.vaccinations.update(id, dto);
   }
 

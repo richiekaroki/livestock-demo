@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
-import type { CreateVaccinationDto, UpdateVaccinationDto, VaccinationQueryDto } from './dto/vaccination.dto';
+import type {
+  CreateVaccinationDto,
+  UpdateVaccinationDto,
+  VaccinationQueryDto,
+} from './dto/vaccination.dto';
 
 export interface VaccinationRecord {
   id: number;
@@ -30,7 +34,11 @@ export class VaccinationsService {
 
     const records = await this.prisma.vaccination.findMany({
       where,
-      include: { animal: { select: { name: true, type: true, owner: true, county: true } } },
+      include: {
+        animal: {
+          select: { name: true, type: true, owner: true, county: true },
+        },
+      },
       orderBy: { date: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
@@ -65,7 +73,11 @@ export class VaccinationsService {
         nextDueDate: dto.nextDueDate ? new Date(dto.nextDueDate) : null,
         animalId: dto.animalId,
       },
-      include: { animal: { select: { name: true, type: true, owner: true, county: true } } },
+      include: {
+        animal: {
+          select: { name: true, type: true, owner: true, county: true },
+        },
+      },
     });
 
     return {
@@ -83,18 +95,26 @@ export class VaccinationsService {
     };
   }
 
-  async update(id: number, dto: UpdateVaccinationDto): Promise<VaccinationRecord | null> {
+  async update(
+    id: number,
+    dto: UpdateVaccinationDto,
+  ): Promise<VaccinationRecord | null> {
     const data: Record<string, unknown> = {};
     if (dto.type) data.type = dto.type;
     if (dto.date) data.date = new Date(dto.date);
     if (dto.batchNumber) data.batchNumber = dto.batchNumber;
     if (dto.veterinarian) data.veterinarian = dto.veterinarian;
-    if (dto.nextDueDate !== undefined) data.nextDueDate = dto.nextDueDate ? new Date(dto.nextDueDate) : null;
+    if (dto.nextDueDate !== undefined)
+      data.nextDueDate = dto.nextDueDate ? new Date(dto.nextDueDate) : null;
 
     const record = await this.prisma.vaccination.update({
       where: { id },
       data,
-      include: { animal: { select: { name: true, type: true, owner: true, county: true } } },
+      include: {
+        animal: {
+          select: { name: true, type: true, owner: true, county: true },
+        },
+      },
     });
 
     return {

@@ -1,4 +1,4 @@
-import { test, expect, loginAs } from "../helpers";
+import { test, expect } from "../helpers";
 
 test.describe("Protected Routes", () => {
   test("redirects to login when unauthenticated", async ({ page }) => {

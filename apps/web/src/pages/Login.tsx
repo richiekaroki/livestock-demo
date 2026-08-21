@@ -20,7 +20,7 @@ export default function Login() {
     try {
       await requestOtp(email);
       setStep("otp");
-    } catch (err) {
+    } catch {
       setError(t("auth.login_failed"));
     } finally {
       setLoading(false);
@@ -33,7 +33,7 @@ export default function Login() {
     setError(null);
     try {
       await verifyOtp(email, otp);
-    } catch (err) {
+    } catch {
       setError(t("auth.login_invalid_otp"));
     } finally {
       setLoading(false);
