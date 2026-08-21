@@ -1,6 +1,7 @@
 // src/pages/admin/AuditLogs.tsx
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { apiGet } from "../../services/apiClient";
 
 interface AuditLog {
   id: number;
@@ -8,6 +9,11 @@ interface AuditLog {
   email: string;
   ip: string;
   createdAt: string;
+}
+
+interface AuditLogsResponse {
+  success: boolean;
+  data: AuditLog[];
 }
 
 export default function AuditLogs() {
@@ -22,10 +28,7 @@ export default function AuditLogs() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/audit-logs", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      const data = await res.json();
+      const data = await apiGet<AuditLogsResponse>("/admin/audit-logs");
       if (data.success) setLogs(data.data);
     } catch {
       setError(t("admin.audit_load_failed"));

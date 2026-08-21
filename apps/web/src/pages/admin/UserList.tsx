@@ -1,6 +1,7 @@
 // src/pages/admin/UserList.tsx
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { apiGet, apiPatch, apiPost } from "../../services/apiClient";
 
 interface User {
   id: number;
@@ -11,6 +12,11 @@ interface User {
   county: string;
   isActive: boolean;
   createdAt: string;
+}
+
+interface UsersResponse {
+  success: boolean;
+  users: User[];
 }
 
 export default function UserList() {
@@ -26,10 +32,7 @@ export default function UserList() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/users", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      const data = await res.json();
+      const data = await apiGet<UsersResponse>("/admin/users");
       if (data.users) setUsers(data.users);
     } catch {
       setError(t("admin.users_load_failed"));
@@ -53,14 +56,7 @@ export default function UserList() {
 
   const handleDeactivate = async (userId: number) => {
     try {
-      await fetch(`/api/admin/users/${userId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({ isActive: false }),
-      });
+      await apiPatch(`/admin/users/${userId}`, { isActive: false });
       loadUsers();
     } catch {
       setError(t("admin.users_update_failed"));
@@ -69,10 +65,7 @@ export default function UserList() {
 
   const handleRevokeSessions = async (userId: number) => {
     try {
-      await fetch(`/api/admin/users/${userId}/revoke-sessions`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      await apiPost(`/admin/users/${userId}/revoke-sessions`, {});
     } catch {
       setError(t("admin.users_revoke_failed"));
     }

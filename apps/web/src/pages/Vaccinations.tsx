@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { apiGet, apiDelete } from "../services/apiClient";
 import VaccinationForm from "../components/vaccinations/VaccinationForm";
 
 interface Vaccination {
@@ -15,6 +16,11 @@ interface Vaccination {
   county: string;
 }
 
+interface VaccinationsResponse {
+  success: boolean;
+  data: Vaccination[];
+}
+
 export default function Vaccinations() {
   const [vaccinations, setVaccinations] = useState<Vaccination[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,11 +33,8 @@ export default function Vaccinations() {
   const loadVaccinations = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/vaccinations", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      const data = await res.json();
-      setVaccinations(data);
+      const res = await apiGet<VaccinationsResponse>("/vaccinations");
+      setVaccinations(res.data || []);
     } catch {
       // silently fail
     } finally {
@@ -42,10 +45,7 @@ export default function Vaccinations() {
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this vaccination record?")) return;
     try {
-      await fetch(`/api/vaccinations/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      await apiDelete(`/vaccinations/${id}`);
       loadVaccinations();
     } catch {
       // silently fail

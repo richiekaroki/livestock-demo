@@ -1,9 +1,15 @@
 import { useState, useEffect } from "react";
+import { apiGet, apiPost } from "../../services/apiClient";
 
 interface VaccinationFormProps {
   animalId?: number;
   onSaved?: () => void;
   onCancel?: () => void;
+}
+
+interface AnimalsResponse {
+  success: boolean;
+  data: { id: number; name: string; type: string }[];
 }
 
 export default function VaccinationForm({ animalId, onSaved, onCancel }: VaccinationFormProps) {
@@ -19,10 +25,7 @@ export default function VaccinationForm({ animalId, onSaved, onCancel }: Vaccina
 
   useEffect(() => {
     if (!animalId) {
-      fetch("/api/animals?limit=200", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      })
-        .then((r) => r.json())
+      apiGet<AnimalsResponse>("/animals?limit=200")
         .then((data) => setAnimals(data.data || []))
         .catch(() => {});
     }
@@ -34,23 +37,14 @@ export default function VaccinationForm({ animalId, onSaved, onCancel }: Vaccina
     setError(null);
 
     try {
-      const res = await fetch("/api/vaccinations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          type,
-          date,
-          batchNumber,
-          veterinarian,
-          nextDueDate: nextDueDate || undefined,
-          animalId: animalId || selectedAnimalId,
-        }),
+      await apiPost("/vaccinations", {
+        type,
+        date,
+        batchNumber,
+        veterinarian,
+        nextDueDate: nextDueDate || undefined,
+        animalId: animalId || selectedAnimalId,
       });
-
-      if (!res.ok) throw new Error("Failed to save");
       onSaved?.();
     } catch {
       setError("Failed to save vaccination record");
