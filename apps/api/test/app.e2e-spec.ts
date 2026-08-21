@@ -1,9 +1,9 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import type { ApiResponse, Livestock } from '@wam-mfugo/shared';
+import type { ApiResponse, AuthResponse, Livestock } from '@wam-mfugo/shared';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
-import { AuthService } from './../src/auth/auth.service';
+import { OtpService } from './../src/auth/otp.service';
 
 const ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || 'rkabue23@gmail.com';
 
@@ -27,12 +27,8 @@ describe('Wam Mfugo API (e2e)', () => {
     );
     await app.init();
 
-    // Login via OTP: request-otp then verify
-    const authService = moduleFixture.get(AuthService);
-
     // Create OTP directly (avoids HTTP round-trip + email sending)
-    const otpModule = await import('./../src/auth/otp.service');
-    const otpService = moduleFixture.get(otpModule.OtpService);
+    const otpService = moduleFixture.get(OtpService);
     const otp = await otpService.createOtp(ADMIN_EMAIL, 'login');
 
     // Verify via HTTP to exercise the full guard + JWT flow
@@ -40,7 +36,8 @@ describe('Wam Mfugo API (e2e)', () => {
       .post('/api/auth/verify-otp')
       .send({ email: ADMIN_EMAIL, otp });
 
-    accessToken = loginRes.body.data.accessToken;
+    const body = loginRes.body as ApiResponse<AuthResponse>;
+    accessToken = body.data.accessToken;
   }, 30000);
 
   afterAll(async () => {
