@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
-      - run: npm ci
+      - run: npm install
       - run: npm run build -w @wam-mfugo/shared
       - name: Deploy to Vercel
         run: npx vercel deploy --prod --yes --token "${{ secrets.VERCEL_TOKEN }}" --cwd apps/web --env VITE_API_BASE_URL="${{ secrets.VITE_API_BASE_URL }}"
