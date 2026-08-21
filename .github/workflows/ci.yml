@@ -23,6 +23,8 @@ jobs:
       - run: npm run build:api
       - run: npm run test:api
       - run: npm run test:api:e2e
+        env:
+          JWT_SECRET: ci-test-secret-do-not-use-in-production
   mobile:
     runs-on: ubuntu-latest
     steps:
