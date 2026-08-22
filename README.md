@@ -1,17 +1,18 @@
 # Wam Mfugo
 
-Offline-first livestock tracking platform for Kenya — register animals, monitor health across counties, and sync to KALRO online or offline. Passwordless email-OTP auth with Admin / Field Agent / Farmer roles. Swahili/English i18n.
+Offline-first livestock tracking platform for Kenya — register animals, monitor health across 47 counties, and sync to KALRO/KIAMIS online or offline. Passwordless email-OTP auth. Swahili/English i18n.
 
-## Tech Stack
+## Stack
 
-| Layer | Stack |
-|-------|-------|
+| Layer | Tech |
+|-------|------|
 | **Web** | React 19, Vite 7, TypeScript, Tailwind v4, Zustand, Leaflet, react-i18next |
-| **API** | NestJS 11, Prisma 6, Postgres (in-memory fallback), Socket.io, @nestjs/schedule |
+| **API** | NestJS 11, Prisma 6, PostgreSQL (in-memory fallback), Socket.io |
 | **Mobile** | Expo SDK 57, React Native 0.86, expo-router |
-| **Shared** | `@wam-mfugo/shared` — types, validation, Kenya reference data |
-| **Auth** | Email OTP + JWT (access/refresh), roles, sessions, audit, Brevo SMTP |
-| **Tests** | Vitest (web, 151), Jest (API, 21 + e2e), Playwright (web, 15) |
+| **Shared** | `@wam-mfugo/shared` — types, validators, Kenya reference data |
+| **Auth** | Email OTP + JWT (HttpOnly cookie refresh), rate limiting, roles, audit trail |
+| **Tests** | Vitest (151) · Jest (21 + e2e) · Playwright (15) |
+| **Deploy** | Vercel (web) · Render (api) · Neon/Supabase (Postgres) |
 
 ## Quick Start
 
@@ -21,87 +22,65 @@ npm run dev:api     # http://localhost:4000 — start first
 npm run dev:web     # http://localhost:5173
 ```
 
-Set `DEFAULT_ADMIN_EMAIL` in `apps/api/.env` to your email (defaults to `admin@example.com`). Login with that email; the OTP prints in the API console (demo) or arrives via email (`EMAIL_PROVIDER=smtp`).
+Set `DEFAULT_ADMIN_EMAIL` in `apps/api/.env`. Login with that email; the OTP prints in the API console (demo mode) or arrives via email (`EMAIL_PROVIDER=smtp`).
 
-Prefer the full stack (Postgres + API + web) in one command? `docker compose up --build` → http://localhost:5173, API at http://localhost:4000/api.
+Full stack with Postgres: `docker compose up --build`
 
 ## Scripts
 
 | Command | Description |
 |---------|-------------|
 | `npm run dev:web` / `dev:api` / `dev:mobile` | Start each app |
-| `npm run build:web` / `build:api` / `build:shared` | Production builds |
-| `npm run test:web` (151) / `test:api` (21) / `test:api:e2e` | Tests |
-| `npm run test:e2e` (in apps/web) | Playwright e2e (auth flow) |
+| `npm run build:web` / `build:api` | Production builds |
+| `npm run test:web` / `test:api` / `test:api:e2e` | Tests |
 | `npm run typecheck:mobile` | Type-check mobile |
+| `npm run lint:web` | Lint web |
 
-## Project Structure
+## Structure
 
 ```
-apps/web, apps/api, apps/mobile   # React SPA, NestJS API, Expo app
-packages/shared                   # Types, Kenya ref data, demo generator
-docs/                             # DESIGN.md, IMPLEMENTATION.md, AUTH_PLAN.md, REMAINING_WORK.md
+apps/web          React SPA (auth, admin, maps, charts, offline-first)
+apps/api          NestJS API (auth, animals, farmers, stats, KALRO, KIAMIS)
+apps/mobile       Expo app (register, camera, map, profile)
+packages/shared   Types, Kenya ref data (47 counties, 6 animal types), demo generator
+docs/             Security assessment, auth plan, design, implementation
 ```
 
 ## Features
 
-- Passwordless email-OTP auth with roles (admin gated `/admin/*` pages), rate limiting + lockout
-- Animal registration with biometric capture, health tracking, 6 animal types, 47 counties
-- Farmer management (FM-xxxx codes), map view, offline-first (IndexedDB/AsyncStorage write queue)
-- KALRO/KIAMIS integration — stubbed, ready for real credentials
-- Swahili/English i18n — full translation (200+ keys), language switcher in navbar
-- Vaccination reminders — CRUD API, daily cron scheduler, 3-day advance email reminders
-- Live stats via WebSockets — NestJS gateway, real-time animal events, dashboard indicator
-- Playwright e2e tests — 15 auth flow tests (login, register, protected routes)
-- Ops: Swagger docs, pagination, CSV exports, helmet headers, structured request logging, DB-ping health check, Docker + CI auto-deploy (Vercel/Render)
+- **Auth** — Passwordless email OTP, JWT (access + HttpOnly refresh cookie), 3 roles, rate limiting, account lockout, audit trail
+- **Animals** — Registration with biometric capture, health tracking, 6 types with breeds, breed-specific naming
+- **Offline-first** — IndexedDB/AsyncStorage cache, write queue with conflict resolution, reconnection replay
+- **Reference data** — 47 Kenya counties (IEBC codes, GPS), 6 animal types with breeds, deterministic demo generator
+- **KALRO/KIAMIS** — Integration stubs ready for real credentials
+- **i18n** — Swahili/English, 200+ translated keys, language switcher
+- **Vaccinations** — CRUD API, daily cron scheduler, 3-day advance email reminders
+- **Real-time** — Socket.io WebSockets for live stats and animal events
+- **Security** — CORS whitelist, CSP, helmet headers, rate limiting, JWT secret enforcement, npm audit overrides
 
-## API Endpoints
+## API
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/animals` | List animals (filter + paginated) |
-| `POST` | `/api/animals` | Register animal |
-| `PATCH` | `/api/animals/:id/health` | Update health status |
-| `GET` | `/api/stats` | Aggregate statistics |
-| `GET` | `/api/farmers` | List farmers |
-| `GET` | `/api/ref/counties` | 47 Kenya counties (paginated) |
-| `GET` | `/api/ref/animal-types` | 6 animal types with breeds (paginated) |
-| `GET` | `/api/animals/export` | Animals as CSV (admin/field agent) |
-| `GET` | `/api/stats/export` | Stats snapshot as CSV |
-| `GET` | `/api/admin/audit-logs/export` | Audit trail as CSV (admin) |
-| `GET` | `/api/vaccinations` | List vaccination records |
-| `POST` | `/api/vaccinations` | Record vaccination |
-| `PATCH` | `/api/vaccinations/:id` | Update vaccination |
-| `DELETE` | `/api/vaccinations/:id` | Delete vaccination (admin) |
-| `GET` | `/api/health` | Health check |
-| `POST` | `/api/auth/*` | OTP request/verify, register, refresh, logout |
-| `GET`/`PATCH` | `/api/auth/me` | Get / update own profile |
-| `GET`/`DELETE` | `/api/auth/sessions` | List / revoke sessions |
-| `GET`/`PATCH` | `/api/admin/*` | Users + audit logs (admin only) |
+Interactive Swagger docs at `/api/docs` when the API is running.
 
-Protected endpoints require `Authorization: Bearer <accessToken>`; the client auto-refreshes on 401. Interactive docs at `/api/docs` (Swagger UI) when the API runs.
+Key endpoints: `/api/animals` (CRUD + export), `/api/stats`, `/api/farmers`, `/api/ref/*`, `/api/vaccinations`, `/api/auth/*`, `/api/admin/*`
 
-WebSocket events (connect via `socket.io`):
-- `subscribe:stats` → receives `stats:updated` broadcasts
-- `subscribe:animal-events` → receives `animal:event` on create/update
+Protected endpoints require `Authorization: Bearer <token>`; the client auto-refreshes on 401.
 
 ## Environment Variables
 
-**API** (`apps/api/.env`): `DATABASE_URL` (blank = in-memory), `JWT_SECRET`, `EMAIL_PROVIDER` (`console`/`smtp`), Brevo `SMTP_*`, `DEFAULT_ADMIN_EMAIL`
-**Web** (`apps/web/.env`): `VITE_API_BASE_URL` (blank = mock)
-**Mobile** (`apps/mobile/.env`): `EXPO_PUBLIC_API_URL`
+| App | Variable | Required | Default |
+|-----|----------|----------|---------|
+| API | `JWT_SECRET` | Yes | — |
+| API | `DATABASE_URL` | No | in-memory |
+| API | `EMAIL_PROVIDER` | No | `console` |
+| API | `DEFAULT_ADMIN_EMAIL` | No | `admin@example.com` |
+| API | `CORS_ORIGIN` | Yes | — |
+| Web | `VITE_API_BASE_URL` | No | mock mode |
+| Mobile | `EXPO_PUBLIC_API_URL` | No | `http://localhost:4000/api` |
 
-## Ops
+## Security
 
-- **Docs**: Swagger UI at `/api/docs`; OpenAPI JSON at `/api/docs-json`
-- **i18n**: Swahili/English via react-i18next; language stored in localStorage
-- **Vaccinations**: daily cron at 8AM checks `nextDueDate`, sends email reminders 3 days before due
-- **WebSockets**: Socket.io gateway on `/`, broadcasts animal events to subscribed clients
-- **E2E tests**: Playwright suite in `apps/web/e2e/` (run `npm run test:e2e` in apps/web)
-- **Logging**: every request logged as JSON with `requestId`, method, path, status, duration; response carries `x-request-id`
-- **Security**: helmet headers (CSP, HSTS, nosniff, X-Frame-Options); CORS via `CORS_ORIGIN`
-- **Health**: `/api/health` pings the DB (`db: ok | in-memory | error`)
-- **Deploy**: `render.yaml` (Blueprint) + `.github/workflows/deploy.yml` (Vercel + Render on push) + `docker-compose.yml`
+JWT_SECRET enforced on startup, CORS origin whitelist (no wildcards), global rate limiting (3 tiers), HttpOnly refresh cookie, email enumeration prevention, OTP invalidation, CSP + HSTS + helmet headers, Docker secrets via env_file. See `docs/SECURITY_ASSESSMENT.md`.
 
 ## License
 
