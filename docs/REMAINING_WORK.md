@@ -1,7 +1,7 @@
 # Remaining Work — Wam Mfugo
 
 **Last updated:** 2026-08-21
-**Status:** 15/16 features complete, 1 partial
+**Status:** 16/17 features complete, 1 partial
 
 ---
 
@@ -22,6 +22,7 @@
 | 11 | Structured logging + request IDs | **DONE** |
 | 12 | Proper CORS + helmet security headers | **DONE** |
 | 13 | Health check with DB ping + uptime metrics | **DONE** |
+| 14 | Security hardening (OWASP alignment) | **DONE** — JWT guard, CORS whitelist, rate limiting, HttpOnly cookie, email enumeration prevention, OTP invalidation, Nginx headers, Docker secrets, npm audit overrides |
 
 ---
 

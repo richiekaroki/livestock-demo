@@ -2,7 +2,7 @@
 
 ## Status
 
-> **Phase 1-8 implemented and verified (2026-08-20).** Auth is fully functional across API, web, and mobile. See per-phase status below.
+> **Phase 1-8 implemented and verified (2026-08-20).** Auth is fully functional across API, web, and mobile. Security hardening applied (2026-08-21). See per-phase status below.
 
 | Phase | Scope | Status |
 |-------|-------|--------|
@@ -24,6 +24,24 @@
 - `GET /api/auth/me`, `GET /api/admin/users` → admin-only, OK
 
 **Email provider:** Brevo SMTP (`smtp-relay.brevo.com:587`) via `EMAIL_PROVIDER=smtp`; falls back to console logging in demo mode. Keys live in `apps/api/.env` (gitignored).
+
+### Security Hardening (2026-08-21)
+
+Applied after initial auth implementation. See `docs/SECURITY_ASSESSMENT.md` for the full audit.
+
+| Measure | Detail |
+|---------|--------|
+| **JWT_SECRET startup guard** | App crashes on startup if `JWT_SECRET` is missing or matches default value |
+| **CORS whitelist** | `CORS_ORIGIN` must be comma-separated list of origins; wildcard `*` no longer supported |
+| **Rate limiting** | `@nestjs/throttler` global guard — 10 req/10s, 20 req/1min, 100 req/15min |
+| **HttpOnly refresh cookie** | Refresh token stored as `wam_refresh_token` HttpOnly + Secure + SameSite=strict cookie; never in localStorage |
+| **Email enumeration prevention** | All auth failures return generic "Invalid email or OTP code" or "If an account exists, an OTP has been sent" |
+| **OTP invalidation** | Old unused OTPs marked as `used` when a new one is requested for the same email+purpose |
+| **Logout await** | Web logout clears local state immediately then awaits API call to revoke server session |
+| **Nginx security headers** | HSTS, X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy |
+| **Render migration guard** | `preDeployCommand` runs `prisma migrate deploy` before each deploy |
+| **Docker secrets** | `docker-compose.yml` uses `env_file` instead of hardcoded `JWT_SECRET` or `CORS_ORIGIN: *` |
+| **npm audit overrides** | `deepmerge-ts`, `image-size`, `uuid` upgraded via root `overrides` to fix 16 transitive vulnerabilities |
 
 ## Overview
 
@@ -515,13 +533,14 @@ In-memory audit log for demo mode. Logs to console as well.
 Add to `.env.example`:
 
 ```
-JWT_SECRET=your-secret-key-here
+JWT_SECRET=your-secret-key-here  # REQUIRED — app crashes if missing
 JWT_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
 OTP_EXPIRY_MINUTES=5
 OTP_MAX_REQUESTS=5
 OTP_MAX_FAILED_ATTEMPTS=5
 OTP_LOCKOUT_MINUTES=15
+CORS_ORIGIN=http://localhost:5173  # comma-separated for multiple origins
 EMAIL_PROVIDER=console
 # For production (optional):
 # SMTP_HOST=smtp.gmail.com
@@ -538,13 +557,19 @@ EMAIL_PROVIDER=console
 - OTP hashed with SHA-256 before storage (never stored in plain text)
 - OTP expires after 5 minutes
 - OTP is single-use (marked as used after verification)
+- **OTP invalidation** — old unused OTPs marked used when new one requested
 - Rate limiting: max 5 OTP requests per 15-minute window per email
+- **Global rate limiting** — @nestjs/throttler with 3 tiers (10/10s, 20/1min, 100/15min)
 - Account lockout: after 5 failed OTP attempts, locked for 15 minutes
 - Audit trail: all auth events logged with timestamp and IP
 - Session management: users can view and revoke active sessions
 - JWT access token expires in 15 minutes
 - Refresh token rotation on each use (old session deleted, new created)
+- **Refresh token in HttpOnly cookie** — never exposed to JavaScript (XSS-safe)
 - No sensitive data in JWT payload (only sub, email, role)
-- CORS restrictions in production
+- **CORS whitelist** — explicit origins only, no wildcards
+- **Generic error messages** — prevents email enumeration attacks
+- **JWT_SECRET required** — app crashes on startup if missing or default
 - Input validation on all auth DTOs
 - Offline mode: clear UI indicators, cached data only, re-auth required when online
+- **Nginx security headers** — HSTS, X-Frame-Options, nosniff, XSS protection

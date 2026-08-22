@@ -18,8 +18,9 @@ Tech stack:
   Shared ..... packages/shared — types + ref data + generator + seed
   Tests ...... Vitest (web) · Jest + supertest (api) · tsc (mobile type-check)
   Hosting .... Vercel (web) / Render (api) / Neon or Supabase (Postgres)
-  Auth ....... Passwordless email OTP — JWT access+refresh, 3 roles, Brevo SMTP
-              (console fallback in demo mode). See docs/AUTH_PLAN.md
+  Auth ....... Passwordless email OTP — JWT access+refresh (HttpOnly cookie),
+               3 roles, rate limiting, CORS whitelist, helmet security headers.
+               See docs/AUTH_PLAN.md + docs/SECURITY_ASSESSMENT.md
 
 -------------------------------------------------------------------------------
 THE JOURNEY — milestone by milestone (what was built, and why it was necessary)
@@ -94,11 +95,12 @@ MILESTONE 8 — CI (GitHub Actions)
 MILESTONE 9 — Authentication (done)
   What: passwordless email OTP login with three roles (Admin, Field Agent,
         Farmer). No passwords stored — eliminates recovery entirely. JWT
-        access (15 min) + refresh (7 day, rotated) tokens, rate-limited OTP
-        with account lockout, audit trail, session management (view/revoke),
-        user profile management, admin user management UI, offline auth
-        handling. Demo mode seeds a default admin and logs the OTP to the
-        console; EMAIL_PROVIDER=smtp sends real emails via Brevo.
+        access (15 min) + refresh (7 day, rotated, HttpOnly cookie) tokens,
+        rate-limited OTP with account lockout, OTP invalidation on new
+        request, audit trail, session management (view/revoke), user profile
+        management, admin user management UI, offline auth handling. Demo
+        mode seeds a default admin and logs the OTP to the console;
+        EMAIL_PROVIDER=smtp sends real emails via Brevo.
   Why: every real app needs auth. Passwordless OTP is the modern approach —
        no password fatigue, no recovery flow, no breached password databases.
        Email-based because it's free (no SMS costs). Console logging for
@@ -106,6 +108,26 @@ MILESTONE 9 — Authentication (done)
   Verified: request-otp -> verify-otp -> JWT -> protected routes (kalro 200
        with admin token, 401 without), refresh rotation, /auth/me, /admin/users.
   See: docs/AUTH_PLAN.md for the full implementation plan.
+
+MILESTONE 11 — Security Hardening (done)
+  What: full security pass aligned to OWASP Top 10. JWT_SECRET startup guard
+        (crashes if missing or default), CORS locked to explicit origin
+        whitelist (no wildcards), global rate limiting via @nestjs/throttler
+        (3 tiers: 10 req/10s, 20 req/1min, 100 req/15min), refresh token
+        moved to HttpOnly + Secure + SameSite=strict cookie (no localStorage),
+        generic auth error messages (prevents email enumeration), OTP
+        invalidation on new request (old codes marked used), Nginx security
+        headers (HSTS, X-Frame-Options, nosniff, XSS protection), all
+        hardcoded personal emails replaced with admin@example.com in public
+        files, broken localStorage auth refactored to use apiClient,
+        Docker secrets cleaned (no hardcoded JWT_SECRET/CORS_ORIGIN),
+        npm overrides for 16 vulnerable transitive dependencies.
+  Why: the previous auth implementation had functional correctness but
+       multiple security gaps: email enumeration via distinct error messages,
+       refresh tokens exposed in localStorage (XSS-vulnerable), CORS
+       accepting any origin, no rate limiting on endpoints, stale OTPs
+       remaining valid, and personal emails hardcoded in source.
+  See: docs/SECURITY_ASSESSMENT.md for the full audit and fix details.
 
 MILESTONE 10 — Deployment (pending: needs your accounts/credentials)
   What: Neon/Supabase Postgres + Render API + Vercel web, wired via env vars.
@@ -140,6 +162,16 @@ KEY DECISIONS & WHY EACH WAS NECESSARY
                                    and realistic (Kenyan names, real GPS).
   Passwordless OTP .............. no passwords stored, no recovery flow,
                                    modern auth approach, free (email only).
+  HttpOnly refresh cookie ....... refresh token never touches JavaScript,
+                                   immune to XSS theft.
+  CORS whitelist ................ explicit origins only, no wildcards,
+                                   prevents credential leakage.
+  Rate limiting ................. @nestjs/throttler with 3 tiers protects
+                                   OTP endpoints from brute force.
+  OTP invalidation .............. old codes marked used when new one
+                                   requested, prevents accumulation.
+  Generic error messages ........ "Invalid email or OTP code" for all
+                                   failures, prevents email enumeration.
   Brevo SMTP .................... free 300 emails/day; console fallback keeps
                                    the repo runnable with zero config.
   Vercel/Render/Neon ............ free tiers, zero credit card, and the exact
@@ -152,9 +184,14 @@ WHAT IS MOCKED VS REAL (sandbox stubs)
         endpoints, the repository layer, DTO validation, tests, CI. The
         API runs in-memory until a DATABASE_URL is provided; with one env
         var it uses real Postgres via Prisma.
-        The auth layer is real: OTP issue + verify, JWT signing/validation,
-        refresh rotation, session + audit services, role guards. Email is
-        real Brevo SMTP when EMAIL_PROVIDER=smtp (console fallback in demo).
+        The auth layer is real: OTP issue + verify (+ invalidation on new
+        request), JWT signing/validation, refresh rotation (HttpOnly cookie),
+        session + audit services, role guards. Generic error messages
+        prevent email enumeration. Email is real Brevo SMTP when
+        EMAIL_PROVIDER=smtp (console fallback in demo).
+        Security: JWT_SECRET required on startup (crashes if missing),
+        CORS locked to explicit origins, rate limiting via @nestjs/throttler,
+        helmet security headers, Nginx hardening (HSTS, nosniff, etc.).
 
   STUBBED (no public credentials exist): KALRO veterinary lookup and KIAMIS
         registration. Each stub carries the note:
@@ -182,11 +219,14 @@ Monorepo layout:
 Auth data flow (web + mobile):
   - AuthContext wraps the app; Login/Register two-step OTP screens hit
     /auth/request-otp then /auth/verify-otp (or /auth/register first).
-  - apiClient/api.ts injects the Bearer token, and on a 401 tries one
-    /auth/refresh before failing; tokens + user persist in localStorage
-    (web) / AsyncStorage (mobile).
+  - apiClient/api.ts injects the Bearer token from memory, and on a 401
+    tries one /auth/refresh before failing. Refresh token is stored as an
+    HttpOnly cookie (set by the server) — never in localStorage/AsyncStorage.
+    Access token + user persist in memory (web) / AsyncStorage (mobile).
   - ProtectedRoute/RoleRoute gate routes by auth + role; OfflineBanner shows
     "Offline — using cached data".
+  - Logout clears local state immediately, then awaits the API call to
+    revoke the server-side session.
 
 Web data flow: components -> hooks -> Zustand store -> services (mock OR API)
   - useLiveData loads animals, auto-refreshes, caches to IndexedDB
@@ -262,8 +302,8 @@ TESTS & QUALITY
   API ....... Jest — 21 tests across 4 suites (in-memory animal repo, KIAMIS,
              OTP service, session service) + e2e (boots the full AppModule).
   Mobile .... tsc --noEmit type-check (npm run typecheck:mobile).
-  Lint ...... web 0 errors; api 0 errors (7 no-unsafe-argument warnings from
-             supertest typing are intentional scaffold defaults).
+  Lint ...... web 0 errors; api 0 errors (warnings from supertest typing
+             are intentional scaffold defaults).
   Verified .. a browser smoke test ran the web app against the live local API
              (GET /api/animals 200, zero console errors, farmer auto-fill
              works, all pages render correctly). Auth verified end-to-end via
@@ -299,7 +339,8 @@ RUNNING EACH APP SEPARATELY
   #    Demo mode (no DB): DATABASE_URL is blank in apps/api/.env, so the API
   #    runs fully in-memory and prints OTPs to the terminal when
   #    EMAIL_PROVIDER=console. Login with the seeded admin:
-  #    rkabue23@gmail.com — the OTP appears in the API console log.
+  #    admin@example.com (or your DEFAULT_ADMIN_EMAIL) — OTP appears in the
+  #    API console log. JWT_SECRET must be set even in demo mode.
 
   # 3) Web app alone (no API). Uses the mock service layer if
   #    VITE_API_BASE_URL is empty in apps/web/.env:
@@ -323,7 +364,8 @@ RUNNING THE STACK TOGETHER (full app: auth + data)
   Order matters: start the API FIRST so the web/mobile apps hit a live backend
   on boot. Then:
     1. Open http://localhost:5173 (or scan the Expo QR).
-    2. On the login screen, enter rkabue23@gmail.com (seeded admin).
+    2. On the login screen, enter the admin email (DEFAULT_ADMIN_EMAIL from
+       apps/api/.env — defaults to admin@example.com).
     3. Check the API terminal for the 6-digit OTP (demo/console mode) — or
        your inbox when EMAIL_PROVIDER=smtp (real Brevo email).
     4. Enter the OTP -> JWT issued -> app shows the admin's navbar/menu.
@@ -333,9 +375,11 @@ RUNNING THE STACK TOGETHER (full app: auth + data)
   (OTP delivery) requires the API to be reachable.
 
 Environment files (.env, gitignored):
-  apps/api/.env           JWT_SECRET (generated), JWT_EXPIRES_IN=15m,
-                          JWT_REFRESH_EXPIRES_IN=7d, OTP_* (expiry/limits),
-                          DEFAULT_ADMIN_EMAIL=rkabue23@gmail.com,
+  apps/api/.env           JWT_SECRET (required — generate a random string,
+                          app crashes on startup if missing or default),
+                          JWT_EXPIRES_IN=15m, JWT_REFRESH_EXPIRES_IN=7d,
+                          OTP_* (expiry/limits), CORS_ORIGIN=http://localhost:5173,
+                          DEFAULT_ADMIN_EMAIL=admin@example.com,
                           EMAIL_PROVIDER=console | smtp (Brevo: SMTP_HOST/
                           SMTP_PORT/SMTP_USER/SMTP_PASS/SMTP_FROM),
                           DATABASE_URL (blank = in-memory), PORT=4000
@@ -345,6 +389,9 @@ Environment files (.env, gitignored):
 
 RUNNING VIA DOCKER (optional — same as three terminals, plus Postgres)
 -------------------------------------------------------------------------------
+  Prerequisites: create apps/api/.env with at minimum:
+    JWT_SECRET=<any-random-string>
+    CORS_ORIGIN=http://localhost:5173
   docker compose up --build
     -> web   http://localhost:5173   (nginx, VITE_API_BASE_URL baked in)
     -> api   http://localhost:4000/api  (docs: /api/docs)
@@ -357,8 +404,14 @@ RUNNING VIA DOCKER (optional — same as three terminals, plus Postgres)
 
 OPS / POLISH
 -------------------------------------------------------------------------------
-  Security: helmet headers (CSP, HSTS, X-Content-Type-Options, X-Frame-Options),
-            CORS via CORS_ORIGIN (comma-separated or "*").
+  Security: helmet headers (CSP, HSTS, X-Content-Type-Options, X-Frame-Options,
+            X-XSS-Protection, Referrer-Policy, Permissions-Policy),
+            CORS via CORS_ORIGIN (comma-separated origin whitelist, no wildcards),
+            global rate limiting via @nestjs/throttler (3 tiers),
+            JWT_SECRET startup guard (crashes if missing or default),
+            HttpOnly + Secure + SameSite=strict refresh token cookie,
+            generic auth error messages (no email enumeration),
+            OTP invalidation on new request.
   Logging:  request-id middleware assigns x-request-id (echoed in the response);
             structured JSON log per request { requestId, method, path, status,
             durationMs, ip, userAgent }.
@@ -374,7 +427,9 @@ DEPLOYMENT (free tier)
           (apps/api/.env.example is the committed template).
   API  -> Render: repo root, build "npm install && npm run build:api",
           start "node apps/api/dist/main.js",
-          env PORT, DATABASE_URL, CORS_ORIGIN, JWT_SECRET, JWT_EXPIRES_IN,
+          preDeployCommand "npx prisma migrate deploy --schema apps/api/prisma/schema.prisma",
+          env PORT, DATABASE_URL, CORS_ORIGIN (comma-separated origins),
+          JWT_SECRET (required, random string), JWT_EXPIRES_IN,
           JWT_REFRESH_EXPIRES_IN, EMAIL_PROVIDER=smtp, SMTP_HOST, SMTP_PORT,
           SMTP_USER, SMTP_PASS, SMTP_FROM, DEFAULT_ADMIN_EMAIL,
           KALRO_API_URL (optional).
@@ -402,5 +457,10 @@ STATUS CHECKLIST
          Docker + docker-compose (Postgres/API/web), CI + auto-deploy
          workflow (Vercel + Render), render.yaml Blueprint,
          package cleanup (removed unused deps, moved @types to devDeps).
+  DONE   M11: security hardening — JWT_SECRET startup guard, CORS whitelist,
+         global rate limiting (3 tiers), HttpOnly refresh cookie, email
+         enumeration prevention, OTP invalidation, Nginx security headers,
+         generic admin emails, Docker secret cleanup, npm audit overrides.
+         See docs/SECURITY_ASSESSMENT.md.
   PENDING  M10: provision Postgres, deploy API to Render, web to Vercel,
          run mobile on a device, swap real KALRO/KIAMIS credentials.
