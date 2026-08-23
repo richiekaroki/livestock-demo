@@ -42,6 +42,7 @@ model User {
   name             String
   phone            String
   role             String    @default("farmer")
+  permissions      String    @default("[]")
   county           String
   subCounty        String?
   isActive         Boolean   @default(true)
@@ -52,6 +53,7 @@ model User {
   animals          Animal[]
   sessions         Session[]
   auditLogs        AuditLog[]
+  pushTokens       PushToken[]
 
   @@map("users")
 }
@@ -83,14 +85,18 @@ model Session {
 }
 
 model AuditLog {
-  id        Int      @id @default(autoincrement())
-  event     String
-  email     String?
-  userId    Int?
-  ip        String?
-  metadata  String?
-  createdAt DateTime @default(now())
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id         Int      @id @default(autoincrement())
+  event      String
+  email      String?
+  userId     Int?
+  ip         String?
+  userAgent  String?
+  beforeValue String?
+  afterValue  String?
+  metadata   String?
+  archivedAt DateTime?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("audit_logs")
 }
@@ -106,6 +112,7 @@ model Animal {
   lat          Float
   lng          Float
   createdAt    DateTime  @default(now())
+  archivedAt   DateTime?
   biometric    String?
   govReg       String?
   farmerId     Int?
@@ -114,6 +121,8 @@ model Animal {
   user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   vaccinations Vaccination[]
   diseases     Disease[]
+  mortalities  Mortality[]
+  weightRecords WeightRecord[]
 
   @@map("animals")
 }
@@ -155,8 +164,20 @@ model Outbreak {
   reportedBy       String
   reportedAt       DateTime @default(now())
   status           String   @default("reported")
+  symptoms         Json     @default("[]")
+  actions          Json     @default("[]")
 
   @@map("outbreaks")
+}
+
+model PushToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("push_tokens")
 }
 
 model SyncLog {
@@ -167,4 +188,47 @@ model SyncLog {
   createdAt  DateTime @default(now())
 
   @@map("sync_logs")
+}
+
+model DiseaseRisk {
+  id             Int      @id @default(autoincrement())
+  county         String
+  diseaseType    String
+  riskLevel      String   @default("low")
+  confidence     Float    @default(0)
+  factors        Json     @default("[]")
+  lastCalculated DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@unique([county, diseaseType])
+  @@map("disease_risks")
+}
+
+model Mortality {
+  id            Int      @id @default(autoincrement())
+  animalId      Int
+  animal        Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  cause         String
+  diseaseName   String?
+  reportedBy    String
+  reportedAt    DateTime @default(now())
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  @@map("mortalities")
+}
+
+model WeightRecord {
+  id         Int      @id @default(autoincrement())
+  animalId   Int
+  animal     Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  weight     Float
+  unit       String   @default("kg")
+  recordedAt DateTime @default(now())
+  recordedBy String
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  @@index([animalId, recordedAt])
+  @@map("weight_records")
 }

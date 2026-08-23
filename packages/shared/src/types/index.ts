@@ -367,6 +367,9 @@ export interface AuditLogEntry {
   email?: string;
   userId?: number;
   ip?: string;
+  userAgent?: string;
+  beforeValue?: string;
+  afterValue?: string;
   metadata?: string;
   createdAt: string;
 }

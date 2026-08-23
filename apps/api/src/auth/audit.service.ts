@@ -12,6 +12,9 @@ export class AuditService {
     email?: string;
     userId?: number;
     ip?: string;
+    userAgent?: string;
+    beforeValue?: string;
+    afterValue?: string;
     metadata?: Record<string, unknown>;
   }) {
     await this.auditRepo.log({
@@ -19,6 +22,9 @@ export class AuditService {
       email: data.email,
       userId: data.userId,
       ip: data.ip,
+      userAgent: data.userAgent,
+      beforeValue: data.beforeValue,
+      afterValue: data.afterValue,
       metadata: data.metadata ? JSON.stringify(data.metadata) : undefined,
     });
   }

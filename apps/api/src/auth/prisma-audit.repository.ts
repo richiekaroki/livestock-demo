@@ -10,6 +10,9 @@ export class PrismaAuditRepository implements AuditRepository {
     email?: string;
     userId?: number;
     ip?: string;
+    userAgent?: string;
+    beforeValue?: string;
+    afterValue?: string;
     metadata?: string;
   }): Promise<void> {
     await this.prisma.auditLog.create({
@@ -18,6 +21,9 @@ export class PrismaAuditRepository implements AuditRepository {
         email: data.email,
         userId: data.userId,
         ip: data.ip,
+        userAgent: data.userAgent,
+        beforeValue: data.beforeValue,
+        afterValue: data.afterValue,
         metadata: data.metadata,
       },
     });
@@ -67,6 +73,9 @@ export class PrismaAuditRepository implements AuditRepository {
         email: r.email ?? undefined,
         userId: r.userId ?? undefined,
         ip: r.ip ?? undefined,
+        userAgent: r.userAgent ?? undefined,
+        beforeValue: r.beforeValue ?? undefined,
+        afterValue: r.afterValue ?? undefined,
         metadata: r.metadata ?? undefined,
         createdAt: r.createdAt.toISOString(),
       })),

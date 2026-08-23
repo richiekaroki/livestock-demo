@@ -10,6 +10,7 @@ import type {
   HealthStatus,
   Livestock,
   LivestockFormData,
+  LivestockUpdate,
 } from '@wam-mfugo/shared';
 import type { AnimalsRepository } from './animal.repository';
 
@@ -67,11 +68,26 @@ export class InMemoryAnimalsRepository implements AnimalsRepository {
     return Promise.resolve(animal);
   }
 
+  update(id: number, data: LivestockUpdate): Promise<Livestock | null> {
+    const animal = this.animals.find((a) => a.id === id);
+    if (!animal) return Promise.resolve(null);
+    const { id: _id, ...rest } = data;
+    Object.assign(animal, rest);
+    return Promise.resolve(animal);
+  }
+
   updateHealth(id: number, health: HealthStatus): Promise<Livestock | null> {
     const animal = this.animals.find((a) => a.id === id);
     if (!animal) return Promise.resolve(null);
     animal.health = health;
     return Promise.resolve(animal);
+  }
+
+  remove(id: number): Promise<boolean> {
+    const index = this.animals.findIndex((a) => a.id === id);
+    if (index === -1) return Promise.resolve(false);
+    this.animals.splice(index, 1);
+    return Promise.resolve(true);
   }
 
   getStatistics(): Promise<AnimalStats> {

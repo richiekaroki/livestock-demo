@@ -5,8 +5,10 @@ import { AnimalsService } from './animals.service';
 import { ANIMALS_REPOSITORY } from './animal.repository';
 import { InMemoryAnimalsRepository } from './in-memory-animal.repository';
 import { PrismaAnimalsRepository } from './prisma-animal.repository';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
+  imports: [NotificationsModule],
   controllers: [AnimalsController],
   providers: [
     AnimalsService,

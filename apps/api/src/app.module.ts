@@ -14,6 +14,12 @@ import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
 import { EventsModule } from './events/events.module';
 import { VaccinationsModule } from './vaccinations/vaccinations.module';
+import { UploadModule } from './upload/upload.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { DiseasesModule } from './diseases/diseases.module';
+import { MortalityModule } from './mortality/mortality.module';
+import { WeightModule } from './weight/weight.module';
+import { HealthAssessmentModule } from './health-assessment/health-assessment.module';
 
 @Module({
   imports: [
@@ -35,6 +41,12 @@ import { VaccinationsModule } from './vaccinations/vaccinations.module';
     RefModule,
     FarmersModule,
     VaccinationsModule,
+    UploadModule,
+    NotificationsModule,
+    DiseasesModule,
+    MortalityModule,
+    WeightModule,
+    HealthAssessmentModule,
   ],
   providers: [
     {

@@ -19,6 +19,9 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { AdminService } from './admin.service';
+import { PermissionsService } from '../auth/permissions.service';
+import { DataRetentionService } from './data-retention.service';
+import type { Permission } from '../auth/permissions.decorator';
 import { AdminUpdateUserDto } from './dto/admin-update-user.dto';
 import { AuditLogQueryDto } from './dto/audit-log-query.dto';
 import { toCsv } from '../common/csv';
@@ -29,7 +32,11 @@ import { toCsv } from '../common/csv';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin')
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly permissions: PermissionsService,
+    private readonly dataRetention: DataRetentionService,
+  ) {}
 
   @Get('users')
   @ApiQuery({
@@ -126,5 +133,58 @@ export class AdminController {
       `attachment; filename="audit-logs-${new Date().toISOString().slice(0, 10)}.csv"`,
     );
     res.send(toCsv(rows));
+  }
+
+  @Get('users/:id/permissions')
+  async getUserPermissions(@Param('id', ParseIntPipe) id: number) {
+    const perms = await this.permissions.getUserPermissions(id);
+    return { success: true, data: { permissions: perms } };
+  }
+
+  @Patch('users/:id/permissions')
+  async setUserPermissions(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { permissions: Permission[] },
+  ) {
+    await this.permissions.setUserPermissions(id, body.permissions);
+    return { success: true, data: { message: 'Permissions updated' } };
+  }
+
+  @Post('users/:id/sync-permissions')
+  async syncRoleDefaults(@Param('id', ParseIntPipe) id: number) {
+    await this.permissions.syncRoleDefaults(id);
+    const perms = await this.permissions.getUserPermissions(id);
+    return { success: true, data: { permissions: perms } };
+  }
+
+  @Get('permissions/defaults')
+  getPermissionDefaults() {
+    return {
+      success: true,
+      data: {
+        admin: this.permissions.getDefaultPermissions('admin'),
+        field_agent: this.permissions.getDefaultPermissions('field_agent'),
+        farmer: this.permissions.getDefaultPermissions('farmer'),
+        viewer: this.permissions.getDefaultPermissions('viewer'),
+      },
+    };
+  }
+
+  @Get('retention/stats')
+  async getRetentionStats() {
+    const stats = await this.dataRetention.getRetentionStats();
+    return { success: true, data: stats };
+  }
+
+  @Post('retention/archive')
+  async archiveOldRecords(@Body() body: { daysOld?: number }) {
+    const result = await this.dataRetention.archiveOldRecords(body.daysOld || 90);
+    return { success: true, data: result };
+  }
+
+  @Delete('users/:id/gdpr')
+  async gdprDelete(@Param('id', ParseIntPipe) id: number) {
+    const result = await this.dataRetention.gdprDelete(id);
+    return { success: true, data: result };
   }
 }

@@ -7,6 +7,7 @@ import type {
   HealthStatus,
   Livestock,
   LivestockFormData,
+  LivestockUpdate,
 } from '@wam-mfugo/shared';
 import { PrismaService } from '../common/prisma.service';
 import type { AnimalsRepository } from './animal.repository';
@@ -99,6 +100,32 @@ export class PrismaAnimalsRepository implements AnimalsRepository {
     return toDomain(row);
   }
 
+  async update(id: number, data: LivestockUpdate): Promise<Livestock | null> {
+    const { id: _id, ...rest } = data;
+    const row = await this.prisma.animal
+      .update({
+        where: { id },
+        data: {
+          ...(rest.name != null ? { name: rest.name } : {}),
+          ...(rest.type != null ? { type: rest.type } : {}),
+          ...(rest.breed != null ? { breed: rest.breed } : {}),
+          ...(rest.health != null ? { health: toPrismaHealth(rest.health) } : {}),
+          ...(rest.county != null ? { county: rest.county } : {}),
+          ...(rest.owner != null ? { owner: rest.owner } : {}),
+          ...(rest.lat != null ? { lat: rest.lat } : {}),
+          ...(rest.lng != null ? { lng: rest.lng } : {}),
+          ...(rest.biometricData != null
+            ? { biometric: JSON.stringify(rest.biometricData) }
+            : {}),
+          ...(rest.governmentRegistration != null
+            ? { govReg: JSON.stringify(rest.governmentRegistration) }
+            : {}),
+        },
+      })
+      .catch(() => null);
+    return row ? toDomain(row) : null;
+  }
+
   async updateHealth(
     id: number,
     health: HealthStatus,
@@ -110,6 +137,15 @@ export class PrismaAnimalsRepository implements AnimalsRepository {
       })
       .catch(() => null);
     return row ? toDomain(row) : null;
+  }
+
+  async remove(id: number): Promise<boolean> {
+    try {
+      await this.prisma.animal.delete({ where: { id } });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async getStatistics(): Promise<AnimalStats> {

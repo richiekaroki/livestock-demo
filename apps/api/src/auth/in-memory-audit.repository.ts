@@ -13,6 +13,9 @@ export class InMemoryAuditRepository implements AuditRepository {
     email?: string;
     userId?: number;
     ip?: string;
+    userAgent?: string;
+    beforeValue?: string;
+    afterValue?: string;
     metadata?: string;
   }): Promise<void> {
     const entry = {
@@ -21,6 +24,9 @@ export class InMemoryAuditRepository implements AuditRepository {
       email: data.email,
       userId: data.userId,
       ip: data.ip,
+      userAgent: data.userAgent,
+      beforeValue: data.beforeValue,
+      afterValue: data.afterValue,
       metadata: data.metadata,
       createdAt: new Date(),
     };

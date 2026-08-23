@@ -8,6 +8,9 @@ export interface AuditRepository {
     email?: string;
     userId?: number;
     ip?: string;
+    userAgent?: string;
+    beforeValue?: string;
+    afterValue?: string;
     metadata?: string;
   }): Promise<void>;
   list(filters?: {
