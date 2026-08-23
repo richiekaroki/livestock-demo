@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import {
-  View,
-  Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
+  ActivityIndicator,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -11,11 +10,20 @@ import {
   Alert,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
-import { useAuth } from "../../src/contexts/AuthContext";
+import { Ionicons } from "@expo/vector-icons";
+import { Text, View, useColors } from "@/components/Themed";
+import { useAuth } from "@/src/contexts/AuthContext";
+import { spacing, radius, fontSize, fontWeight } from "@/constants/Tokens";
+import { impactLight, impactMedium, notificationSuccess, notificationError } from "@/src/services/haptics";
+import { useToast } from "@/src/components/Toast";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
   const { requestOtp, verifyOtp, isLoading } = useAuth();
+  const colors = useColors();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { showToast } = useToast();
   const [step, setStep] = useState<"email" | "otp">("email");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -23,85 +31,135 @@ export default function LoginScreen() {
 
   const handleRequestOtp = async () => {
     setError("");
+    impactMedium();
     try {
       await requestOtp(email);
+      notificationSuccess();
+      showToast('success', 'OTP sent successfully');
       setStep("otp");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send OTP");
+      notificationError();
+      showToast('error', err instanceof Error ? err.message : 'Failed to send OTP');
     }
   };
 
   const handleVerifyOtp = async () => {
     setError("");
+    impactMedium();
     try {
       await verifyOtp(email, otp);
+      notificationSuccess();
       router.replace("/(tabs)");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid OTP");
+      notificationError();
+      showToast('error', err instanceof Error ? err.message : 'Invalid OTP');
     }
   };
 
+  const inputStyle = [
+    styles.input,
+    {
+      backgroundColor: colors.inputBg,
+      borderColor: colors.inputBorder,
+      color: colors.text,
+    },
+  ];
+
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      style={[styles.flex, { backgroundColor: colors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.header}>
-          <Text style={styles.title}>Wam Mfugo</Text>
-          <Text style={styles.subtitle}>Sign in to your account</Text>
+          <View style={[styles.logoWrap, { backgroundColor: colors.tintLight }]}>
+            <Ionicons name="leaf-outline" size={32} color={colors.tint} />
+          </View>
+          <Text style={[styles.title, { color: colors.text }]}>Wam Mfugo</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            Sign in to your account
+          </Text>
         </View>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? (
+          <View style={[styles.errorWrap, { backgroundColor: colors.destructiveLight }]}>
+            <Ionicons name="alert-circle-outline" size={18} color={colors.destructive} />
+            <Text style={[styles.error, { color: colors.destructive }]}>{error}</Text>
+          </View>
+        ) : null}
 
         {step === "email" ? (
-          <View style={styles.card}>
-            <Text style={styles.label}>Email</Text>
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+            <Text style={[styles.label, { color: colors.text }]}>Email</Text>
             <TextInput
-              style={styles.input}
+              style={inputStyle}
               value={email}
               onChangeText={setEmail}
               placeholder="you@example.com"
+              placeholderTextColor={colors.placeholder}
               autoCapitalize="none"
               keyboardType="email-address"
               autoCorrect={false}
             />
-            <TouchableOpacity
-              style={[styles.button, !email || isLoading ? styles.buttonDisabled : null]}
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                { backgroundColor: colors.tint },
+                (!email || isLoading) && styles.buttonDisabled,
+                { opacity: pressed ? 0.7 : 1 },
+              ]}
               disabled={!email || isLoading}
               onPress={handleRequestOtp}
             >
-              <Text style={styles.buttonText}>
-                {isLoading ? "Sending..." : "Send OTP"}
-              </Text>
-            </TouchableOpacity>
-            <Link href="/(auth)/register" style={styles.link}>
+              {isLoading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Ionicons name="mail-outline" size={18} color="#fff" />
+                  <Text style={styles.buttonText}>Send OTP</Text>
+                </>
+              )}
+            </Pressable>
+            <Link href="/(auth)/register" style={[styles.link, { color: colors.tint }]}>
               Don't have an account? Register
             </Link>
           </View>
         ) : (
-          <View style={styles.card}>
-            <Text style={styles.label}>Verification Code</Text>
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+            <Text style={[styles.label, { color: colors.text }]}>Verification Code</Text>
             <TextInput
-              style={styles.input}
+              style={inputStyle}
               value={otp}
               onChangeText={(t) => setOtp(t.replace(/\D/g, "").slice(0, 6))}
               placeholder="000000"
+              placeholderTextColor={colors.placeholder}
               keyboardType="number-pad"
               maxLength={6}
               autoFocus
             />
-            <Text style={styles.hint}>Enter the 6-digit code sent to {email}</Text>
-            <TouchableOpacity
-              style={[styles.button, otp.length !== 6 || isLoading ? styles.buttonDisabled : null]}
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>
+              Enter the 6-digit code sent to {email}
+            </Text>
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                { backgroundColor: colors.tint },
+                (otp.length !== 6 || isLoading) && styles.buttonDisabled,
+                { opacity: pressed ? 0.7 : 1 },
+              ]}
               disabled={otp.length !== 6 || isLoading}
               onPress={handleVerifyOtp}
             >
-              <Text style={styles.buttonText}>
-                {isLoading ? "Verifying..." : "Verify"}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+              {isLoading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
+                  <Text style={styles.buttonText}>Verify</Text>
+                </>
+              )}
+            </Pressable>
+            <Pressable
               onPress={() => {
                 setStep("email");
                 setOtp("");
@@ -109,8 +167,10 @@ export default function LoginScreen() {
               }}
               style={styles.backButton}
             >
-              <Text style={styles.backText}>Use a different email</Text>
-            </TouchableOpacity>
+              <Text style={[styles.backText, { color: colors.textSecondary }]}>
+                Use a different email
+              </Text>
+            </Pressable>
           </View>
         )}
       </ScrollView>
@@ -119,42 +179,54 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: "#fff" },
-  container: { flexGrow: 1, justifyContent: "center", padding: 24 },
-  header: { alignItems: "center", marginBottom: 32 },
-  title: { fontSize: 28, fontWeight: "700", color: "#111827" },
-  subtitle: { fontSize: 15, color: "#6b7280", marginTop: 4 },
-  card: { backgroundColor: "#f9fafb", borderRadius: 12, padding: 20 },
-  label: { fontSize: 14, fontWeight: "500", color: "#111827", marginBottom: 6 },
-  input: {
-    backgroundColor: "#fff",
+  flex: { flex: 1 },
+  container: { flexGrow: 1, justifyContent: "center", padding: spacing.xxxl },
+  header: { alignItems: "center", marginBottom: spacing.xxxl },
+  logoWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.xl,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.lg,
+  },
+  title: { fontSize: fontSize.hero, fontWeight: fontWeight.bold },
+  subtitle: { fontSize: fontSize.md, marginTop: spacing.xs },
+  card: {
+    borderRadius: radius.lg,
+    padding: spacing.xl,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#111827",
-    marginBottom: 16,
+  },
+  label: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, marginBottom: spacing.sm },
+  input: {
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    fontSize: fontSize.base,
+    marginBottom: spacing.lg,
   },
   button: {
-    backgroundColor: "#16a34a",
-    borderRadius: 8,
-    paddingVertical: 14,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    borderRadius: radius.md,
+    paddingVertical: spacing.lg,
   },
   buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
-  link: { textAlign: "center", color: "#16a34a", marginTop: 16, fontSize: 14 },
-  backButton: { alignItems: "center", marginTop: 12 },
-  backText: { color: "#6b7280", fontSize: 14 },
-  hint: { color: "#6b7280", fontSize: 13, marginBottom: 12, textAlign: "center" },
-  error: {
-    color: "#dc2626",
-    backgroundColor: "#fef2f2",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    fontSize: 14,
+  buttonText: { color: "#fff", fontWeight: fontWeight.semibold, fontSize: fontSize.base },
+  link: { textAlign: "center", marginTop: spacing.xl, fontSize: fontSize.md },
+  backButton: { alignItems: "center", marginTop: spacing.lg },
+  backText: { fontSize: fontSize.md },
+  hint: { fontSize: fontSize.sm, marginBottom: spacing.lg, textAlign: "center" },
+  errorWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    marginBottom: spacing.lg,
   },
+  error: { fontSize: fontSize.sm, flex: 1 },
 });

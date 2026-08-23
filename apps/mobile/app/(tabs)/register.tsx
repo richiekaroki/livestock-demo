@@ -5,13 +5,20 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { Ionicons } from '@expo/vector-icons';
 
-import { Text, View } from '@/components/Themed';
-import { captureAnimalPhoto } from '@/src/camera';
-import { useAnimals } from '@/src/useAnimals';
-import * as api from '@/src/api';
+import { Text, View, useColors } from '@/components/Themed';
+import { captureAnimalPhoto } from '@/src/services/camera';
+import { useAnimals } from '@/src/hooks/useAnimals';
+import * as api from '@/src/services/api';
+import { spacing, radius, fontSize, fontWeight, shadows } from '@/constants/Tokens';
+import { impactLight, impactMedium, notificationSuccess, notificationError, selectionChanged } from '@/src/services/haptics';
+import { useToast } from '@/src/components/Toast';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KENYA_COUNTIES, LIVESTOCK_TYPES } from '@wam-mfugo/shared';
 import type { AnimalType, BiometricData, Farmer, Livestock } from '@wam-mfugo/shared';
 
@@ -20,6 +27,9 @@ export default function RegisterScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [showCamera, setShowCamera] = useState(false);
   const [biometric, setBiometric] = useState<BiometricData | null>(null);
+  const colors = useColors();
+  const insets = useSafeAreaInsets();
+  const { showToast } = useToast();
 
   const [name, setName] = useState('');
   const [type, setType] = useState<AnimalType>('Cattle');
@@ -63,10 +73,12 @@ export default function RegisterScreen() {
 
   const submit = async () => {
     if (!name.trim() || !county.trim() || !owner.trim()) {
-      Alert.alert('Missing fields', 'Name, county and owner are required.');
+      notificationError();
+      showToast('error', 'Name, county and owner are required.');
       return;
     }
 
+    impactMedium();
     const payload: Omit<Livestock, 'id'> = {
       name: name.trim(),
       type,
@@ -79,30 +91,50 @@ export default function RegisterScreen() {
       biometricData: biometric ?? undefined,
     };
 
-    const created = await addAnimal(payload);
-    if (created) {
-      Alert.alert('Registered', `${payload.name} was registered.`);
+    try {
+      const result = await api.apiCall<api.ApiResponse<Livestock>>('POST', '/animals', payload);
+      if (result && 'queued' in result && result.queued) {
+        notificationSuccess();
+        showToast('warning', 'Registration queued — will sync when online');
+      } else {
+        notificationSuccess();
+        showToast('success', `${payload.name} was registered.`);
+      }
       setName('');
       setCounty(KENYA_COUNTIES[0]?.name ?? 'Nakuru');
       setOwner('');
       setSelectedFarmerId(undefined);
       setBiometric(null);
-    } else {
-      Alert.alert('Offline', 'Queued to sync when connectivity returns.');
+    } catch {
+      notificationError();
+      showToast('error', 'Registration failed. Please try again.');
     }
   };
 
   if (showCamera) {
     if (!permission) {
-      return <View style={styles.center}><Text>Loading camera…</Text></View>;
+      return (
+        <View style={[styles.center, { backgroundColor: colors.background }]}>
+          <Ionicons name="hourglass-outline" size={24} color={colors.textSecondary} />
+          <Text style={{ color: colors.textSecondary }}>Loading camera…</Text>
+        </View>
+      );
     }
     if (!permission.granted) {
       return (
-        <View style={styles.center}>
-          <Text style={styles.centerText}>
+        <View style={[styles.center, { backgroundColor: colors.background }]}>
+          <Ionicons name="camera-outline" size={48} color={colors.textSecondary} />
+          <Text style={[styles.centerText, { color: colors.text }]}>
             We need camera permission to capture biometrics.
           </Text>
-          <Pressable style={styles.primaryBtn} onPress={requestPermission}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.primaryBtn,
+              { backgroundColor: colors.tint, opacity: pressed ? 0.9 : 1 },
+            ]}
+            onPress={requestPermission}
+          >
+            <Ionicons name="lock-open-outline" size={18} color="#fff" />
             <Text style={styles.primaryBtnText}>Grant permission</Text>
           </Pressable>
         </View>
@@ -116,48 +148,97 @@ export default function RegisterScreen() {
           facing="back"
           mode="picture"
         />
-        <Pressable style={styles.captureBtn} onPress={() => void capture()}>
-          <Text style={styles.captureBtnText}>📸 Capture</Text>
+        <Pressable
+          style={({ pressed }) => [
+            styles.captureBtn,
+            { bottom: insets.bottom + 24, opacity: pressed ? 0.85 : 1 },
+          ]}
+          onPress={() => void capture()}
+        >
+           <Ionicons name="camera-outline" size={24} color="#fff" />
+          <Text style={styles.captureBtnText}>Capture</Text>
         </Pressable>
       </View>
     );
   }
 
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Register Animal</Text>
+  const inputStyle = [
+    styles.input,
+    {
+      backgroundColor: colors.inputBg,
+      borderColor: colors.inputBorder,
+      color: colors.text,
+    },
+  ];
 
-      <Text style={styles.label}>Name</Text>
+  return (
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={88}
+    >
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+      <Text style={[styles.title, { color: colors.text }]}>Register Animal</Text>
+
+      <Text style={[styles.label, { color: colors.text }]}>Name</Text>
       <TextInput
-        style={styles.input}
+        style={inputStyle}
         value={name}
         onChangeText={setName}
         placeholder="e.g. Shujaa"
-        placeholderTextColor="#999"
+        placeholderTextColor={colors.placeholder}
       />
 
-      <Text style={styles.label}>Type</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Type</Text>
       <View style={styles.chipRow}>
         {LIVESTOCK_TYPES.map((t) => (
           <Pressable
             key={t}
-            onPress={() => setType(t)}
-            style={[styles.chip, type === t && styles.chipActive]}>
-            <Text style={type === t ? styles.chipTextActive : styles.chipText}>
+            onPress={() => {
+              selectionChanged();
+              setType(t);
+            }}
+            style={({ pressed }) => [
+              styles.chip,
+              {
+                backgroundColor: type === t ? colors.tint : colors.card,
+                borderColor: type === t ? colors.tint : colors.borderLight,
+                opacity: pressed ? 0.85 : 1,
+                transform: [{ scale: pressed ? 0.95 : 1 }],
+              },
+            ]}
+          >
+            <Text style={[styles.chipText, { color: type === t ? '#fff' : colors.text }]}>
               {t}
             </Text>
           </Pressable>
         ))}
       </View>
 
-      <Text style={styles.label}>County</Text>
+      <Text style={[styles.label, { color: colors.text }]}>County</Text>
       <View style={styles.chipRow}>
         {KENYA_COUNTIES.slice(0, 12).map((c) => (
           <Pressable
             key={c.code}
-            onPress={() => setCounty(c.name)}
-            style={[styles.chip, county === c.name && styles.chipActive]}>
-            <Text style={county === c.name ? styles.chipTextActive : styles.chipText}>
+            onPress={() => {
+              selectionChanged();
+              setCounty(c.name);
+            }}
+            style={({ pressed }) => [
+              styles.chip,
+              {
+                backgroundColor: county === c.name ? colors.tint : colors.card,
+                borderColor: county === c.name ? colors.tint : colors.borderLight,
+                opacity: pressed ? 0.85 : 1,
+                transform: [{ scale: pressed ? 0.95 : 1 }],
+              },
+            ]}
+          >
+            <Text style={[styles.chipText, { color: county === c.name ? '#fff' : colors.text }]}>
               {c.name}
             </Text>
           </Pressable>
@@ -166,21 +247,45 @@ export default function RegisterScreen() {
 
       {farmers.length > 0 && (
         <>
-          <Text style={styles.label}>Farmer (optional)</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Farmer (optional)</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
             <Pressable
-              onPress={() => handleFarmerChange('')}
-              style={[styles.chip, !selectedFarmerId && styles.chipActive]}>
-              <Text style={!selectedFarmerId ? styles.chipTextActive : styles.chipText}>
+              onPress={() => {
+                selectionChanged();
+                handleFarmerChange('');
+              }}
+              style={({ pressed }) => [
+                styles.chip,
+                {
+                  backgroundColor: !selectedFarmerId ? colors.tint : colors.card,
+                  borderColor: !selectedFarmerId ? colors.tint : colors.borderLight,
+                  opacity: pressed ? 0.85 : 1,
+                  transform: [{ scale: pressed ? 0.95 : 1 }],
+                },
+              ]}
+            >
+              <Text style={[styles.chipText, { color: !selectedFarmerId ? '#fff' : colors.text }]}>
                 None
               </Text>
             </Pressable>
             {farmers.map((f) => (
               <Pressable
                 key={f.id}
-                onPress={() => handleFarmerChange(String(f.id))}
-                style={[styles.chip, selectedFarmerId === f.id && styles.chipActive]}>
-                <Text style={selectedFarmerId === f.id ? styles.chipTextActive : styles.chipText}>
+                onPress={() => {
+                  selectionChanged();
+                  handleFarmerChange(String(f.id));
+                }}
+                style={({ pressed }) => [
+                  styles.chip,
+                  {
+                    backgroundColor: selectedFarmerId === f.id ? colors.tint : colors.card,
+                    borderColor: selectedFarmerId === f.id ? colors.tint : colors.borderLight,
+                    opacity: pressed ? 0.85 : 1,
+                    transform: [{ scale: pressed ? 0.95 : 1 }],
+                  },
+                ]}
+              >
+                <Text style={[styles.chipText, { color: selectedFarmerId === f.id ? '#fff' : colors.text }]}>
                   {f.code} · {f.name}
                 </Text>
               </Pressable>
@@ -189,81 +294,106 @@ export default function RegisterScreen() {
         </>
       )}
 
-      <Text style={styles.label}>Owner</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Owner</Text>
       <TextInput
-        style={styles.input}
+        style={inputStyle}
         value={owner}
         onChangeText={(text) => {
           setOwner(text);
           setSelectedFarmerId(undefined);
         }}
         placeholder="Owner name"
-        placeholderTextColor="#999"
+        placeholderTextColor={colors.placeholder}
       />
 
-      <Pressable style={styles.secondaryBtn} onPress={() => setShowCamera(true)}>
-        <Text style={styles.secondaryBtnText}>
-          {biometric ? '✅ Biometric captured — recapture?' : '📷 Capture biometrics'}
+      <Pressable
+        style={({ pressed }) => [
+          styles.secondaryBtn,
+          { borderColor: colors.tint, opacity: pressed ? 0.9 : 1 },
+        ]}
+        onPress={() => setShowCamera(true)}
+      >
+        <Ionicons
+          name={biometric ? 'checkmark-circle-outline' : 'camera-outline'}
+          size={18}
+          color={colors.tint}
+        />
+        <Text style={[styles.secondaryBtnText, { color: colors.tint }]}>
+          {biometric ? 'Biometric captured — recapture?' : 'Capture biometrics'}
         </Text>
       </Pressable>
 
-      <Pressable style={styles.primaryBtn} onPress={() => void submit()}>
+      <Pressable
+        style={({ pressed }) => [
+          styles.primaryBtn,
+          { backgroundColor: colors.tint, opacity: pressed ? 0.9 : 1 },
+        ]}
+        onPress={() => void submit()}
+      >
+        <Ionicons name="add-circle-outline" size={20} color="#fff" />
         <Text style={styles.primaryBtnText}>Register animal</Text>
       </Pressable>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20, gap: 8 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 8 },
-  label: { fontSize: 14, fontWeight: '600', marginTop: 8 },
+  content: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.section },
+  title: { fontSize: fontSize.xxl, fontWeight: fontWeight.bold, marginBottom: spacing.sm },
+  label: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, marginTop: spacing.md },
   input: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-  },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  chipActive: { backgroundColor: '#22c55e' },
-  chipText: { fontSize: 13 },
-  chipTextActive: { fontSize: 13, color: '#fff', fontWeight: '600' },
-  primaryBtn: {
-    backgroundColor: '#22c55e',
-    padding: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  primaryBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  secondaryBtn: {
     borderWidth: 1,
-    borderColor: '#22c55e',
-    padding: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 16,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    fontSize: fontSize.base,
   },
-  secondaryBtnText: { color: '#22c55e', fontWeight: '600' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
-  centerText: { textAlign: 'center', fontSize: 15 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
+  chip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+  },
+  chipText: { fontSize: fontSize.sm, fontWeight: fontWeight.medium },
+  primaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    padding: spacing.lg,
+    borderRadius: radius.md,
+    marginTop: spacing.lg,
+  },
+  primaryBtnText: { color: '#fff', fontWeight: fontWeight.bold, fontSize: fontSize.base },
+  secondaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderWidth: 1.5,
+    padding: spacing.lg,
+    borderRadius: radius.md,
+    marginTop: spacing.lg,
+  },
+  secondaryBtnText: { fontWeight: fontWeight.semibold, fontSize: fontSize.base },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg, padding: spacing.xxxl },
+  centerText: { textAlign: 'center', fontSize: fontSize.md },
   cameraContainer: { flex: 1 },
   camera: { flex: 1 },
   captureBtn: {
     position: 'absolute',
     bottom: 48,
     alignSelf: 'center',
-    backgroundColor: '#22c55e',
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 32,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: '#15803D',
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.md,
+    borderRadius: radius.pill,
   },
-  captureBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  captureBtnText: { color: '#fff', fontWeight: fontWeight.bold, fontSize: fontSize.base },
 });

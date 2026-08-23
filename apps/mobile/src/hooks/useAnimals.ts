@@ -1,13 +1,15 @@
 // src/useAnimals.ts — data hook with offline-first caching
 import { useCallback, useEffect, useState } from "react";
 import type { AnimalStats, Livestock } from "@wam-mfugo/shared";
-import * as api from "./api";
+import * as api from "../services/api";
 import {
   drainQueue,
   enqueueCreate,
   loadAnimalsCache,
   saveAnimalsCache,
-} from "./storage";
+} from "../services/storage";
+import { processQueue } from "../services/offlineQueue";
+import { startSyncService } from "../services/syncService";
 
 export interface UseAnimalsResult {
   animals: Livestock[];
@@ -46,6 +48,8 @@ export function useAnimals(): UseAnimalsResult {
 
   useEffect(() => {
     void refresh();
+    const unsub = startSyncService();
+    return unsub;
   }, [refresh]);
 
   const addAnimal = useCallback(
