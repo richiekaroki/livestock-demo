@@ -10,15 +10,15 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: wam
-      POSTGRES_PASSWORD: wam
-      POSTGRES_DB: wam_mfugo
+      POSTGRES_USER: ${POSTGRES_USER:-wam}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wam}
+      POSTGRES_DB: ${POSTGRES_DB:-wam_mfugo}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U wam -d wam_mfugo"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wam} -d ${POSTGRES_DB:-wam_mfugo}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -32,7 +32,7 @@ services:
         required: false
     environment:
       PORT: 4000
-      DATABASE_URL: postgresql://wam:wam@db:5432/wam_mfugo?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-wam}:${POSTGRES_PASSWORD:-wam}@db:5432/${POSTGRES_DB:-wam_mfugo}?schema=public
       JWT_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
       EMAIL_PROVIDER: console

@@ -3,9 +3,13 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 import { AppModule } from './app.module';
 import { requestIdMiddleware } from './common/request-id.middleware';
 import { structuredLogger } from './common/structured-logger.middleware';
+import { createWinstonLogger } from './common/winston.config';
+import { AllExceptionsFilter } from './common/exception-filter';
 
 function validateSecrets() {
   const secret = process.env.JWT_SECRET;
@@ -21,9 +25,13 @@ function validateSecrets() {
 async function bootstrap() {
   validateSecrets();
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    logger: createWinstonLogger(),
+  });
 
   app.setGlobalPrefix('api');
+  app.useGlobalFilters(new AllExceptionsFilter());
+  app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
@@ -50,6 +58,12 @@ async function bootstrap() {
         'Example: CORS_ORIGIN=https://yourdomain.com',
     );
   }
+  if (corsOrigins.includes('*') && process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'FATAL: CORS_ORIGIN=* is not allowed in production. ' +
+        'Set specific origins like CORS_ORIGIN=https://yourdomain.com',
+    );
+  }
   app.enableCors({
     origin: corsOrigins,
     credentials: true,
@@ -68,7 +82,7 @@ async function bootstrap() {
     .setDescription(
       'Offline-first livestock tracking platform for Kenya. Passwordless email-OTP auth with role-based access.',
     )
-    .setVersion('0.2.0')
+    .setVersion('1.0.0')
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
       'access-token',

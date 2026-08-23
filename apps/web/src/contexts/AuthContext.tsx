@@ -17,7 +17,7 @@ interface AuthContextType {
     subCounty?: string;
   }) => Promise<{ message: string }>;
   verifyRegistration: (email: string, otp: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateProfile: (data: {
     name?: string;
     phone?: string;
@@ -142,9 +142,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     const token = getToken();
-    clearAuth();
-    setUser(null);
-    setAccessToken(null);
     if (token) {
       try {
         await fetch(`${API_BASE}/auth/logout`, {
@@ -158,6 +155,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // API unreachable, session will expire naturally
       }
     }
+    clearAuth();
+    setUser(null);
+    setAccessToken(null);
   }, []);
 
   const updateProfile = useCallback(async (profileData: {

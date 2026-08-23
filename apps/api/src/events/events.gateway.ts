@@ -26,9 +26,33 @@ export interface AnimalEvent {
   timestamp: string;
 }
 
+export interface VaccinationEvent {
+  type: 'created' | 'updated' | 'deleted';
+  vaccination?: Record<string, unknown>;
+  vaccinationId?: number;
+  timestamp: string;
+}
+
+export interface OutbreakEvent {
+  type: 'reported' | 'updated';
+  outbreak?: Record<string, unknown>;
+  outbreakId?: number;
+  timestamp: string;
+}
+
+export interface HealthAlert {
+  animalId: number;
+  animalName: string;
+  previousHealth: string;
+  newHealth: string;
+  county: string;
+  owner: string;
+  timestamp: string;
+}
+
 @WebSocketGateway({
   cors: {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: process.env.CORS_ORIGIN?.split(',').filter(Boolean) || [],
     credentials: true,
   },
   namespace: '/',
@@ -74,12 +98,80 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return { event: 'unsubscribed', data: { channel: 'stats' } };
   }
 
+  @SubscribeMessage('subscribe:vaccination-events')
+  handleSubscribeVaccinationEvents(@ConnectedSocket() client: Socket) {
+    this.logger.log(`Client ${client.id} subscribed to vaccination events`);
+    client.join('vaccination-events');
+    return { event: 'subscribed', data: { channel: 'vaccination-events' } };
+  }
+
+  @SubscribeMessage('subscribe:outbreak-events')
+  handleSubscribeOutbreakEvents(@ConnectedSocket() client: Socket) {
+    this.logger.log(`Client ${client.id} subscribed to outbreak events`);
+    client.join('outbreak-events');
+    return { event: 'subscribed', data: { channel: 'outbreak-events' } };
+  }
+
+  @SubscribeMessage('subscribe:health-alerts')
+  handleSubscribeHealthAlerts(@ConnectedSocket() client: Socket) {
+    this.logger.log(`Client ${client.id} subscribed to health alerts`);
+    client.join('health-alerts');
+    return { event: 'subscribed', data: { channel: 'health-alerts' } };
+  }
+
+  @SubscribeMessage('unsubscribe:vaccination-events')
+  handleUnsubscribeVaccinationEvents(@ConnectedSocket() client: Socket) {
+    client.leave('vaccination-events');
+    return { event: 'unsubscribed', data: { channel: 'vaccination-events' } };
+  }
+
+  @SubscribeMessage('unsubscribe:outbreak-events')
+  handleUnsubscribeOutbreakEvents(@ConnectedSocket() client: Socket) {
+    client.leave('outbreak-events');
+    return { event: 'unsubscribed', data: { channel: 'outbreak-events' } };
+  }
+
+  @SubscribeMessage('unsubscribe:health-alerts')
+  handleUnsubscribeHealthAlerts(@ConnectedSocket() client: Socket) {
+    client.leave('health-alerts');
+    return { event: 'unsubscribed', data: { channel: 'health-alerts' } };
+  }
+
   broadcastStats(stats: StatsUpdate) {
     this.server.to('stats').emit('stats:updated', stats);
   }
 
   broadcastAnimalEvent(event: AnimalEvent) {
     this.server.to('animal-events').emit('animal:event', event);
+  }
+
+  broadcastVaccinationEvent(
+    type: VaccinationEvent['type'],
+    vaccination: Record<string, unknown>,
+  ) {
+    this.server.to('vaccination-events').emit('vaccination:event', {
+      type,
+      vaccination,
+      timestamp: new Date().toISOString(),
+    } satisfies VaccinationEvent);
+  }
+
+  broadcastOutbreakEvent(
+    type: OutbreakEvent['type'],
+    outbreak: Record<string, unknown>,
+  ) {
+    this.server.to('outbreak-events').emit('outbreak:event', {
+      type,
+      outbreak,
+      timestamp: new Date().toISOString(),
+    } satisfies OutbreakEvent);
+  }
+
+  broadcastHealthAlert(alert: Omit<HealthAlert, 'timestamp'>) {
+    this.server.to('health-alerts').emit('health:alert', {
+      ...alert,
+      timestamp: new Date().toISOString(),
+    } satisfies HealthAlert);
   }
 
   getConnectedClientsCount(): number {

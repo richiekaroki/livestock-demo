@@ -125,4 +125,111 @@ describe('Wam Mfugo API (e2e)', () => {
       .send({ ...base, ownerNationalID: 'ABC123' });
     expect(bad.status).toBe(400);
   });
+
+  it('/api/vaccinations (GET)', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/vaccinations')
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(res.status).toBe(200);
+    const body = res.body as { success: boolean };
+    expect(body.success).toBe(true);
+  });
+
+  it('/api/vaccinations/reminders (GET)', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/vaccinations/reminders')
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(res.status).toBe(200);
+  });
+
+  it('/api/diseases/predict/risk (POST)', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/diseases/predict/risk')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ county: 'Nakuru' });
+    expect(res.status).toBe(201);
+    const body = res.body as { success: boolean; data: { riskLevel: string } };
+    expect(body.success).toBe(true);
+    expect(body.data.riskLevel).toBeDefined();
+  });
+
+  it('/api/diseases/simulate (POST)', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/diseases/simulate')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ county: 'Nakuru', vaccinationIncrease: 30 });
+    expect(res.status).toBe(201);
+  });
+
+  it('/api/mortality (GET)', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/mortality')
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(res.status).toBe(200);
+  });
+
+  it('/api/mortality/stats (GET)', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/mortality/stats')
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(res.status).toBe(200);
+  });
+
+  it('/api/weight (GET)', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/weight')
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(res.status).toBe(200);
+  });
+
+  it('/api/weight/stats (GET)', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/weight/stats')
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(res.status).toBe(200);
+  });
+
+  it('/api/stats/vaccination-coverage (GET)', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/stats/vaccination-coverage')
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(res.status).toBe(200);
+  });
+
+  it('/api/stats/county-comparison (GET)', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/stats/county-comparison')
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(res.status).toBe(200);
+  });
+
+  it('/api/health-assessment (POST)', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/health-assessment')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ imageUrl: 'test.jpg', animalType: 'Cattle' });
+    expect(res.status).toBe(201);
+    const body = res.body as { success: boolean; data: { healthStatus: string } };
+    expect(body.success).toBe(true);
+    expect(body.data.healthStatus).toBeDefined();
+  });
+
+  it('/api/admin/permissions/defaults (GET)', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/admin/permissions/defaults')
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(res.status).toBe(200);
+    const body = res.body as { success: boolean; data: Record<string, string[]> };
+    expect(body.data.admin).toBeDefined();
+    expect(body.data.farmer).toBeDefined();
+  });
+
+  it('/api/admin/retention/stats (GET)', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/admin/retention/stats')
+      .set('Authorization', `Bearer ${accessToken}`);
+    expect(res.status).toBe(200);
+    const body = res.body as { success: boolean; data: { policy: { archiveAfterDays: number } } };
+    expect(body.data.policy.archiveAfterDays).toBe(90);
+  });
 });
