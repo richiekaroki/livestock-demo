@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ThemeToggle from "../ui/ThemeToggle";
 import LanguageSwitcher from "../ui/LanguageSwitcher";
-import UserMenu from "../UserMenu";
+import UserMenu from "./UserMenu";
 import { useAuth } from "../../contexts/AuthContext";
 
 export default function Navbar() {
@@ -15,6 +15,10 @@ export default function Navbar() {
     { key: "nav.home", path: "/" },
     { key: "nav.dashboard", path: "/dashboard" },
     { key: "nav.map", path: "/map" },
+    { key: "nav.diseases", path: "/diseases" },
+    { key: "nav.reminders", path: "/reminders" },
+    { key: "nav.farmer_dashboard", path: "/farmer" },
+    { key: "nav.photo_assessment", path: "/health-assessment" },
   ];
 
   return (

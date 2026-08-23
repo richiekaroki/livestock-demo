@@ -575,10 +575,14 @@ npm install @nestjs/throttler cookie-parser --workspace=apps/api
 
 | File | Changes | Status |
 |---|---|---|
-| `apps/api/src/auth/otp.service.ts` | Invalidate old OTPs on new request | TODO |
-| `apps/web/src/contexts/AuthContext.tsx` | Await logout API call | TODO |
-| `render.yaml` | Add `preDeployCommand` for migrations | TODO |
-| `docker-compose.yml` | Remove hardcoded JWT_SECRET | TODO |
+| `apps/api/src/auth/otp.service.ts` | Invalidate old OTPs on new request | **DONE** |
+| `apps/web/src/contexts/AuthContext.tsx` | Await logout API call | **DONE** |
+| `render.yaml` | Add `preDeployCommand` for migrations | **DONE** |
+| `docker-compose.yml` | Remove hardcoded secrets (use `${VAR:-default}`) | **DONE** |
+| `apps/api/src/main.ts` | CORS wildcard guard (reject `*` in production) | **DONE** |
+| `apps/api/src/events/events.gateway.ts` | Remove `\|\| '*'` CORS fallback | **DONE** |
+
+All security TODOs from this audit are now resolved.
 
 ### Known Issue (Pre-existing Bug)
 

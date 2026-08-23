@@ -255,3 +255,80 @@ Flat by default. Shadows appear only as a response to state — hover, focus, ac
 - **Don't** use display fonts in UI labels, buttons, or data. Fira Sans carries the entire interface.
 - **Don't** ship components with fewer than five states: default, hover, focus, active, disabled. Error and loading when applicable.
 - **Don't** use spinners in the middle of content. Use skeleton states for loading.
+
+---
+
+## 7. Mobile App — Native Feel Guidelines
+
+Cross-platform consistency: the mobile app (`apps/mobile`) matches the web app (`apps/web`) token-for-token. The mobile app uses the same Organic Biophilic palette, the same 8dp spacing rhythm, and the same component vocabulary — translated to React Native primitives.
+
+### Safe Areas
+
+All screens respect top/bottom safe areas via `useSafeAreaInsets()`. Fixed elements (headers, tab bars, CTA buttons) never collide with the notch, status bar, or home indicator. Content scrolls behind fixed chrome with proper insets.
+
+### Touch Feedback
+
+Every interactive element provides immediate tactile response:
+
+- **Pressable scale**: Cards and buttons scale down 0.95–0.98 on press (200ms spring). No visual lag.
+- **Opacity dim**: Pressed state reduces opacity to 0.85–0.92. Subtle but clear.
+- **Haptic feedback**: Light impact on chip/filter selection. Medium impact on primary actions (register, save). Success notification on form submission. Error notification on failures.
+- **Android ripple**: Use `android_ripple` for native Material ripple on Android devices.
+
+### Pull-to-Refresh
+
+All list screens support pull-to-refresh with a themed `RefreshControl`. Tint color matches `colors.tint` (Field Green). Pull-to-refresh is available on Home (animals list) and Animals (filtered list).
+
+### Keyboard Avoiding
+
+Form screens (Register, Profile, Login) use `KeyboardAvoidingView` with `behavior="padding"` on iOS and `behavior="height"` on Android. Forms are wrapped in `ScrollView` with `contentContainerStyle` that respects keyboard overlap.
+
+### Tab Bar
+
+Bottom tab bar uses Ionicons with consistent sizing (25px). Active tint uses Field Green (#15803D) or Neon Leaf (#4ADE80) in dark mode. Inactive tint uses Lichen (#6B8A6B) in light mode, Bright Leaf (#66BB6A) in dark mode. Tab bar background matches surface color with a top border in Soft Branch (#C8E6C9).
+
+### Animations
+
+- **Duration**: Micro-interactions 150–300ms. Never longer than 500ms for UI feedback.
+- **Easing**: Ease-out-expo (`cubic-bezier(0.16, 1, 0.3, 1)`) for entrances. Ease-in for exits.
+- **Reduced motion**: Respect `prefers-reduced-motion`. Use opacity-only crossfade, no scale/translate.
+
+### Badge System
+
+Health badges use 10% opacity fill of the status color with full-opacity text:
+- Healthy: #16A34A on #DCFCE7
+- Sick: #DC2626 on #FEF2F2
+- Under Treatment: #D97706 on #FEF3C7
+- Recovered: #0284C7 on #F0F9FF
+
+Animal type badges follow the same pattern with type-specific colors.
+
+### Token Mapping (Web → Mobile)
+
+| Web CSS Variable | Mobile Token | Value |
+|------------------|--------------|-------|
+| `--color-accent` | `colors.tint` | #15803D (light) / #4ADE80 (dark) |
+| `--color-accent-gold` | `colors.accent` | #A16207 (light) / #FBBF24 (dark) |
+| `--color-bg-primary` | `colors.background` | #FAFDF7 (light) / #0C1A0C (dark) |
+| `--color-bg-secondary` | `colors.surface` | #F0FDF4 (light) / #132413 (dark) |
+| `--color-text-primary` | `colors.text` | #1B2E1B (light) / #E8F5E9 (dark) |
+| `--color-text-secondary` | `colors.textSecondary` | #3D5A3D (light) / #A5D6A7 (dark) |
+| `--color-border` | `colors.border` | #C8E6C9 (light) / #2E4A2E (dark) |
+| `--color-success` | `colors.success` | #16A34A |
+| `--color-error` | `colors.destructive` | #DC2626 |
+| `--color-warning` | `colors.warning` | #D97706 |
+| `--color-info` | `colors.info` | #0284C7 |
+| `--radius-md` | `radius.md` | 12px |
+| `--radius-lg` | `radius.lg` | 16px |
+| `--shadow-sm` | `shadows.sm()` | elevation 2 / shadow 2px |
+
+### Spacing Rhythm
+
+The mobile app uses an 8dp base grid matching the web's rem-based system:
+- xs: 4px (0.25rem)
+- sm: 8px (0.5rem)
+- md: 12px (0.75rem)
+- lg: 16px (1rem)
+- xl: 20px (1.25rem)
+- xxl: 24px (1.5rem)
+- xxxl: 32px (2rem)

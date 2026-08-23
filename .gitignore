@@ -4,7 +4,6 @@ node_modules/
 
 # ==================== BUILD OUTPUTS ====================
 dist/
-dist-ssr/
 build/
 *.tgz
 *.tar.gz
@@ -19,7 +18,6 @@ build/
 
 # ==================== IDE & EDITOR ====================
 .vscode/
-.idea/
 *.swp
 *.swo
 *.suo
@@ -30,29 +28,15 @@ build/
 
 # ==================== OS GENERATED FILES ====================
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 Desktop.ini
 
 # ==================== LOGS ====================
-logs
 *.log
-
-# ==================== RUNTIME DATA ====================
-pids
-*.pid
-*.seed
-*.pid.lock
 
 # ==================== COVERAGE & TESTING ====================
 coverage/
 */coverage/
-.nyc_output/
-*.lcov
 playwright-report/
 test-results/
 
@@ -65,10 +49,6 @@ temp/
 *.tmp
 *.temp
 .cache/
-.parcel-cache/
-
-# ==================== EDITOR EXTENSIONS ====================
-!.vscode/extensions.json
 
 # ==================== AGENT / SKILL TOOLING ====================
 .agents/
@@ -81,5 +61,8 @@ opencode.json
 **/AGENTS.md
 
 # ==================== LOCAL NOTES ====================
-docs/HOW_IT_WORKS.txt
-docs/verify-*.png
+docs/HOW_IT_WORKS.md
+docs/AUTH_PLAN.md
+docs/SECURITY_ASSESSMENT.md
+docs/REMAINING_WORK.md
+
