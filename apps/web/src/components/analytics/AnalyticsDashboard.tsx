@@ -48,6 +48,7 @@ export default function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
 
   const COLORS = healthColors;
 
+  // Chart-specific semantic colors for pie slices on card surfaces — not from design tokens
   const TYPE_COLORS = [
     "#B45309", "#7C3AED", "#4F46E5", "#D97706", "#DB2777", "#DC2626",
   ];
@@ -105,7 +106,7 @@ export default function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
                   <Cell
                     key={`cell-${index}`}
                     fill={
-                      COLORS[entry.status as keyof typeof COLORS] || "#94a3b8"
+                      COLORS[entry.status as keyof typeof COLORS] || COLORS.Recovered
                     }
                   />
                 ))}

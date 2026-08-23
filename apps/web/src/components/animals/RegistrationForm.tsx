@@ -7,6 +7,7 @@ import { useLivestockStore } from "../../store/livestockStore";
 import { validateLivestock } from "@wam-mfugo/shared";
 import { backend } from "../../services/backend";
 import BiometricCapture from "./BiometricCapture";
+import VoiceInput from "../ui/VoiceInput";
 
 interface RegistrationFormProps {
   onAnimalAdded: () => void;
@@ -76,6 +77,7 @@ export default function RegistrationForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     backend.getFarmers().then((res) => {
@@ -99,11 +101,24 @@ export default function RegistrationForm({
     }
   };
 
+  const validateFields = () => {
+    const errors: Record<string, string> = {};
+    if (!name.trim()) errors.name = "Animal name is required";
+    if (!owner.trim()) errors.owner = "Owner name is required";
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
     setSuccessMessage(null);
+
+    if (!validateFields()) {
+      setIsSubmitting(false);
+      return;
+    }
 
     const animalData: Omit<Livestock, "id" | "createdAt"> = {
       name,
@@ -166,19 +181,33 @@ export default function RegistrationForm({
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium mb-1.5 text-text-secondary">Animal Name</label>
-          <input
-            className="input-field"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            disabled={isSubmitting}
-          />
+          <label htmlFor="animal-name" className="block text-sm font-medium mb-1.5 text-text-secondary">Animal Name</label>
+          <div className="flex items-center gap-2">
+            <input
+              id="animal-name"
+              className={`input-field flex-1 ${fieldErrors.name ? "border-error focus:ring-error" : ""}`}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              disabled={isSubmitting}
+              aria-invalid={!!fieldErrors.name}
+              aria-describedby={fieldErrors.name ? "animal-name-error" : undefined}
+            />
+            <VoiceInput
+              onTranscript={(text) => setName(text.trim())}
+              language="en-US"
+              disabled={isSubmitting}
+            />
+          </div>
+          {fieldErrors.name && (
+            <p id="animal-name-error" className="text-xs text-error mt-1">{fieldErrors.name}</p>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1.5 text-text-secondary">Animal Type</label>
+          <label htmlFor="animal-type" className="block text-sm font-medium mb-1.5 text-text-secondary">Animal Type</label>
           <select
+            id="animal-type"
             className="input-field"
             value={type}
             onChange={(e) => setType(e.target.value as Livestock["type"])}
@@ -191,8 +220,9 @@ export default function RegistrationForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1.5 text-text-secondary">County</label>
+          <label htmlFor="animal-county" className="block text-sm font-medium mb-1.5 text-text-secondary">County</label>
           <select
+            id="animal-county"
             className="input-field"
             value={county}
             onChange={(e) => setCounty(e.target.value)}
@@ -205,26 +235,43 @@ export default function RegistrationForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1.5 text-text-secondary">Owner Name</label>
-          <input
-            className="input-field"
-            value={owner}
-            onChange={(e) => {
-              setOwner(e.target.value);
-              setSelectedFarmerId(undefined);
-            }}
-            required
-            disabled={isSubmitting}
-          />
+          <label htmlFor="animal-owner" className="block text-sm font-medium mb-1.5 text-text-secondary">Owner Name</label>
+          <div className="flex items-center gap-2">
+            <input
+              id="animal-owner"
+              className={`input-field flex-1 ${fieldErrors.owner ? "border-error focus:ring-error" : ""}`}
+              value={owner}
+              onChange={(e) => {
+                setOwner(e.target.value);
+                setSelectedFarmerId(undefined);
+              }}
+              required
+              disabled={isSubmitting}
+              aria-invalid={!!fieldErrors.owner}
+              aria-describedby={fieldErrors.owner ? "animal-owner-error" : undefined}
+            />
+            <VoiceInput
+              onTranscript={(text) => {
+                setOwner(text.trim());
+                setSelectedFarmerId(undefined);
+              }}
+              language="en-US"
+              disabled={isSubmitting}
+            />
+          </div>
+          {fieldErrors.owner && (
+            <p id="animal-owner-error" className="text-xs text-error mt-1">{fieldErrors.owner}</p>
+          )}
         </div>
       </div>
 
       {farmers.length > 0 && (
         <div>
-          <label className="block text-sm font-medium mb-1.5 text-text-secondary">
+          <label htmlFor="animal-farmer" className="block text-sm font-medium mb-1.5 text-text-secondary">
             Farmer (optional — auto-fills owner &amp; county)
           </label>
           <select
+            id="animal-farmer"
             className="input-field"
             value={selectedFarmerId ?? ""}
             onChange={(e) => handleFarmerChange(e.target.value)}
@@ -241,8 +288,9 @@ export default function RegistrationForm({
       )}
 
       <div>
-        <label className="block text-sm font-medium mb-1.5 text-text-secondary">Health Status</label>
+        <label htmlFor="animal-health" className="block text-sm font-medium mb-1.5 text-text-secondary">Health Status</label>
         <select
+          id="animal-health"
           className="input-field"
           value={health}
           onChange={(e) => setHealth(e.target.value as Livestock["health"])}
@@ -264,6 +312,7 @@ export default function RegistrationForm({
             type="button"
             onClick={() => setShowBiometric(!showBiometric)}
             className="text-xs text-accent hover:text-accent-hover font-medium cursor-pointer"
+            aria-expanded={showBiometric}
             disabled={isSubmitting}
           >
             {showBiometric ? "Hide" : "Show"} Biometric Capture

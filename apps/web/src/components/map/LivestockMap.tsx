@@ -53,7 +53,7 @@ export default function LivestockMap({ data }: LivestockMapProps) {
 
   if (mapError) {
     return (
-      <div className="h-[500px] rounded-xl flex items-center justify-center bg-bg-secondary border border-border">
+      <div className="min-h-[300px] h-[50vh] max-h-[600px] rounded-xl flex items-center justify-center bg-bg-secondary border border-border">
         <div className="text-center p-6">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-error/10 flex items-center justify-center">
             <svg className="w-8 h-8 text-error" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -77,7 +77,7 @@ export default function LivestockMap({ data }: LivestockMapProps) {
 
   if (data.length === 0) {
     return (
-      <div className="h-[500px] rounded-xl flex items-center justify-center bg-bg-secondary border border-border">
+      <div className="min-h-[300px] h-[50vh] max-h-[600px] rounded-xl flex items-center justify-center bg-bg-secondary border border-border">
         <div className="text-center p-6 max-w-sm">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent/10 flex items-center justify-center" aria-hidden="true">
             <svg className="w-8 h-8 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -96,7 +96,7 @@ export default function LivestockMap({ data }: LivestockMapProps) {
   }
 
   return (
-    <div className="h-[500px] rounded-xl shadow-lg border border-border overflow-hidden relative">
+    <div className="min-h-[300px] h-[50vh] max-h-[600px] rounded-xl shadow-lg border border-border overflow-hidden relative">
       {/* Heatmap Controls */}
       <div className="absolute top-4 right-4 z-[1000] heatmap-controls">
         <div className="flex flex-col gap-3">

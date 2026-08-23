@@ -64,5 +64,15 @@ export function useWebSocket() {
     socketRef.current?.connect();
   }, []);
 
-  return { connected, stats, lastAnimalEvent, reconnect };
+  const subscribe = useCallback(
+    (event: string, handler: (...args: unknown[]) => void) => {
+      socketRef.current?.on(event, handler);
+      return () => {
+        socketRef.current?.off(event, handler);
+      };
+    },
+    []
+  );
+
+  return { connected, stats, lastAnimalEvent, reconnect, subscribe };
 }

@@ -232,7 +232,7 @@ const ExportButton = memo(function ExportButton({
       </button>
 
       {showMenu && !isExporting && (
-        <div ref={menuRef} role="menu" aria-label="Export format options" className="absolute right-0 mt-2 w-64 bg-bg-primary border border-border rounded-xl shadow-xl z-10 animate-scaleIn">
+        <div ref={menuRef} role="menu" aria-label="Export format options" className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] bg-bg-primary border border-border rounded-xl shadow-xl z-10 animate-scaleIn">
           <div className="p-2">
             <div className="px-3 py-2 text-xs font-semibold text-text-tertiary uppercase tracking-wider">
               Export Format

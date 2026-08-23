@@ -37,6 +37,12 @@ interface OutbreakReportPayload {
   symptoms?: string[];
 }
 
+interface DiseaseRiskPayload {
+  county: string;
+  diseaseType?: string;
+  season?: string;
+}
+
 const toQueryString = (filters?: Filters): string => {
   const params = new URLSearchParams();
   if (filters?.type) params.set("type", filters.type);
@@ -52,6 +58,12 @@ export const remoteApi = {
 
   createAnimal: (animalData: Omit<Livestock, "id">) =>
     apiPost<ApiResponse<Livestock>>("/animals", animalData),
+
+  updateAnimal: (animalId: number, data: Partial<Omit<Livestock, "id">>) =>
+    apiPatch<ApiResponse<Livestock>>(`/animals/${animalId}`, data),
+
+  deleteAnimal: (animalId: number) =>
+    apiDelete<ApiResponse<{ message: string }>>(`/animals/${animalId}`),
 
   updateAnimalHealth: (animalId: number, healthStatus: HealthStatus) =>
     apiPatch<ApiResponse<Livestock | null>>(`/animals/${animalId}/health`, {
@@ -103,4 +115,148 @@ export const remoteApi = {
   revokeSession: (id: number) => apiDelete<ApiResponse<{ message: string }>>(`/auth/sessions/${id}`),
 
   revokeAllSessions: () => apiDelete<ApiResponse<{ message: string }>>("/auth/sessions"),
+
+  // Disease prediction endpoints
+  predictDiseaseRisk: (payload: DiseaseRiskPayload) =>
+    apiPost<ApiResponse<unknown[]>>("/diseases/predict/risk", payload),
+
+  getDiseaseRisks: (query?: { county?: string; diseaseType?: string; riskLevel?: string }) => {
+    const params = new URLSearchParams();
+    if (query?.county) params.set("county", query.county);
+    if (query?.diseaseType) params.set("diseaseType", query.diseaseType);
+    if (query?.riskLevel) params.set("riskLevel", query.riskLevel);
+    const qs = params.toString();
+    return apiGet<ApiResponse<unknown[]>>(`/diseases/risk${qs ? `?${qs}` : ""}`);
+  },
+
+  getCountyRiskSummary: (county: string) =>
+    apiGet<ApiResponse<unknown>>(`/diseases/risk/${encodeURIComponent(county)}`),
+
+  simulateWhatIf: (data: { county: string; vaccinationIncrease?: number; livestockReduction?: number; season?: string }) =>
+    apiPost<ApiResponse<unknown>>("/diseases/simulate", data),
+
+  // Vaccination coverage
+  getVaccinationCoverage: () =>
+    apiGet<ApiResponse<unknown[]>>("/stats/vaccination-coverage"),
+
+  // Vaccination reminders
+  getVaccinationReminders: (daysAhead?: number) =>
+    apiGet<ApiResponse<unknown[]>>(`/vaccinations/reminders${daysAhead ? `?daysAhead=${daysAhead}` : ""}`),
+
+  // Health assessment
+  assessHealth: (data: { imageUrl: string; animalType: string; animalName?: string; notes?: string }) =>
+    apiPost<ApiResponse<unknown>>("/health-assessment", data),
+
+  // Permissions management
+  getUserPermissions: (userId: number) =>
+    apiGet<ApiResponse<string[]>>(`/admin/users/${userId}/permissions`),
+  setUserPermissions: (userId: number, permissions: string[]) =>
+    apiPatch<ApiResponse<unknown>>(`/admin/users/${userId}/permissions`, { permissions }),
+  getPermissionDefaults: () =>
+    apiGet<ApiResponse<Record<string, string[]>>>("/admin/permissions/defaults"),
+
+  // CSV import
+  importAnimalsCsv: (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const token = localStorage.getItem("wam_auth_token") || "";
+    return fetch(
+      `${import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api"}/animals/import`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      }
+    ).then((r) => r.json()) as Promise<ApiResponse<{ imported: number; errors: string[] }>>;
+  },
+
+  // Bulk operations
+  bulkUpdateHealth: (ids: number[], health: string) =>
+    apiPost<ApiResponse<{ updated: number }>>("/animals/bulk/health", { ids, health }),
+  bulkDelete: (ids: number[]) =>
+    apiPost<ApiResponse<{ deleted: number }>>("/animals/bulk/delete", { ids }),
+  bulkExport: (ids: number[]) => {
+    const token = localStorage.getItem("wam_auth_token") || "";
+    window.open(
+      `${import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api"}/animals/bulk/export?token=${token}`,
+      "_blank"
+    );
+  },
+
+  // County comparison
+  getCountyComparison: () =>
+    apiGet<ApiResponse<unknown[]>>("/stats/county-comparison"),
+
+  // Report export
+  downloadReport: () => {
+    const token = localStorage.getItem("wam_auth_token") || "";
+    window.open(
+      `${import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api"}/stats/report?token=${token}`,
+      "_blank"
+    );
+  },
+
+  // Mortality tracking
+  getMortalities: (query?: { county?: string; cause?: string; page?: number; limit?: number }) => {
+    const params = new URLSearchParams();
+    if (query?.county) params.set("county", query.county);
+    if (query?.cause) params.set("cause", query.cause);
+    if (query?.page) params.set("page", String(query.page));
+    if (query?.limit) params.set("limit", String(query.limit));
+    const qs = params.toString();
+    return apiGet<ApiResponse<unknown[]>>(`/mortality${qs ? `?${qs}` : ""}`);
+  },
+
+  reportMortality: (data: { animalId: number; cause: string; diseaseName?: string; reportedBy: string; notes?: string }) =>
+    apiPost<ApiResponse<unknown>>("/mortality", data),
+
+  getMortalityStats: () =>
+    apiGet<ApiResponse<unknown>>("/mortality/stats"),
+
+  // Weight tracking
+  getWeightRecords: (query?: { animalId?: number; county?: string; page?: number; limit?: number }) => {
+    const params = new URLSearchParams();
+    if (query?.animalId) params.set("animalId", String(query.animalId));
+    if (query?.county) params.set("county", query.county);
+    if (query?.page) params.set("page", String(query.page));
+    if (query?.limit) params.set("limit", String(query.limit));
+    const qs = params.toString();
+    return apiGet<ApiResponse<unknown[]>>(`/weight${qs ? `?${qs}` : ""}`);
+  },
+
+  getAnimalWeightHistory: (animalId: number) =>
+    apiGet<ApiResponse<unknown[]>>(`/weight/animal/${animalId}`),
+
+  getWeightGainStats: (query?: { county?: string; animalId?: number }) => {
+    const params = new URLSearchParams();
+    if (query?.county) params.set("county", query.county);
+    if (query?.animalId) params.set("animalId", String(query.animalId));
+    const qs = params.toString();
+    return apiGet<ApiResponse<unknown[]>>(`/weight/stats${qs ? `?${qs}` : ""}`);
+  },
+
+  recordWeight: (data: { animalId: number; weight: number; unit?: string; recordedBy: string; notes?: string }) =>
+    apiPost<ApiResponse<unknown>>("/weight", data),
+
+  // Upload endpoints
+  uploadAnimalPhoto: (file: File): Promise<ApiResponse<{ url: string }>> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return new Promise((resolve, reject) => {
+      fetch(`${import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api"}/upload/animal-photo`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("wam_auth_token") || ""}`,
+        },
+        body: formData,
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error(`Upload failed with status ${res.status}`);
+          return res.json();
+        })
+        .then(resolve)
+        .catch(reject);
+    });
+  },
 };

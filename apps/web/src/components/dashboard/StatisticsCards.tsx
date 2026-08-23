@@ -1,6 +1,7 @@
 // src/components/dashboard/StatisticsCards.tsx
 import { memo } from "react";
 import type { AnimalStats } from "@wam-mfugo/shared";
+import HealthBar from "../analytics/HealthBar";
 
 interface StatisticsCardsProps {
   stats: AnimalStats;
@@ -54,6 +55,12 @@ const StatisticsCards = memo(function StatisticsCards({
           </div>
         </div>
       </div>
+
+      {/* Health distribution bar */}
+      <div className="mt-4 pt-3 border-t border-border">
+        <HealthBar stats={stats} />
+      </div>
+
       {stats.lastUpdated && (
         <div className="text-xs text-text-tertiary mt-3 pt-3 border-t border-border font-mono">
           Last updated: {new Date(stats.lastUpdated).toLocaleString()}

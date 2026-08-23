@@ -40,7 +40,7 @@ export default function Dashboard({
   refetch,
 }: DashboardProps) {
   const { t } = useTranslation();
-  const { connected: wsConnected } = useWebSocket();
+  const { connected: wsConnected, stats: realTimeStats, subscribe } = useWebSocket();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("overview");
@@ -72,6 +72,13 @@ export default function Dashboard({
     [updateDebouncedQuery]
   );
 
+  useEffect(() => {
+    const unsub = subscribe("animal:event", () => {
+      refetch();
+    });
+    return unsub;
+  }, [subscribe, refetch]);
+
   useAutoRefresh({
     enabled: true,
     interval: 30000,
@@ -93,7 +100,7 @@ export default function Dashboard({
     );
   }, [initialFilteredData, debouncedQuery]);
 
-  const stats = useMemo<AnimalStats | null>(() => {
+  const localStats = useMemo<AnimalStats | null>(() => {
     if (!data.length) return null;
 
     let healthyCount = 0;
@@ -130,6 +137,8 @@ export default function Dashboard({
       lastUpdated: new Date().toISOString(),
     };
   }, [data]);
+
+  const stats: AnimalStats | null = realTimeStats ?? localStats;
 
   const tabsRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -281,7 +290,7 @@ export default function Dashboard({
               </div>
             </div>
 
-            <AnimalList data={displayData} />
+            <AnimalList data={displayData} onRefresh={refetch} />
           </div>
         )}
 

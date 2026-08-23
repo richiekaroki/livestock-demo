@@ -144,7 +144,7 @@ export default function HeatmapLayer({ data, metric }: HeatmapLayerProps) {
 // Helper function to get color based on metric
 function getColorForMetric(metric: string, health: string): string {
   if (metric === "all") {
-    return healthColors[health as keyof typeof healthColors] || "#94a3b8";
+    return healthColors[health as keyof typeof healthColors] || healthColors.Recovered;
   }
 
   switch (metric) {

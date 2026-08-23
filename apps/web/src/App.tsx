@@ -9,9 +9,9 @@ import MobileNav from "./components/layout/MobileNav";
 import Navbar from "./components/layout/Navbar";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 import OfflineIndicator from "./components/ui/OfflineIndicator";
-import OfflineBanner from "./components/OfflineBanner";
-import ProtectedRoute from "./components/ProtectedRoute";
-import RoleRoute from "./components/RoleRoute";
+import OfflineBanner from "./components/ui/OfflineBanner";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
+import RoleRoute from "./components/layout/RoleRoute";
 import { useLiveData } from "./hooks/useLiveData";
 import { useOnlineStatus } from "./hooks/useOnlineStatus";
 import { useLivestockStore } from "./store/livestockStore";
@@ -27,6 +27,20 @@ const Profile = lazy(() => import("./pages/Profile"));
 const UserList = lazy(() => import("./pages/admin/UserList"));
 const AuditLogs = lazy(() => import("./pages/admin/AuditLogs"));
 const Vaccinations = lazy(() => import("./pages/Vaccinations"));
+const Outbreaks = lazy(() => import("./pages/Outbreaks"));
+const DiseasePrediction = lazy(() => import("./pages/DiseasePrediction"));
+const VaccinationCoverage = lazy(() => import("./pages/VaccinationCoverage"));
+const MortalityTracking = lazy(() => import("./pages/MortalityTracking"));
+const WeightGainAnalytics = lazy(() => import("./pages/WeightGainAnalytics"));
+const CountyComparison = lazy(() => import("./pages/CountyComparison"));
+const WhatIfSimulator = lazy(() => import("./pages/WhatIfSimulator"));
+const Reminders = lazy(() => import("./pages/Reminders"));
+const FarmerDashboard = lazy(() => import("./pages/FarmerDashboard"));
+const AnimalQR = lazy(() => import("./pages/AnimalQR"));
+const HealthAssessment = lazy(() => import("./pages/HealthAssessment"));
+const CsvImport = lazy(() => import("./pages/CsvImport"));
+const BulkOperations = lazy(() => import("./pages/BulkOperations"));
+const KalroReportBuilder = lazy(() => import("./pages/KalroReportBuilder"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 function AnimatedRoutes({
@@ -102,6 +116,20 @@ function AnimatedRoutes({
           <Route path="/admin/users" element={<ProtectedRoute><RoleRoute allowedRoles={['admin']}><UserList /></RoleRoute></ProtectedRoute>} />
           <Route path="/admin/audit-logs" element={<ProtectedRoute><RoleRoute allowedRoles={['admin']}><AuditLogs /></RoleRoute></ProtectedRoute>} />
           <Route path="/vaccinations" element={<ProtectedRoute><Vaccinations /></ProtectedRoute>} />
+          <Route path="/outbreaks" element={<ProtectedRoute><RoleRoute allowedRoles={['admin', 'field_agent']}><Outbreaks /></RoleRoute></ProtectedRoute>} />
+          <Route path="/diseases" element={<ProtectedRoute><DiseasePrediction /></ProtectedRoute>} />
+          <Route path="/vaccination-coverage" element={<ProtectedRoute><VaccinationCoverage /></ProtectedRoute>} />
+          <Route path="/mortality" element={<ProtectedRoute><RoleRoute allowedRoles={['admin', 'field_agent']}><MortalityTracking /></RoleRoute></ProtectedRoute>} />
+          <Route path="/weight" element={<ProtectedRoute><WeightGainAnalytics /></ProtectedRoute>} />
+          <Route path="/county-comparison" element={<ProtectedRoute><CountyComparison /></ProtectedRoute>} />
+          <Route path="/simulator" element={<ProtectedRoute><RoleRoute allowedRoles={['admin', 'field_agent']}><WhatIfSimulator /></RoleRoute></ProtectedRoute>} />
+          <Route path="/reminders" element={<ProtectedRoute><Reminders /></ProtectedRoute>} />
+          <Route path="/farmer" element={<ProtectedRoute><FarmerDashboard /></ProtectedRoute>} />
+          <Route path="/animal-qr" element={<ProtectedRoute><AnimalQR /></ProtectedRoute>} />
+          <Route path="/health-assessment" element={<ProtectedRoute><HealthAssessment /></ProtectedRoute>} />
+          <Route path="/import" element={<ProtectedRoute><RoleRoute allowedRoles={['admin', 'field_agent']}><CsvImport /></RoleRoute></ProtectedRoute>} />
+          <Route path="/bulk" element={<ProtectedRoute><RoleRoute allowedRoles={['admin', 'field_agent']}><BulkOperations /></RoleRoute></ProtectedRoute>} />
+          <Route path="/kalro-report" element={<ProtectedRoute><RoleRoute allowedRoles={['admin', 'field_agent']}><KalroReportBuilder /></RoleRoute></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

@@ -1,18 +1,26 @@
 // src/components/animals/AnimalList.tsx
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import type { Livestock } from "@wam-mfugo/shared";
 import { healthBadgeClasses, typeBadgeClasses } from "../../utils/constants";
+import AnimalEditModal from "./AnimalEditModal";
+import KIAMISRegistration from "./KIAMISRegistration";
+import { backend } from "../../services/backend";
 
 interface AnimalListProps {
   data: Livestock[];
+  onRefresh?: () => void;
 }
 
 const AnimatedAnimalCard = memo(function AnimatedAnimalCard({
   animal,
   index,
+  onEdit,
+  onDelete,
 }: {
   animal: Livestock;
   index: number;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -73,19 +81,46 @@ const AnimatedAnimalCard = memo(function AnimatedAnimalCard({
         </div>
       </div>
 
+      <div className="mt-3">
+        <KIAMISRegistration animal={animal} />
+      </div>
+
       <div className="flex justify-between items-center pt-3 border-t border-border">
         <span className={`badge ${healthBadgeClasses[animal.health]}`}>
           {animal.health}
         </span>
-        <span className="text-xs text-text-tertiary font-mono">#{animal.id}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-text-tertiary font-mono mr-2">#{animal.id}</span>
+          <button
+            onClick={onEdit}
+            className="p-1.5 text-text-tertiary hover:text-accent transition-colors cursor-pointer"
+            aria-label={`Edit ${animal.name}`}
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+          </button>
+          <button
+            onClick={onDelete}
+            className="p-1.5 text-text-tertiary hover:text-error transition-colors cursor-pointer"
+            aria-label={`Delete ${animal.name}`}
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );
 });
 
-export default function AnimalList({ data }: AnimalListProps) {
+export default function AnimalList({ data, onRefresh }: AnimalListProps) {
   const [prevData, setPrevData] = useState(data);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [editingAnimal, setEditingAnimal] = useState<Livestock | null>(null);
 
   useEffect(() => {
     if (data !== prevData) {
@@ -97,6 +132,21 @@ export default function AnimalList({ data }: AnimalListProps) {
       return () => clearTimeout(timer);
     }
   }, [data, prevData]);
+
+  const handleDelete = useCallback(
+    async (animal: Livestock) => {
+      if (!window.confirm(`Are you sure you want to delete ${animal.name}?`)) {
+        return;
+      }
+      try {
+        await backend.deleteAnimal(animal.id);
+        onRefresh?.();
+      } catch {
+        window.alert("Failed to delete animal. Please try again.");
+      }
+    },
+    [onRefresh]
+  );
 
   if (!data.length) {
     return (
@@ -116,18 +166,31 @@ export default function AnimalList({ data }: AnimalListProps) {
   }
 
   return (
-    <div
-      className={`grid gap-4 md:grid-cols-2 lg:grid-cols-3 transition-opacity duration-200 ${
-        isTransitioning ? "opacity-50" : "opacity-100"
-      }`}
-    >
-      {data.map((animal, index) => (
-        <AnimatedAnimalCard
-          key={animal.id}
-          animal={animal}
-          index={isTransitioning ? 0 : index}
-        />
-      ))}
-    </div>
+    <>
+      <div
+        className={`grid gap-4 md:grid-cols-2 lg:grid-cols-3 transition-opacity duration-200 ${
+          isTransitioning ? "opacity-50" : "opacity-100"
+        }`}
+      >
+        {data.map((animal, index) => (
+          <AnimatedAnimalCard
+            key={animal.id}
+            animal={animal}
+            index={isTransitioning ? 0 : index}
+            onEdit={() => setEditingAnimal(animal)}
+            onDelete={() => handleDelete(animal)}
+          />
+        ))}
+      </div>
+
+      <AnimalEditModal
+        animal={editingAnimal}
+        onClose={() => setEditingAnimal(null)}
+        onSaved={() => {
+          setEditingAnimal(null);
+          onRefresh?.();
+        }}
+      />
+    </>
   );
 }

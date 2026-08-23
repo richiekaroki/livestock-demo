@@ -25,6 +25,7 @@ export default function Vaccinations() {
   const [vaccinations, setVaccinations] = useState<Vaccination[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingVaccination, setEditingVaccination] = useState<Vaccination | null>(null);
 
   useEffect(() => {
     loadVaccinations();
@@ -42,6 +43,11 @@ export default function Vaccinations() {
     }
   };
 
+  const handleEdit = (vaccination: Vaccination) => {
+    setEditingVaccination(vaccination);
+    setShowForm(false);
+  };
+
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this vaccination record?")) return;
     try {
@@ -54,10 +60,10 @@ export default function Vaccinations() {
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <h1 className="text-3xl font-bold text-text-primary">Vaccination Records</h1>
-        <button onClick={() => setShowForm(!showForm)} className="btn btn-primary">
-          {showForm ? "Cancel" : "Add Vaccination"}
+        <button onClick={() => { setShowForm(!showForm); setEditingVaccination(null); }} className="btn btn-primary" aria-expanded={showForm}>
+          {showForm || editingVaccination ? "Cancel" : "Add Vaccination"}
         </button>
       </div>
 
@@ -67,12 +73,30 @@ export default function Vaccinations() {
         </div>
       )}
 
+      {editingVaccination && (
+        <div className="mb-8">
+          <VaccinationForm
+            initialData={{
+              id: editingVaccination.id,
+              type: editingVaccination.type,
+              date: editingVaccination.date,
+              batchNumber: editingVaccination.batchNumber,
+              veterinarian: editingVaccination.veterinarian,
+              nextDueDate: editingVaccination.nextDueDate,
+              animalId: editingVaccination.animalId,
+            }}
+            onUpdate={() => { setEditingVaccination(null); loadVaccinations(); }}
+            onCancel={() => setEditingVaccination(null)}
+          />
+        </div>
+      )}
+
       {loading && <p className="text-text-secondary">Loading vaccination records...</p>}
 
       {!loading && vaccinations.length === 0 && (
         <div className="card p-8 text-center">
           <p className="text-text-secondary mb-4">No vaccination records yet.</p>
-          <button onClick={() => setShowForm(true)} className="btn btn-primary">
+          <button onClick={() => { setShowForm(true); setEditingVaccination(null); }} className="btn btn-primary">
             Record First Vaccination
           </button>
         </div>
@@ -126,12 +150,20 @@ export default function Vaccinations() {
                   </td>
                   <td className="p-3 text-text-secondary text-xs">{v.county}</td>
                   <td className="p-3">
-                    <button
-                      onClick={() => handleDelete(v.id)}
-                      className="text-xs text-error hover:text-error/80 transition-colors cursor-pointer"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => handleEdit(v)}
+                        className="text-xs text-accent hover:text-accent/80 transition-colors cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(v.id)}
+                        className="text-xs text-error hover:text-error/80 transition-colors cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

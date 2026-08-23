@@ -74,6 +74,7 @@ export default function AuditLogs() {
           value={eventFilter}
           onChange={(e) => setEventFilter(e.target.value)}
           className="input-field w-full sm:w-auto"
+          aria-label={t("admin.audit_all_events")}
         >
           {eventOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -85,6 +86,7 @@ export default function AuditLogs() {
           onChange={(e) => setEmailFilter(e.target.value)}
           placeholder={t("admin.audit_filter_email")}
           className="input-field flex-1"
+          aria-label={t("admin.audit_filter_email")}
         />
       </div>
 

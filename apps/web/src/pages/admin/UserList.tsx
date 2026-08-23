@@ -85,11 +85,13 @@ export default function UserList() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t("admin.users_search")}
           className="input-field flex-1"
+          aria-label={t("admin.users_search")}
         />
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
           className="input-field w-full sm:w-auto"
+          aria-label={t("admin.users_all_roles")}
         >
           <option value="">{t("admin.users_all_roles")}</option>
           <option value="admin">{t("admin.users_admin")}</option>
@@ -100,6 +102,7 @@ export default function UserList() {
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           className="input-field w-full sm:w-auto"
+          aria-label={t("admin.users_all_status")}
         >
           <option value="">{t("admin.users_all_status")}</option>
           <option value="active">{t("admin.users_active")}</option>

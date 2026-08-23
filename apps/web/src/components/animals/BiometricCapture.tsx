@@ -1,6 +1,17 @@
 import { useState } from "react";
 import type { AnimalType, BiometricData, BiometricType } from "@wam-mfugo/shared";
 import { buildBiometricData, capturePhoto, hashPhoto } from "../../utils/biometrics";
+import {
+  SqrScan,
+  Fingerprint,
+  Tag,
+  Camera,
+  Eye,
+  Search,
+  HelpCircle,
+  Loader2,
+  CheckCircle2,
+} from "lucide-react";
 
 interface BiometricCaptureProps {
   onCapture: (data: BiometricData) => void;
@@ -172,26 +183,62 @@ export default function BiometricCapture({
   const getBiometricIcon = () => {
     const method = getRecommendedBiometricMethod();
 
-    if (animalType === "Cattle") return "🐄👃";
-    if (animalType === "Goat") return "🐐🏷️";
-    if (animalType === "Sheep") return "🐑🏷️";
-    if (animalType === "Camel") return "🐫📷";
-    if (animalType === "Pig") return "🐖🏷️";
-    if (animalType === "Chicken") return "🐔👀";
+    if (animalType === "Cattle")
+      return (
+        <span className="inline-flex gap-1">
+          <SqrScan className="w-4 h-4" />
+          <Fingerprint className="w-4 h-4" />
+        </span>
+      );
+    if (animalType === "Goat")
+      return (
+        <span className="inline-flex gap-1">
+          <Tag className="w-4 h-4" />
+          <Tag className="w-4 h-4" />
+        </span>
+      );
+    if (animalType === "Sheep")
+      return (
+        <span className="inline-flex gap-1">
+          <Tag className="w-4 h-4" />
+          <Tag className="w-4 h-4" />
+        </span>
+      );
+    if (animalType === "Camel")
+      return (
+        <span className="inline-flex gap-1">
+          <Camera className="w-4 h-4" />
+          <Camera className="w-4 h-4" />
+        </span>
+      );
+    if (animalType === "Pig")
+      return (
+        <span className="inline-flex gap-1">
+          <Tag className="w-4 h-4" />
+          <Tag className="w-4 h-4" />
+        </span>
+      );
+    if (animalType === "Chicken")
+      return (
+        <span className="inline-flex gap-1">
+          <Eye className="w-4 h-4" />
+          <Eye className="w-4 h-4" />
+        </span>
+      );
 
     switch (method.primary) {
       case "nose_print":
-        return "👃";
+        return <Fingerprint className="w-4 h-4" />;
       case "facial":
-        return "📷";
+        return <Camera className="w-4 h-4" />;
       case "ear_tag":
-        return "🏷️";
+        return <Tag className="w-4 h-4" />;
       case "visual":
-        return "👀";
+        return <Eye className="w-4 h-4" />;
       case "hump_pattern":
-        return "🐫";
+        return <Search className="w-4 h-4" />;
       default:
-        return "🔍";
+        return <HelpCircle className="w-4 h-4" />;
     }
   };
 
@@ -217,7 +264,7 @@ export default function BiometricCapture({
       >
         {isCapturing ? (
           <span className="flex items-center justify-center gap-2">
-            <span className="animate-spin">⚙️</span>
+            <Loader2 className="w-4 h-4 animate-spin" />
             Processing {captureMethod}...
           </span>
         ) : (
@@ -227,8 +274,9 @@ export default function BiometricCapture({
 
       {lastCapture && (
         <div className="mt-4 p-3 bg-success/5 border border-success/20 rounded-lg text-sm">
-          <div className="font-semibold text-success mb-2">
-            ✅ Biometric Capture Successful
+          <div className="font-semibold text-success mb-2 flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5" />
+            Biometric Capture Successful
           </div>
           <div className="space-y-1 text-xs text-text-secondary">
             <div>
