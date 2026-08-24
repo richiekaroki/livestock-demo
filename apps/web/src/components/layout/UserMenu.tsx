@@ -34,7 +34,9 @@ export default function UserMenu() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-bg-secondary transition-colors"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-bg-secondary transition-colors cursor-pointer"
+        aria-expanded={open}
+        aria-haspopup="true"
       >
         <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-sm font-medium text-accent">
           {user.name.charAt(0).toUpperCase()}
@@ -84,7 +86,7 @@ export default function UserMenu() {
           <div className="border-t border-border mt-1 pt-1">
             <button
               onClick={() => { logout(); setOpen(false); }}
-              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-500/5 transition-colors"
+              className="w-full text-left px-4 py-2 text-sm text-error hover:bg-error/5 transition-colors cursor-pointer"
             >
               Sign out
             </button>

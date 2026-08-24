@@ -7,11 +7,25 @@
     "home": "Nyumbani",
     "dashboard": "Dashibodi",
     "map": "Ramani",
+    "diseases": "Magonjwa",
     "login": "Ingia",
     "register": "Jiandikishe",
     "profile": "Wasifu",
     "admin": "Utawala",
-    "logout": "Ondoka"
+    "logout": "Ondoka",
+    "reminders": "Ukumbusho",
+    "farmer_dashboard": "Shamba Langu",
+    "animal_qr": "Msimbo QR",
+    "voice_input": "Uingizaji wa Sauti",
+    "start_voice_input": "Anza uingizaji wa sauti",
+    "stop_recording": "Simamisha uongozi",
+    "speak_now": "Ongea sasa...",
+    "health_assessment": "Tathmini ya Afya",
+    "photo_assessment": "Tathmini ya Picha",
+    "csv_import": "Kuagiza CSV",
+    "bulk_operations": "Kazi za Upande",
+    "kalro_report": "Ripoti ya KALRO",
+    "health_assessment": "Tathmini ya Afya"
   },
   "home": {
     "hero_title": "Ufuatiliaji wa mifugo",
@@ -113,6 +127,7 @@
     "role": "Jukumu",
     "role_readonly": "Jukumu linaweza kubadilishwa na msimamizi tu",
     "name": "Jina Kamili",
+    "name_required": "Jina linahitajika",
     "phone": "Simu",
     "phone_placeholder": "+254700000000",
     "county": "Kaunti",
@@ -219,5 +234,21 @@
     "camel": "Ngamia",
     "pig": "Nguruwe",
     "chicken": "Kuku"
+  },
+  "diseases": {
+    "title": "Utabiri wa Magonjwa",
+    "desc": "Tabiri hatari ya magonjwa kulingana na kaunti, msimu, na data ya historia",
+    "county": "Kaunti",
+    "select_county": "Chagua kaunti",
+    "predict": "Tabiri Hatari",
+    "predicting": "Inatabiri...",
+    "risk_assessment": "Tathmini ya Hatari",
+    "confidence": "Uthabiti",
+    "last_calculated": "Ilhesabwa mwisho",
+    "no_data": "Hakuna data ya hatari. Bonyeza Tabiri Hatari ili kuzalisha tathmini.",
+    "critical": "hatari sana",
+    "high": "juu",
+    "medium": "wastani",
+    "low": "chini"
   }
 }

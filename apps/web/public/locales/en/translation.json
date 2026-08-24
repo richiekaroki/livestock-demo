@@ -7,11 +7,25 @@
     "home": "Home",
     "dashboard": "Dashboard",
     "map": "Map",
+    "diseases": "Diseases",
     "login": "Sign In",
     "register": "Register",
     "profile": "Profile",
     "admin": "Admin",
-    "logout": "Sign Out"
+    "logout": "Sign Out",
+    "reminders": "Reminders",
+    "farmer_dashboard": "My Farm",
+    "animal_qr": "QR Codes",
+    "voice_input": "Voice Input",
+    "start_voice_input": "Start voice input",
+    "stop_recording": "Stop recording",
+    "speak_now": "Speak now...",
+    "health_assessment": "Health Assessment",
+    "photo_assessment": "Photo Assessment",
+    "csv_import": "CSV Import",
+    "bulk_operations": "Bulk Ops",
+    "kalro_report": "KALRO Report",
+    "health_assessment": "Health Assessment"
   },
   "home": {
     "hero_title": "Livestock tracking",
@@ -113,6 +127,7 @@
     "role": "Role",
     "role_readonly": "Role can only be changed by an admin",
     "name": "Full Name",
+    "name_required": "Name is required",
     "phone": "Phone",
     "phone_placeholder": "+254700000000",
     "county": "County",
@@ -219,5 +234,21 @@
     "camel": "Camel",
     "pig": "Pig",
     "chicken": "Chicken"
+  },
+  "diseases": {
+    "title": "Disease Prediction",
+    "desc": "Predict disease risk based on county, season, and historical data",
+    "county": "County",
+    "select_county": "Select county",
+    "predict": "Predict Risk",
+    "predicting": "Predicting...",
+    "risk_assessment": "Risk Assessment",
+    "confidence": "Confidence",
+    "last_calculated": "Last calculated",
+    "no_data": "No risk data available. Click Predict Risk to generate assessment.",
+    "critical": "critical",
+    "high": "high",
+    "medium": "medium",
+    "low": "low"
   }
 }
