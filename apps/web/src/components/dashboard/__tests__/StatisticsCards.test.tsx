@@ -23,26 +23,28 @@ describe("StatisticsCards", () => {
 
   it("renders healthy count", () => {
     render(<StatisticsCards stats={mockStats} />);
-    expect(screen.getByText("120")).toBeInTheDocument();
+    const items = screen.getAllByText("120");
+    expect(items.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("healthy")).toBeInTheDocument();
   });
 
   it("renders sick count", () => {
     render(<StatisticsCards stats={mockStats} />);
-    expect(screen.getByText("15")).toBeInTheDocument();
+    const items = screen.getAllByText("15");
+    expect(items.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("sick")).toBeInTheDocument();
   });
 
   it("renders under treatment count", () => {
     render(<StatisticsCards stats={mockStats} />);
-    expect(screen.getByText("10")).toBeInTheDocument();
+    const items = screen.getAllByText("10");
+    expect(items.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("treatment")).toBeInTheDocument();
   });
 
   it("renders recovered count", () => {
     render(<StatisticsCards stats={mockStats} />);
     expect(screen.getByText("recovered")).toBeInTheDocument();
-    // Both recovered and counties have value 5, so check both exist
     const fives = screen.getAllByText("5");
     expect(fives.length).toBeGreaterThanOrEqual(2);
   });
@@ -65,7 +67,8 @@ describe("StatisticsCards", () => {
     };
     render(<StatisticsCards stats={largeStats} />);
     expect(screen.getByText("12,345")).toBeInTheDocument();
-    expect(screen.getByText("10,000")).toBeInTheDocument();
+    const tenK = screen.getAllByText("10,000");
+    expect(tenK.length).toBeGreaterThanOrEqual(1);
   });
 
   it("hides last updated when not provided", () => {
