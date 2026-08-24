@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { backend } from "../services/backend";
-import type { Livestock } from "@wam-mfugo/shared";
+import type { AnimalStats, Livestock } from "@wam-mfugo/shared";
 
 interface DashboardStats {
   totalAnimals: number;
@@ -37,7 +37,7 @@ export default function FarmerDashboard() {
           ? (animalsRes.data as Livestock[])
           : [];
 
-      const s = statsRes.success ? (statsRes.data as Record<string, unknown>) : null;
+      const s = statsRes.success ? (statsRes.data as AnimalStats) : null;
       const reminders =
         remindersRes.success && remindersRes.data
           ? (remindersRes.data as unknown[])
