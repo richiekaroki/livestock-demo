@@ -45,11 +45,11 @@ export default function FarmerDashboard() {
 
       setRecentAnimals(animals);
       setStats({
-        totalAnimals: (s?.totalAnimals as number) || animals.length,
-        healthy: (s?.healthyAnimals as number) || animals.filter((a) => a.health === "Healthy").length,
-        sick: (s?.sickAnimals as number) || animals.filter((a) => a.health === "Sick").length,
-        underTreatment: (s?.underTreatment as number) || animals.filter((a) => a.health === "Under Treatment").length,
-        recentVaccinations: (s?.vaccinatedAnimals as number) || 0,
+        totalAnimals: s?.totalAnimals ?? animals.length,
+        healthy: s?.healthyCount ?? animals.filter((a) => a.health === "Healthy").length,
+        sick: s?.sickCount ?? animals.filter((a) => a.health === "Sick").length,
+        underTreatment: s?.underTreatmentCount ?? animals.filter((a) => a.health === "Under Treatment").length,
+        recentVaccinations: 0,
         upcomingReminders: reminders.length,
         pendingSync: 0,
       });
