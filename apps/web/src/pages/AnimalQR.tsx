@@ -52,7 +52,6 @@ export default function AnimalQR() {
           <img src="${qrUrl}" alt="QR Code" />
           <h2>${selected.name}</h2>
           <p>${selected.type} — ${selected.county}</p>
-          <p class="tag">Ear Tag: ${selected.earTag || "N/A"}</p>
           <p class="tag">ID: ${selected.id}</p>
         </body>
       </html>
@@ -124,7 +123,6 @@ export default function AnimalQR() {
               />
               <div className="space-y-1 mb-6 text-sm text-[var(--color-text-secondary)]">
                 <p>{selected.type} — {selected.county}</p>
-                <p>{t("Ear Tag", "Ear Tag")}: {selected.earTag || "N/A"}</p>
                 <p>{t("Owner", "Owner")}: {selected.owner}</p>
               </div>
               <div className="flex justify-center gap-4">

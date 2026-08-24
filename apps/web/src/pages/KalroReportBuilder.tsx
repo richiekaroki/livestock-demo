@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { backend } from "../services/backend";
 import { KENYA_COUNTIES, LIVESTOCK_TYPES } from "@wam-mfugo/shared";

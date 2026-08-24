@@ -239,7 +239,7 @@ export default function WeightGainAnalytics() {
               </h3>
               <div className="overflow-x-auto">
                 <div className="flex items-end gap-1" style={{ minHeight: 200 }}>
-                  {history.map((r, i) => {
+                  {history.map((r) => {
                     const maxW = Math.max(...history.map((h) => h.weight));
                     const minW = Math.min(...history.map((h) => h.weight));
                     const range = maxW - minW || 1;

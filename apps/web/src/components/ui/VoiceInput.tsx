@@ -21,7 +21,6 @@ interface SpeechRecognitionErrorEvent extends Event {
 export default function VoiceInput({
   onTranscript,
   language = "en-US",
-  placeholder,
   className = "",
   disabled = false,
 }: VoiceInputProps) {
@@ -32,9 +31,9 @@ export default function VoiceInput({
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
-    const SpeechRecognition =
-      window.SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
+    const SR =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
       setIsSupported(false);
     }
   }, []);
@@ -46,11 +45,11 @@ export default function VoiceInput({
       return;
     }
 
-    const SpeechRecognition =
-      window.SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    const SR =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
 
-    const recognition = new SpeechRecognition();
+    const recognition = new SR();
     recognition.lang = language;
     recognition.interimResults = true;
     recognition.continuous = false;

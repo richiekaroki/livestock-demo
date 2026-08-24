@@ -417,6 +417,28 @@ class MockLivestockAPI {
     await this.delay(300);
     return { success: true, data: { deleted: 2 } };
   }
+
+  async bulkExport(): Promise<ApiResponse<{ exported: number }>> {
+    await this.delay(300);
+    return { success: true, data: { exported: 0 } };
+  }
+
+  async getStats(): Promise<ApiResponse<AnimalStats>> {
+    await this.delay(200);
+    const animals = this.getAllAnimals();
+    return {
+      success: true,
+      data: {
+        totalAnimals: animals.length,
+        healthyCount: animals.filter((a) => a.health === "Healthy").length,
+        sickCount: animals.filter((a) => a.health === "Sick").length,
+        underTreatmentCount: animals.filter((a) => a.health === "Under Treatment").length,
+        recoveredCount: animals.filter((a) => a.health === "Recovered").length,
+        counties: new Set(animals.map((a) => a.county)).size,
+        lastUpdated: new Date().toISOString(),
+      },
+    };
+  }
 }
 
 export const mockAPI = new MockLivestockAPI();

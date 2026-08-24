@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { AnimalType, BiometricData, BiometricType } from "@wam-mfugo/shared";
 import { buildBiometricData, capturePhoto, hashPhoto } from "../../utils/biometrics";
 import {
-  SqrScan,
+  ScanSquare,
   Fingerprint,
   Tag,
   Camera,
@@ -186,7 +186,7 @@ export default function BiometricCapture({
     if (animalType === "Cattle")
       return (
         <span className="inline-flex gap-1">
-          <SqrScan className="w-4 h-4" />
+          <ScanSquare className="w-4 h-4" />
           <Fingerprint className="w-4 h-4" />
         </span>
       );

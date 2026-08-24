@@ -175,7 +175,7 @@ export const remoteApi = {
     apiPost<ApiResponse<{ updated: number }>>("/animals/bulk/health", { ids, health }),
   bulkDelete: (ids: number[]) =>
     apiPost<ApiResponse<{ deleted: number }>>("/animals/bulk/delete", { ids }),
-  bulkExport: (ids: number[]) => {
+  bulkExport: (_ids: number[]) => {
     const token = localStorage.getItem("wam_auth_token") || "";
     window.open(
       `${import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api"}/animals/bulk/export?token=${token}`,

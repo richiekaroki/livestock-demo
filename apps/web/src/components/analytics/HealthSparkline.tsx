@@ -55,8 +55,8 @@ const HealthSparkline = memo(function HealthSparkline({
                 fontFamily: "Fira Sans, system-ui, sans-serif",
               }}
               labelFormatter={(v) => String(v)}
-              formatter={(value: number, name: string) => [
-                value,
+              formatter={(value, name) => [
+                Number(value),
                 name === "healthy" ? "Healthy" : name === "sick" ? "Sick" : "Treatment",
               ]}
             />

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
 import { backend } from "../services/backend";
-import type { County } from "@wam-mfugo/shared";
 
 interface MortalityRecord {
   id: number;
@@ -32,7 +31,6 @@ export default function MortalityTracking() {
   const [stats, setStats] = useState<MortalityStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [showReport, setShowReport] = useState(false);
-  const [counties, setCounties] = useState<County[]>([]);
   const [form, setForm] = useState({ animalId: "", cause: "", diseaseName: "", notes: "" });
   const [submitting, setSubmitting] = useState(false);
 

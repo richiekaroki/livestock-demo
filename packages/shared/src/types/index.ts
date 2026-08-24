@@ -47,6 +47,9 @@ export interface Filters {
   type?: string;
   health?: string;
   county?: string;
+  limit?: number;
+  sort?: string;
+  order?: "asc" | "desc";
 }
 
 export interface ApiResponse<T> {
