@@ -425,19 +425,23 @@ class MockLivestockAPI {
 
   async getStats(): Promise<ApiResponse<AnimalStats>> {
     await this.delay(200);
-    const animals = this.getAllAnimals();
+    const animals: Livestock[] = this.data;
     return {
       success: true,
       data: {
         totalAnimals: animals.length,
-        healthyCount: animals.filter((a) => a.health === "Healthy").length,
-        sickCount: animals.filter((a) => a.health === "Sick").length,
-        underTreatmentCount: animals.filter((a) => a.health === "Under Treatment").length,
-        recoveredCount: animals.filter((a) => a.health === "Recovered").length,
-        counties: new Set(animals.map((a) => a.county)).size,
+        healthyCount: animals.filter((a: Livestock) => a.health === "Healthy").length,
+        sickCount: animals.filter((a: Livestock) => a.health === "Sick").length,
+        underTreatmentCount: animals.filter((a: Livestock) => a.health === "Under Treatment").length,
+        recoveredCount: animals.filter((a: Livestock) => a.health === "Recovered").length,
+        counties: new Set(animals.map((a: Livestock) => a.county)).size,
         lastUpdated: new Date().toISOString(),
       },
     };
+  }
+
+  async getAnimalStatistics(): Promise<ApiResponse<AnimalStats>> {
+    return this.getStats();
   }
 }
 

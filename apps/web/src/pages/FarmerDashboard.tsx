@@ -28,7 +28,7 @@ export default function FarmerDashboard() {
     try {
       const [animalsRes, statsRes, remindersRes] = await Promise.all([
         backend.getAnimals({ limit: 5, sort: "createdAt", order: "desc" }),
-        backend.getStats(),
+        backend.getAnimalStatistics(),
         backend.getVaccinationReminders(7),
       ]);
 

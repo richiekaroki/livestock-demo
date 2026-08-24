@@ -38,11 +38,9 @@ export default function MortalityTracking() {
     Promise.all([
       backend.getMortalities(),
       backend.getMortalityStats(),
-      backend.getCounties(),
-    ]).then(([mortalities, mortalityStats, countiesRes]) => {
+    ]).then(([mortalities, mortalityStats]) => {
       if (mortalities.success && mortalities.data) setRecords(mortalities.data as MortalityRecord[]);
       if (mortalityStats.success && mortalityStats.data) setStats(mortalityStats.data as MortalityStats);
-      if (countiesRes.success && countiesRes.data) setCounties(countiesRes.data as County[]);
       setLoading(false);
     });
   }, []);
