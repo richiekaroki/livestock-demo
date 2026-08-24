@@ -77,7 +77,7 @@ export default function CountyComparison() {
             <button
               key={key}
               onClick={() => toggleSort(key)}
-              className={px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-h-[36px] }
+              className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-h-[36px]"
             >
               {label} {sortBy === key ? (sortDir === "desc" ? "\u2193" : "\u2191") : ""}
             </button>
@@ -106,7 +106,7 @@ export default function CountyComparison() {
                 <div
                   className="h-3 rounded-full transition-all duration-500"
                   style={{
-                    width: ${(c.totalAnimals / maxAnimals) * 100}%,
+                    width: `${(c.totalAnimals / maxAnimals) * 100}%`,
                     backgroundColor: getBarColor(c.totalAnimals, maxAnimals),
                   }}
                 />

@@ -219,7 +219,7 @@ export default function WeightGainAnalytics() {
                   <div
                     className="h-2 rounded-full transition-all duration-500"
                     style={{
-                      width: ${Math.min(100, Math.max(5, Math.abs(s.gainPercent)))}%,
+                      width: `${Math.min(100, Math.max(5, Math.abs(s.gainPercent)))}%`,
                       backgroundColor: getGainColor(s.gainPercent),
                     }}
                   />
@@ -249,7 +249,7 @@ export default function WeightGainAnalytics() {
                         <span className="text-xs text-[var(--color-text-secondary)]">{r.weight}</span>
                         <div
                           className="w-8 rounded-t bg-[var(--color-primary)]"
-                          style={{ height: ${height}px }}
+                          style={{ height: `${height}px` }}
                         />
                         <span className="text-[10px] text-[var(--color-text-secondary)]">
                           {new Date(r.recordedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
