@@ -439,10 +439,6 @@ class MockLivestockAPI {
       },
     };
   }
-
-  async getAnimalStatistics(): Promise<ApiResponse<AnimalStats>> {
-    return this.getStats();
-  }
 }
 
 export const mockAPI = new MockLivestockAPI();
