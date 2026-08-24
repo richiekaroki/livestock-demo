@@ -71,7 +71,8 @@ export class InMemoryAnimalsRepository implements AnimalsRepository {
   update(id: number, data: LivestockUpdate): Promise<Livestock | null> {
     const animal = this.animals.find((a) => a.id === id);
     if (!animal) return Promise.resolve(null);
-    const { id: _id, ...rest } = data;
+    const { id: _unusedId, ...rest } = data;
+    void _unusedId;
     Object.assign(animal, rest);
     return Promise.resolve(animal);
   }

@@ -178,7 +178,9 @@ export class AdminController {
 
   @Post('retention/archive')
   async archiveOldRecords(@Body() body: { daysOld?: number }) {
-    const result = await this.dataRetention.archiveOldRecords(body.daysOld || 90);
+    const result = await this.dataRetention.archiveOldRecords(
+      body.daysOld || 90,
+    );
     return { success: true, data: result };
   }
 

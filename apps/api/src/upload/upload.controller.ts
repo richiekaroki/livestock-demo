@@ -35,9 +35,10 @@ export class UploadController {
     }),
   )
   @ApiConsumes('multipart/form-data')
-  async uploadAnimalPhoto(
-    @UploadedFile() file: Express.Multer.File,
-  ): Promise<{ success: boolean; data: { url: string } }> {
+  uploadAnimalPhoto(@UploadedFile() file: Express.Multer.File): {
+    success: boolean;
+    data: { url: string };
+  } {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }

@@ -6,15 +6,24 @@ const { combine, timestamp, printf, colorize, json } = winston.format;
 const devFormat = combine(
   colorize(),
   timestamp({ format: 'HH:mm:ss' }),
-  printf(({ timestamp, level, message, context }) => {
-    return `${timestamp} [${context || 'App'}] ${level}: ${message}`;
-  }),
+  printf(
+    ({
+      timestamp,
+      level,
+      message,
+      context,
+    }: {
+      timestamp?: string;
+      level: string;
+      message: string;
+      context?: string;
+    }) => {
+      return `${timestamp} [${context || 'App'}] ${level}: ${message}`;
+    },
+  ),
 );
 
-const prodFormat = combine(
-  timestamp(),
-  json(),
-);
+const prodFormat = combine(timestamp(), json());
 
 export function createWinstonLogger() {
   const isProd = process.env.NODE_ENV === 'production';

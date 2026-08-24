@@ -1,4 +1,11 @@
-import { IsInt, IsNumber, IsString, IsOptional, IsDateString, Min } from 'class-validator';
+import {
+  IsInt,
+  IsNumber,
+  IsString,
+  IsOptional,
+  IsDateString,
+  Min,
+} from 'class-validator';
 import { PaginatedDto } from '../../common/pagination';
 
 export class RecordWeightDto {

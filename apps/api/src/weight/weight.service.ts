@@ -38,7 +38,8 @@ export class WeightService {
     const animal = await this.prisma.animal.findUnique({
       where: { id: dto.animalId },
     });
-    if (!animal) throw new NotFoundException(`Animal #${dto.animalId} not found`);
+    if (!animal)
+      throw new NotFoundException(`Animal #${dto.animalId} not found`);
 
     const record = await this.prisma.weightRecord.create({
       data: {
@@ -134,7 +135,10 @@ export class WeightService {
     }));
   }
 
-  async getWeightGainStats(query?: { county?: string; animalId?: number }): Promise<WeightGainStats[]> {
+  async getWeightGainStats(query?: {
+    county?: string;
+    animalId?: number;
+  }): Promise<WeightGainStats[]> {
     const where: Record<string, unknown> = {};
     if (query?.county) where.county = query.county;
 
@@ -158,7 +162,8 @@ export class WeightService {
       const first = records[0];
       const latest = records[records.length - 1];
       const gain = latest.weight - first.weight;
-      const gainPercent = first.weight > 0 ? Math.round((gain / first.weight) * 100) : 0;
+      const gainPercent =
+        first.weight > 0 ? Math.round((gain / first.weight) * 100) : 0;
 
       results.push({
         animalId: animal.id,

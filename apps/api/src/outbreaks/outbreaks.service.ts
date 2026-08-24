@@ -83,17 +83,15 @@ export class OutbreaksService {
     }));
   }
 
-  async update(
-    id: number,
-    dto: UpdateOutbreakDto,
-  ): Promise<OutbreakRecord> {
+  async update(id: number, dto: UpdateOutbreakDto): Promise<OutbreakRecord> {
     const existing = await this.prisma.outbreak.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException(`Outbreak #${id} not found`);
 
     const data: Record<string, unknown> = {};
     if (dto.status) data.status = dto.status;
     if (dto.diseaseType) data.diseaseType = dto.diseaseType;
-    if (dto.affectedAnimals !== undefined) data.affectedAnimals = dto.affectedAnimals;
+    if (dto.affectedAnimals !== undefined)
+      data.affectedAnimals = dto.affectedAnimals;
     if (dto.symptoms) data.symptoms = dto.symptoms;
     if (dto.actions) data.actions = dto.actions;
 

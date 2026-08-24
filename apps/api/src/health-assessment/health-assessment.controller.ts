@@ -11,7 +11,15 @@ export class HealthAssessmentController {
   constructor(private readonly assessment: HealthAssessmentService) {}
 
   @Post()
-  assess(@Body() body: { imageUrl: string; animalType: string; animalName?: string; notes?: string }) {
+  assess(
+    @Body()
+    body: {
+      imageUrl: string;
+      animalType: string;
+      animalName?: string;
+      notes?: string;
+    },
+  ) {
     return this.assessment.assessHealth(body);
   }
 }

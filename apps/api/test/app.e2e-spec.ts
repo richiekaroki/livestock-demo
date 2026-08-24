@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { ApiResponse, AuthResponse, Livestock } from '@wam-mfugo/shared';
 import request from 'supertest';
+import type { Server } from 'http';
 import { AppModule } from './../src/app.module';
 import { OtpService } from './../src/auth/otp.service';
 
@@ -9,6 +10,7 @@ const ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || 'admin@example.com';
 
 describe('Wam Mfugo API (e2e)', () => {
   let app: INestApplication;
+  let httpServer: Server;
   let accessToken: string;
 
   beforeAll(async () => {
@@ -27,12 +29,15 @@ describe('Wam Mfugo API (e2e)', () => {
     );
     await app.init();
 
+    const server: Server = app.getHttpServer() as Server;
+    httpServer = server;
+
     // Create OTP directly (avoids HTTP round-trip + email sending)
     const otpService = moduleFixture.get(OtpService);
     const otp = await otpService.createOtp(ADMIN_EMAIL, 'login');
 
     // Verify via HTTP to exercise the full guard + JWT flow
-    const loginRes = await request(app.getHttpServer())
+    const loginRes = await request(httpServer)
       .post('/api/auth/verify-otp')
       .send({ email: ADMIN_EMAIL, otp });
 
@@ -45,14 +50,14 @@ describe('Wam Mfugo API (e2e)', () => {
   });
 
   it('/api/health (GET)', async () => {
-    const res = await request(app.getHttpServer()).get('/api/health');
+    const res = await request(httpServer).get('/api/health');
     expect(res.status).toBe(200);
     const body = res.body as { status: string };
     expect(body.status).toBe('ok');
   });
 
   it('/api/animals (GET)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .get('/api/animals')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
@@ -72,7 +77,7 @@ describe('Wam Mfugo API (e2e)', () => {
       lng: 36.08,
     };
 
-    const created = await request(app.getHttpServer())
+    const created = await request(httpServer)
       .post('/api/animals')
       .set('Authorization', `Bearer ${accessToken}`)
       .send(valid);
@@ -80,7 +85,7 @@ describe('Wam Mfugo API (e2e)', () => {
     const createdBody = created.body as ApiResponse<Livestock>;
     expect(createdBody.success).toBe(true);
 
-    const invalid = await request(app.getHttpServer())
+    const invalid = await request(httpServer)
       .post('/api/animals')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ ...valid, name: 'A' });
@@ -88,7 +93,7 @@ describe('Wam Mfugo API (e2e)', () => {
   });
 
   it('/api/stats (GET)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .get('/api/stats')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
@@ -107,7 +112,7 @@ describe('Wam Mfugo API (e2e)', () => {
       timestamp: new Date().toISOString(),
     };
 
-    const ok = await request(app.getHttpServer())
+    const ok = await request(httpServer)
       .post('/api/kiamis/register')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ ...base, ownerNationalID: '1234567' });
@@ -119,7 +124,7 @@ describe('Wam Mfugo API (e2e)', () => {
     expect(okBody.success).toBe(true);
     expect(okBody.animalRegistrationNumber).toMatch(/^KE-/);
 
-    const bad = await request(app.getHttpServer())
+    const bad = await request(httpServer)
       .post('/api/kiamis/register')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ ...base, ownerNationalID: 'ABC123' });
@@ -127,7 +132,7 @@ describe('Wam Mfugo API (e2e)', () => {
   });
 
   it('/api/vaccinations (GET)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .get('/api/vaccinations')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
@@ -136,14 +141,14 @@ describe('Wam Mfugo API (e2e)', () => {
   });
 
   it('/api/vaccinations/reminders (GET)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .get('/api/vaccinations/reminders')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
   });
 
   it('/api/diseases/predict/risk (POST)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .post('/api/diseases/predict/risk')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ county: 'Nakuru' });
@@ -154,7 +159,7 @@ describe('Wam Mfugo API (e2e)', () => {
   });
 
   it('/api/diseases/simulate (POST)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .post('/api/diseases/simulate')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ county: 'Nakuru', vaccinationIncrease: 30 });
@@ -162,74 +167,83 @@ describe('Wam Mfugo API (e2e)', () => {
   });
 
   it('/api/mortality (GET)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .get('/api/mortality')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
   });
 
   it('/api/mortality/stats (GET)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .get('/api/mortality/stats')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
   });
 
   it('/api/weight (GET)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .get('/api/weight')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
   });
 
   it('/api/weight/stats (GET)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .get('/api/weight/stats')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
   });
 
   it('/api/stats/vaccination-coverage (GET)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .get('/api/stats/vaccination-coverage')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
   });
 
   it('/api/stats/county-comparison (GET)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .get('/api/stats/county-comparison')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
   });
 
   it('/api/health-assessment (POST)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .post('/api/health-assessment')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ imageUrl: 'test.jpg', animalType: 'Cattle' });
     expect(res.status).toBe(201);
-    const body = res.body as { success: boolean; data: { healthStatus: string } };
+    const body = res.body as {
+      success: boolean;
+      data: { healthStatus: string };
+    };
     expect(body.success).toBe(true);
     expect(body.data.healthStatus).toBeDefined();
   });
 
   it('/api/admin/permissions/defaults (GET)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .get('/api/admin/permissions/defaults')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
-    const body = res.body as { success: boolean; data: Record<string, string[]> };
+    const body = res.body as {
+      success: boolean;
+      data: Record<string, string[]>;
+    };
     expect(body.data.admin).toBeDefined();
     expect(body.data.farmer).toBeDefined();
   });
 
   it('/api/admin/retention/stats (GET)', async () => {
-    const res = await request(app.getHttpServer())
+    const res = await request(httpServer)
       .get('/api/admin/retention/stats')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(res.status).toBe(200);
-    const body = res.body as { success: boolean; data: { policy: { archiveAfterDays: number } } };
+    const body = res.body as {
+      success: boolean;
+      data: { policy: { archiveAfterDays: number } };
+    };
     expect(body.data.policy.archiveAfterDays).toBe(90);
   });
 });

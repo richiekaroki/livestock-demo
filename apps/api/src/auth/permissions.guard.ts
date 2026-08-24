@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PERMISSIONS_KEY, type Permission } from './permissions.decorator';
 
@@ -16,7 +21,9 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest<{ user?: { role?: string; permissions?: string } }>();
+    const request = context
+      .switchToHttp()
+      .getRequest<{ user?: { role?: string; permissions?: string } }>();
     const user = request.user;
 
     if (!user) {
@@ -31,13 +38,15 @@ export class PermissionsGuard implements CanActivate {
     // Parse user permissions (stored as JSON string)
     let userPermissions: string[] = [];
     try {
-      userPermissions = JSON.parse(user.permissions || '[]');
+      userPermissions = JSON.parse(user.permissions || '[]') as string[];
     } catch {
       userPermissions = [];
     }
 
     // Check if user has all required permissions
-    const hasAll = requiredPermissions.every((p) => userPermissions.includes(p));
+    const hasAll = requiredPermissions.every((p) =>
+      userPermissions.includes(p),
+    );
 
     if (!hasAll) {
       throw new ForbiddenException(

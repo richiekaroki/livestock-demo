@@ -10,10 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import {
-  ReportMortalityDto,
-  MortalityQueryDto,
-} from './dto/mortality.dto';
+import { ReportMortalityDto, MortalityQueryDto } from './dto/mortality.dto';
 import { MortalityService } from './mortality.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';

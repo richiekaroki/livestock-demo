@@ -101,7 +101,8 @@ export class PrismaAnimalsRepository implements AnimalsRepository {
   }
 
   async update(id: number, data: LivestockUpdate): Promise<Livestock | null> {
-    const { id: _id, ...rest } = data;
+    const { id: _unusedId, ...rest } = data;
+    void _unusedId;
     const row = await this.prisma.animal
       .update({
         where: { id },
@@ -109,7 +110,9 @@ export class PrismaAnimalsRepository implements AnimalsRepository {
           ...(rest.name != null ? { name: rest.name } : {}),
           ...(rest.type != null ? { type: rest.type } : {}),
           ...(rest.breed != null ? { breed: rest.breed } : {}),
-          ...(rest.health != null ? { health: toPrismaHealth(rest.health) } : {}),
+          ...(rest.health != null
+            ? { health: toPrismaHealth(rest.health) }
+            : {}),
           ...(rest.county != null ? { county: rest.county } : {}),
           ...(rest.owner != null ? { owner: rest.owner } : {}),
           ...(rest.lat != null ? { lat: rest.lat } : {}),

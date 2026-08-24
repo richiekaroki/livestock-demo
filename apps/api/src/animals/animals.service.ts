@@ -22,7 +22,10 @@ export class AnimalsService {
     return this.repo.create(data);
   }
 
-  async update(id: number, dto: Partial<Omit<Livestock, 'id' | 'createdAt'>>): Promise<Livestock> {
+  async update(
+    id: number,
+    dto: Partial<Omit<Livestock, 'id' | 'createdAt'>>,
+  ): Promise<Livestock> {
     const animal = await this.repo.update(id, { id, ...dto });
     if (!animal) throw new NotFoundException('Animal not found');
     return animal;
@@ -42,7 +45,10 @@ export class AnimalsService {
     return this.repo.getStatistics();
   }
 
-  async bulkUpdateHealth(ids: number[], health: HealthStatus): Promise<{ updated: number }> {
+  async bulkUpdateHealth(
+    ids: number[],
+    health: HealthStatus,
+  ): Promise<{ updated: number }> {
     let updated = 0;
     for (const id of ids) {
       const result = await this.repo.updateHealth(id, health);

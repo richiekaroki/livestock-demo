@@ -83,25 +83,65 @@ export class StatsController {
     const sections: Array<Record<string, unknown>> = [];
 
     sections.push(
-      { section: '=== SUMMARY ===', metric: 'Total Animals', value: stats.totalAnimals },
+      {
+        section: '=== SUMMARY ===',
+        metric: 'Total Animals',
+        value: stats.totalAnimals,
+      },
       { section: '', metric: 'Healthy', value: stats.healthyCount },
       { section: '', metric: 'Sick', value: stats.sickCount },
-      { section: '', metric: 'Under Treatment', value: stats.underTreatmentCount },
+      {
+        section: '',
+        metric: 'Under Treatment',
+        value: stats.underTreatmentCount,
+      },
       { section: '', metric: 'Recovered', value: stats.recoveredCount },
       { section: '', metric: 'Counties', value: stats.counties },
-      { section: '', metric: 'Report Date', value: new Date().toISOString().slice(0, 10) },
+      {
+        section: '',
+        metric: 'Report Date',
+        value: new Date().toISOString().slice(0, 10),
+      },
     );
 
     sections.push({ section: '' });
-    sections.push({ section: '=== VACCINATION COVERAGE ===', county: 'County', coverage: 'Coverage %', animals: 'Total', vaccinated: 'Vaccinated' });
+    sections.push({
+      section: '=== VACCINATION COVERAGE ===',
+      county: 'County',
+      coverage: 'Coverage %',
+      animals: 'Total',
+      vaccinated: 'Vaccinated',
+    });
     for (const c of coverage) {
-      sections.push({ section: '', county: c.county, coverage: c.coveragePercent, animals: c.totalAnimals, vaccinated: c.vaccinatedAnimals });
+      sections.push({
+        section: '',
+        county: c.county,
+        coverage: c.coveragePercent,
+        animals: c.totalAnimals,
+        vaccinated: c.vaccinatedAnimals,
+      });
     }
 
     sections.push({ section: '' });
-    sections.push({ section: '=== COUNTY COMPARISON ===', county: 'County', animals: 'Animals', healthyRate: 'Healthy %', vaccinationRate: 'Vaccinated %', mortalityRate: 'Mortality %', outbreaks: 'Outbreaks' });
+    sections.push({
+      section: '=== COUNTY COMPARISON ===',
+      county: 'County',
+      animals: 'Animals',
+      healthyRate: 'Healthy %',
+      vaccinationRate: 'Vaccinated %',
+      mortalityRate: 'Mortality %',
+      outbreaks: 'Outbreaks',
+    });
     for (const c of comparison) {
-      sections.push({ section: '', county: c.county, animals: c.totalAnimals, healthyRate: c.healthyRate, vaccinationRate: c.vaccinationRate, mortalityRate: c.mortalityRate, outbreaks: c.outbreakCount });
+      sections.push({
+        section: '',
+        county: c.county,
+        animals: c.totalAnimals,
+        healthyRate: c.healthyRate,
+        vaccinationRate: c.vaccinationRate,
+        mortalityRate: c.mortalityRate,
+        outbreaks: c.outbreakCount,
+      });
     }
 
     const csv = toCsv(sections);

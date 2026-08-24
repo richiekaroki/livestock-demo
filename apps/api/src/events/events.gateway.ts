@@ -81,59 +81,59 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('subscribe:stats')
   handleSubscribeStats(@ConnectedSocket() client: Socket) {
     this.logger.log(`Client ${client.id} subscribed to stats`);
-    client.join('stats');
+    void client.join('stats');
     return { event: 'subscribed', data: { channel: 'stats' } };
   }
 
   @SubscribeMessage('subscribe:animal-events')
   handleSubscribeAnimalEvents(@ConnectedSocket() client: Socket) {
     this.logger.log(`Client ${client.id} subscribed to animal events`);
-    client.join('animal-events');
+    void client.join('animal-events');
     return { event: 'subscribed', data: { channel: 'animal-events' } };
   }
 
   @SubscribeMessage('unsubscribe:stats')
   handleUnsubscribeStats(@ConnectedSocket() client: Socket) {
-    client.leave('stats');
+    void client.leave('stats');
     return { event: 'unsubscribed', data: { channel: 'stats' } };
   }
 
   @SubscribeMessage('subscribe:vaccination-events')
   handleSubscribeVaccinationEvents(@ConnectedSocket() client: Socket) {
     this.logger.log(`Client ${client.id} subscribed to vaccination events`);
-    client.join('vaccination-events');
+    void client.join('vaccination-events');
     return { event: 'subscribed', data: { channel: 'vaccination-events' } };
   }
 
   @SubscribeMessage('subscribe:outbreak-events')
   handleSubscribeOutbreakEvents(@ConnectedSocket() client: Socket) {
     this.logger.log(`Client ${client.id} subscribed to outbreak events`);
-    client.join('outbreak-events');
+    void client.join('outbreak-events');
     return { event: 'subscribed', data: { channel: 'outbreak-events' } };
   }
 
   @SubscribeMessage('subscribe:health-alerts')
   handleSubscribeHealthAlerts(@ConnectedSocket() client: Socket) {
     this.logger.log(`Client ${client.id} subscribed to health alerts`);
-    client.join('health-alerts');
+    void client.join('health-alerts');
     return { event: 'subscribed', data: { channel: 'health-alerts' } };
   }
 
   @SubscribeMessage('unsubscribe:vaccination-events')
   handleUnsubscribeVaccinationEvents(@ConnectedSocket() client: Socket) {
-    client.leave('vaccination-events');
+    void client.leave('vaccination-events');
     return { event: 'unsubscribed', data: { channel: 'vaccination-events' } };
   }
 
   @SubscribeMessage('unsubscribe:outbreak-events')
   handleUnsubscribeOutbreakEvents(@ConnectedSocket() client: Socket) {
-    client.leave('outbreak-events');
+    void client.leave('outbreak-events');
     return { event: 'unsubscribed', data: { channel: 'outbreak-events' } };
   }
 
   @SubscribeMessage('unsubscribe:health-alerts')
   handleUnsubscribeHealthAlerts(@ConnectedSocket() client: Socket) {
-    client.leave('health-alerts');
+    void client.leave('health-alerts');
     return { event: 'unsubscribed', data: { channel: 'health-alerts' } };
   }
 

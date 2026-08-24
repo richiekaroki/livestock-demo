@@ -7,7 +7,9 @@ import { fontSize, fontWeight } from '@/constants/Tokens';
 import { impactMedium } from '@/src/services/haptics';
 
 // Suppress TS type incompatibility with react-native-gesture-handler
-const SwipeableAny = Swipeable as unknown as typeof Swipeable;
+import React from 'react';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SwipeableAny = Swipeable as unknown as React.ComponentType<any>;
 
 interface SwipeableRowProps {
   children: React.ReactNode;

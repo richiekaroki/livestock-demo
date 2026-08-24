@@ -122,7 +122,12 @@ export class AuthController {
 
   @Post('refresh')
   async refresh(
-    @Req() req: { ip?: string; headers: Record<string, string>; cookies?: Record<string, string> },
+    @Req()
+    req: {
+      ip?: string;
+      headers: Record<string, string>;
+      cookies?: Record<string, string>;
+    },
     @Res() res: Response,
   ): Promise<void> {
     const refreshToken = req.cookies?.[REFRESH_COOKIE];

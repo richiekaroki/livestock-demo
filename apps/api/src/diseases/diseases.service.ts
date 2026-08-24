@@ -40,13 +40,13 @@ const DISEASE_PROFILES: Record<string, DiseaseProfile> = {
     animalTypes: ['Cattle', 'Goat', 'Sheep'],
     symptoms: ['Abortion', 'High mortality in young', 'Nasal discharge'],
   },
-  'Anthrax': {
+  Anthrax: {
     name: 'Anthrax',
     seasonalWeights: { wet: 0.5, long_rains: 0.5, short_rains: 0.5, dry: 0.4 },
     animalTypes: ['Cattle', 'Goat', 'Sheep', 'Camel'],
     symptoms: ['Sudden death', 'Swelling', 'Bloody discharge'],
   },
-  'Brucellosis': {
+  Brucellosis: {
     name: 'Brucellosis',
     seasonalWeights: { wet: 0.6, long_rains: 0.6, short_rains: 0.5, dry: 0.4 },
     animalTypes: ['Cattle', 'Goat', 'Sheep'],
@@ -147,14 +147,22 @@ export class DiseasesService {
     for (const diseaseName of diseases) {
       const profile = DISEASE_PROFILES[diseaseName] ?? {
         name: diseaseName,
-        seasonalWeights: { wet: 0.5, long_rains: 0.5, short_rains: 0.5, dry: 0.5 },
+        seasonalWeights: {
+          wet: 0.5,
+          long_rains: 0.5,
+          short_rains: 0.5,
+          dry: 0.5,
+        },
         animalTypes: ['Cattle', 'Goat', 'Sheep'],
         symptoms: [],
       };
 
       const factors: RiskFactor[] = [];
 
-      const outbreakHistory = await this.getOutbreakHistory(dto.county, diseaseName);
+      const outbreakHistory = await this.getOutbreakHistory(
+        dto.county,
+        diseaseName,
+      );
       const outbreakScore = Math.min(1, outbreakHistory.length * 0.2);
       factors.push({
         name: 'outbreak_history',
@@ -180,7 +188,10 @@ export class DiseasesService {
         description: `${density} animals in county (higher density = higher transmission risk)`,
       });
 
-      const coverage = await this.getVaccinationCoverage(dto.county, diseaseName);
+      const coverage = await this.getVaccinationCoverage(
+        dto.county,
+        diseaseName,
+      );
       factors.push({
         name: 'vaccination_coverage',
         weight: (1 - coverage) * 0.1,
@@ -193,7 +204,9 @@ export class DiseasesService {
       const confidence = this.calculateConfidence(factors);
 
       let existing = await this.prisma.diseaseRisk.findUnique({
-        where: { county_diseaseType: { county: dto.county, diseaseType: diseaseName } },
+        where: {
+          county_diseaseType: { county: dto.county, diseaseType: diseaseName },
+        },
       });
 
       if (existing) {
@@ -291,21 +304,36 @@ export class DiseasesService {
     });
 
     const projected = currentRisks.map((risk) => {
-      const vaccinationImpact = (params.vaccinationIncrease ?? 0) / 100 * 0.3;
-      const densityImpact = (params.livestockReduction ?? 0) / 100 * 0.2;
+      const vaccinationImpact = ((params.vaccinationIncrease ?? 0) / 100) * 0.3;
+      const densityImpact = ((params.livestockReduction ?? 0) / 100) * 0.2;
 
       const newFactors = risk.factors.map((f) => {
         if (f.name === 'vaccination_coverage') {
-          return { ...f, weight: Math.max(0, f.weight - vaccinationImpact), description: `${f.description} (simulated +${params.vaccinationIncrease ?? 0}%)` };
+          return {
+            ...f,
+            weight: Math.max(0, f.weight - vaccinationImpact),
+            description: `${f.description} (simulated +${params.vaccinationIncrease ?? 0}%)`,
+          };
         }
         if (f.name === 'animal_density') {
-          return { ...f, weight: Math.max(0, f.weight - densityImpact), description: `${f.description} (simulated -${params.livestockReduction ?? 0}%)` };
+          return {
+            ...f,
+            weight: Math.max(0, f.weight - densityImpact),
+            description: `${f.description} (simulated -${params.livestockReduction ?? 0}%)`,
+          };
         }
         return f;
       });
 
       const newScore = newFactors.reduce((sum, f) => sum + f.weight, 0);
-      const newLevel = newScore >= 0.75 ? 'critical' : newScore >= 0.5 ? 'high' : newScore >= 0.25 ? 'medium' : 'low';
+      const newLevel =
+        newScore >= 0.75
+          ? 'critical'
+          : newScore >= 0.5
+            ? 'high'
+            : newScore >= 0.25
+              ? 'medium'
+              : 'low';
 
       return {
         ...risk,

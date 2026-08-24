@@ -19,13 +19,8 @@ const ROLE_DEFAULTS: Record<string, Permission[]> = {
     'can_view_reports',
     'can_manage_outbreaks',
   ],
-  farmer: [
-    'can_register',
-    'can_export',
-  ],
-  viewer: [
-    'can_view_reports',
-  ],
+  farmer: ['can_register', 'can_export'],
+  viewer: ['can_view_reports'],
 };
 
 @Injectable()
@@ -43,18 +38,23 @@ export class PermissionsService {
     if (!user) return [];
 
     try {
-      return JSON.parse(user.permissions || '[]');
+      return JSON.parse(user.permissions || '[]') as Permission[];
     } catch {
       return this.getDefaultPermissions(user.role);
     }
   }
 
-  async setUserPermissions(userId: number, permissions: Permission[]): Promise<void> {
+  async setUserPermissions(
+    userId: number,
+    permissions: Permission[],
+  ): Promise<void> {
     await this.prisma.user.update({
       where: { id: userId },
       data: { permissions: JSON.stringify(permissions) },
     });
-    this.logger.log(`Updated permissions for user ${userId}: ${permissions.join(', ')}`);
+    this.logger.log(
+      `Updated permissions for user ${userId}: ${permissions.join(', ')}`,
+    );
   }
 
   async syncRoleDefaults(userId: number): Promise<void> {

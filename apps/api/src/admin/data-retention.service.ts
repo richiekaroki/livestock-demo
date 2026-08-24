@@ -12,7 +12,9 @@ export class DataRetentionService {
   async handleAutoArchive() {
     this.logger.log('Running auto-archive job...');
     const archived = await this.archiveOldRecords(90);
-    this.logger.log(`Auto-archived ${archived.auditLogs} audit logs, ${archived.animals} animals`);
+    this.logger.log(
+      `Auto-archived ${archived.auditLogs} audit logs, ${archived.animals} animals`,
+    );
   }
 
   async archiveOldRecords(daysOld: number = 90) {
@@ -96,20 +98,25 @@ export class DataRetentionService {
   }
 
   async getRetentionStats() {
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-
-    const [totalAudit, archivedAudit, totalAnimals, archivedAnimals] = await Promise.all([
-      this.prisma.auditLog.count(),
-      this.prisma.auditLog.count({ where: { archivedAt: { not: null } } }),
-      this.prisma.animal.count(),
-      this.prisma.animal.count({ where: { archivedAt: { not: null } } }),
-    ]);
+    const [totalAudit, archivedAudit, totalAnimals, archivedAnimals] =
+      await Promise.all([
+        this.prisma.auditLog.count(),
+        this.prisma.auditLog.count({ where: { archivedAt: { not: null } } }),
+        this.prisma.animal.count(),
+        this.prisma.animal.count({ where: { archivedAt: { not: null } } }),
+      ]);
 
     return {
-      auditLogs: { total: totalAudit, archived: archivedAudit, active: totalAudit - archivedAudit },
-      animals: { total: totalAnimals, archived: archivedAnimals, active: totalAnimals - archivedAnimals },
+      auditLogs: {
+        total: totalAudit,
+        archived: archivedAudit,
+        active: totalAudit - archivedAudit,
+      },
+      animals: {
+        total: totalAnimals,
+        archived: archivedAnimals,
+        active: totalAnimals - archivedAnimals,
+      },
       policy: { archiveAfterDays: 90, gdprRetentionDays: 365 },
     };
   }

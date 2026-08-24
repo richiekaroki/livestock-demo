@@ -15,11 +15,12 @@ Notifications.setNotificationHandler({
 export async function registerForPushNotifications(): Promise<string | null> {
   try {
     const existing = await Notifications.getPermissionsAsync();
-    let finalStatus: string = existing.status;
+    const permStatus = (existing as Record<string, unknown>).status as string | undefined;
+    let finalStatus = permStatus ?? 'undetermined';
 
     if (finalStatus !== 'granted') {
       const requested = await Notifications.requestPermissionsAsync();
-      finalStatus = requested.status;
+      finalStatus = (requested as Record<string, unknown>).status as string ?? 'undetermined';
     }
 
     if (finalStatus !== 'granted') {

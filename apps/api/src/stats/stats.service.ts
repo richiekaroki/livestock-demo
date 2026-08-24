@@ -42,7 +42,10 @@ export class StatsService {
       orderBy: { date: 'desc' },
     });
 
-    const vaccinatedByAnimal = new Map<number, { types: Map<string, number>; lastDate: Date }>();
+    const vaccinatedByAnimal = new Map<
+      number,
+      { types: Map<string, number>; lastDate: Date }
+    >();
     for (const v of vaccinations) {
       const existing = vaccinatedByAnimal.get(v.animalId);
       if (existing) {
@@ -79,9 +82,10 @@ export class StatsService {
         county,
         totalAnimals: animalIds.length,
         vaccinatedAnimals: vaccinatedCount,
-        coveragePercent: animalIds.length > 0
-          ? Math.round((vaccinatedCount / animalIds.length) * 100)
-          : 0,
+        coveragePercent:
+          animalIds.length > 0
+            ? Math.round((vaccinatedCount / animalIds.length) * 100)
+            : 0,
         vaccinationTypes: Object.fromEntries(allTypes),
         lastVaccinated: lastVaccinated?.toISOString(),
       });
@@ -92,7 +96,13 @@ export class StatsService {
 
   async getCountyComparison() {
     const animals = await this.prisma.animal.findMany({
-      select: { id: true, county: true, type: true, health: true, createdAt: true },
+      select: {
+        id: true,
+        county: true,
+        type: true,
+        health: true,
+        createdAt: true,
+      },
     });
 
     const vaccinations = await this.prisma.vaccination.findMany({
@@ -107,26 +117,36 @@ export class StatsService {
       select: { county: true, diseaseType: true, affectedAnimals: true },
     });
 
-    const countyMap = new Map<string, {
-      totalAnimals: number;
-      healthy: number;
-      sick: number;
-      underTreatment: number;
-      recovered: number;
-      types: Map<string, number>;
-      vaccinated: Set<number>;
-      mortalityCount: number;
-      outbreakCount: number;
-      outbreakDiseases: Set<string>;
-    }>();
+    const countyMap = new Map<
+      string,
+      {
+        totalAnimals: number;
+        healthy: number;
+        sick: number;
+        underTreatment: number;
+        recovered: number;
+        types: Map<string, number>;
+        vaccinated: Set<number>;
+        mortalityCount: number;
+        outbreakCount: number;
+        outbreakDiseases: Set<string>;
+      }
+    >();
 
     for (const a of animals) {
       let c = countyMap.get(a.county);
       if (!c) {
         c = {
-          totalAnimals: 0, healthy: 0, sick: 0, underTreatment: 0, recovered: 0,
-          types: new Map(), vaccinated: new Set(), mortalityCount: 0,
-          outbreakCount: 0, outbreakDiseases: new Set(),
+          totalAnimals: 0,
+          healthy: 0,
+          sick: 0,
+          underTreatment: 0,
+          recovered: 0,
+          types: new Map(),
+          vaccinated: new Set(),
+          mortalityCount: 0,
+          outbreakCount: 0,
+          outbreakDiseases: new Set(),
         };
         countyMap.set(a.county, c);
       }
@@ -139,7 +159,9 @@ export class StatsService {
     }
 
     for (const v of vaccinations) {
+      void v;
       for (const [, c] of countyMap) {
+        void c;
         // We need animal county lookup — use animal IDs
         break;
       }
@@ -167,21 +189,32 @@ export class StatsService {
       }
     }
 
-    return Array.from(countyMap.entries()).map(([county, data]) => ({
-      county,
-      totalAnimals: data.totalAnimals,
-      healthy: data.healthy,
-      sick: data.sick,
-      underTreatment: data.underTreatment,
-      recovered: data.recovered,
-      healthyRate: data.totalAnimals > 0 ? Math.round((data.healthy / data.totalAnimals) * 100) : 0,
-      animalTypes: Object.fromEntries(data.types),
-      vaccinatedCount: data.vaccinated.size,
-      vaccinationRate: data.totalAnimals > 0 ? Math.round((data.vaccinated.size / data.totalAnimals) * 100) : 0,
-      mortalityCount: data.mortalityCount,
-      mortalityRate: data.totalAnimals > 0 ? Math.round((data.mortalityCount / data.totalAnimals) * 100) : 0,
-      outbreakCount: data.outbreakCount,
-      outbreakDiseases: Array.from(data.outbreakDiseases),
-    })).sort((a, b) => b.totalAnimals - a.totalAnimals);
+    return Array.from(countyMap.entries())
+      .map(([county, data]) => ({
+        county,
+        totalAnimals: data.totalAnimals,
+        healthy: data.healthy,
+        sick: data.sick,
+        underTreatment: data.underTreatment,
+        recovered: data.recovered,
+        healthyRate:
+          data.totalAnimals > 0
+            ? Math.round((data.healthy / data.totalAnimals) * 100)
+            : 0,
+        animalTypes: Object.fromEntries(data.types),
+        vaccinatedCount: data.vaccinated.size,
+        vaccinationRate:
+          data.totalAnimals > 0
+            ? Math.round((data.vaccinated.size / data.totalAnimals) * 100)
+            : 0,
+        mortalityCount: data.mortalityCount,
+        mortalityRate:
+          data.totalAnimals > 0
+            ? Math.round((data.mortalityCount / data.totalAnimals) * 100)
+            : 0,
+        outbreakCount: data.outbreakCount,
+        outbreakDiseases: Array.from(data.outbreakDiseases),
+      }))
+      .sort((a, b) => b.totalAnimals - a.totalAnimals);
   }
 }

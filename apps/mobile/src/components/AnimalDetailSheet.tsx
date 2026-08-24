@@ -12,9 +12,11 @@ import { KENYA_COUNTIES, LIVESTOCK_TYPES } from '@wam-mfugo/shared';
 import type { AnimalType, HealthStatus } from '@wam-mfugo/shared';
 
 // Suppress TS type incompatibility with Expo SDK 54
-const BottomSheetAny = BottomSheet as unknown as typeof BottomSheet;
-const BottomSheetScrollViewAny = BottomSheetScrollView as unknown as typeof BottomSheetScrollView;
-
+import React from 'react';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const BottomSheetAny = BottomSheet as unknown as React.ComponentType<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const BottomSheetScrollViewAny = BottomSheetScrollView as unknown as React.ComponentType<any>;
 interface AnimalDetailSheetProps {
   animal: Livestock | null;
   onClose: () => void;

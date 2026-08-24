@@ -1,10 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
-import {
-  ReportMortalityDto,
-  UpdateMortalityDto,
-  MortalityQueryDto,
-} from './dto/mortality.dto';
+import { ReportMortalityDto, MortalityQueryDto } from './dto/mortality.dto';
 
 export interface MortalityRecord {
   id: number;
@@ -28,7 +24,8 @@ export class MortalityService {
     const animal = await this.prisma.animal.findUnique({
       where: { id: dto.animalId },
     });
-    if (!animal) throw new NotFoundException(`Animal #${dto.animalId} not found`);
+    if (!animal)
+      throw new NotFoundException(`Animal #${dto.animalId} not found`);
 
     const record = await this.prisma.mortality.create({
       data: {
@@ -39,7 +36,9 @@ export class MortalityService {
         notes: dto.notes ?? null,
       },
       include: {
-        animal: { select: { name: true, type: true, county: true, owner: true } },
+        animal: {
+          select: { name: true, type: true, county: true, owner: true },
+        },
       },
     });
 
@@ -77,7 +76,9 @@ export class MortalityService {
     const records = await this.prisma.mortality.findMany({
       where,
       include: {
-        animal: { select: { name: true, type: true, county: true, owner: true } },
+        animal: {
+          select: { name: true, type: true, county: true, owner: true },
+        },
       },
       orderBy: { reportedAt: 'desc' },
       skip: (page - 1) * limit,

@@ -47,7 +47,7 @@ export class OutbreaksController {
       'reported',
       data as unknown as Record<string, unknown>,
     );
-    this.notifications.notifyOutbreak({
+    void this.notifications.notifyOutbreak({
       id: data.id,
       diseaseType: data.diseaseType,
       county: data.county,

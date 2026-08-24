@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { PredictRiskDto, GetRiskDto } from './dto/predict.dto';
+import { PredictRiskDto, GetRiskDto, type Season } from './dto/predict.dto';
 import { DiseasesService } from './diseases.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -41,17 +41,20 @@ export class DiseasesController {
   @Post('simulate')
   @UseGuards(RolesGuard)
   @Roles('admin', 'field_agent')
-  simulateWhatIf(@Body() body: {
-    county: string;
-    vaccinationIncrease?: number;
-    livestockReduction?: number;
-    season?: string;
-  }) {
+  simulateWhatIf(
+    @Body()
+    body: {
+      county: string;
+      vaccinationIncrease?: number;
+      livestockReduction?: number;
+      season?: string;
+    },
+  ) {
     return this.diseases.simulateWhatIf({
       county: body.county,
       vaccinationIncrease: body.vaccinationIncrease,
       livestockReduction: body.livestockReduction,
-      season: body.season as any,
+      season: body.season as Season | undefined,
     });
   }
 }

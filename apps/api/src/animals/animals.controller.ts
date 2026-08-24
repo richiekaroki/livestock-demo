@@ -16,7 +16,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
-import type { ApiResponse, Livestock } from '@wam-mfugo/shared';
+import type { ApiResponse, HealthStatus, Livestock } from '@wam-mfugo/shared';
 import { AnimalsService } from './animals.service';
 import { AnimalQueryDto } from './dto/animal-query.dto';
 import { CreateAnimalDto } from './dto/create-animal.dto';
@@ -162,7 +162,7 @@ export class AnimalsController {
         county: data.county,
         owner: data.owner,
       });
-      this.notifications.notifyHealthAlert({
+      void this.notifications.notifyHealthAlert({
         animalId: data.id,
         animalName: data.name,
         county: data.county,
@@ -180,20 +180,35 @@ export class AnimalsController {
     @UploadedFile() file: Express.Multer.File,
   ): Promise<ApiResponse<{ imported: number; errors: string[] }>> {
     if (!file) {
-      return { success: false, error: 'No file uploaded', data: { imported: 0, errors: ['No file provided'] } };
+      return {
+        success: false,
+        error: 'No file uploaded',
+        data: { imported: 0, errors: ['No file provided'] },
+      };
     }
 
     const content = file.buffer.toString('utf-8');
     const lines = content.split('\n').filter((l) => l.trim());
     if (lines.length < 2) {
-      return { success: false, error: 'CSV must have a header row and at least one data row', data: { imported: 0, errors: ['Empty CSV'] } };
+      return {
+        success: false,
+        error: 'CSV must have a header row and at least one data row',
+        data: { imported: 0, errors: ['Empty CSV'] },
+      };
     }
 
     const header = lines[0].split(',').map((h) => h.trim().toLowerCase());
     const requiredHeaders = ['name', 'type', 'county', 'owner'];
     const missing = requiredHeaders.filter((h) => !header.includes(h));
     if (missing.length > 0) {
-      return { success: false, error: `Missing required columns: ${missing.join(', ')}`, data: { imported: 0, errors: [`Missing columns: ${missing.join(', ')}`] } };
+      return {
+        success: false,
+        error: `Missing required columns: ${missing.join(', ')}`,
+        data: {
+          imported: 0,
+          errors: [`Missing columns: ${missing.join(', ')}`],
+        },
+      };
     }
 
     const errors: string[] = [];
@@ -202,7 +217,9 @@ export class AnimalsController {
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(',').map((v) => v.trim());
       const row: Record<string, string> = {};
-      header.forEach((h, idx) => { row[h] = values[idx] || ''; });
+      header.forEach((h, idx) => {
+        row[h] = values[idx] || '';
+      });
 
       if (!row.name || !row.type || !row.county || !row.owner) {
         errors.push(`Row ${i + 1}: Missing required fields`);
@@ -212,17 +229,19 @@ export class AnimalsController {
       try {
         await this.animals.create({
           name: row.name,
-          type: row.type as any,
+          type: row.type as Livestock['type'],
           county: row.county,
           owner: row.owner,
-          health: (row.health as any) || 'Healthy',
+          health: (row.health as HealthStatus) || 'Healthy',
           breed: row.breed || undefined,
           lat: row.lat ? parseFloat(row.lat) : 0,
           lng: row.lng ? parseFloat(row.lng) : 0,
         });
         imported++;
       } catch (err) {
-        errors.push(`Row ${i + 1}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        errors.push(
+          `Row ${i + 1}: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        );
       }
     }
 
@@ -235,7 +254,10 @@ export class AnimalsController {
   async bulkUpdateHealth(
     @Body() body: { ids: number[]; health: string },
   ): Promise<ApiResponse<{ updated: number }>> {
-    const result = await this.animals.bulkUpdateHealth(body.ids, body.health as any);
+    const result = await this.animals.bulkUpdateHealth(
+      body.ids,
+      body.health as HealthStatus,
+    );
     return { success: true, data: result };
   }
 

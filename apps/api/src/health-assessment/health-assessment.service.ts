@@ -21,12 +21,12 @@ export interface HealthAssessmentResult {
 export class HealthAssessmentService {
   private readonly logger = new Logger(HealthAssessmentService.name);
 
-  async assessHealth(data: {
+  assessHealth(data: {
     imageUrl: string;
     animalType: string;
     animalName?: string;
     notes?: string;
-  }): Promise<HealthAssessmentResult> {
+  }): HealthAssessmentResult {
     this.logger.log(
       `Assessing health for ${data.animalType}${data.animalName ? ` (${data.animalName})` : ''}`,
     );
@@ -56,7 +56,10 @@ export class HealthAssessmentService {
     const status = this.pickWeighted(healthChances);
 
     const findings = this.generateFindings(data.animalType, status);
-    const recommendations = this.generateRecommendations(status, data.animalType);
+    const recommendations = this.generateRecommendations(
+      status,
+      data.animalType,
+    );
 
     return {
       id,
@@ -74,22 +77,56 @@ export class HealthAssessmentService {
   private getHealthChances(animalType: string) {
     // Different animals have different base health distributions
     const chances: Record<string, Record<string, number>> = {
-      Cattle: { healthy: 0.6, sick: 0.15, under_treatment: 0.1, needs_attention: 0.15 },
-      Goat: { healthy: 0.55, sick: 0.2, under_treatment: 0.1, needs_attention: 0.15 },
-      Sheep: { healthy: 0.55, sick: 0.2, under_treatment: 0.1, needs_attention: 0.15 },
-      Camel: { healthy: 0.7, sick: 0.1, under_treatment: 0.05, needs_attention: 0.15 },
-      Pig: { healthy: 0.5, sick: 0.25, under_treatment: 0.1, needs_attention: 0.15 },
-      Chicken: { healthy: 0.5, sick: 0.25, under_treatment: 0.1, needs_attention: 0.15 },
+      Cattle: {
+        healthy: 0.6,
+        sick: 0.15,
+        under_treatment: 0.1,
+        needs_attention: 0.15,
+      },
+      Goat: {
+        healthy: 0.55,
+        sick: 0.2,
+        under_treatment: 0.1,
+        needs_attention: 0.15,
+      },
+      Sheep: {
+        healthy: 0.55,
+        sick: 0.2,
+        under_treatment: 0.1,
+        needs_attention: 0.15,
+      },
+      Camel: {
+        healthy: 0.7,
+        sick: 0.1,
+        under_treatment: 0.05,
+        needs_attention: 0.15,
+      },
+      Pig: {
+        healthy: 0.5,
+        sick: 0.25,
+        under_treatment: 0.1,
+        needs_attention: 0.15,
+      },
+      Chicken: {
+        healthy: 0.5,
+        sick: 0.25,
+        under_treatment: 0.1,
+        needs_attention: 0.15,
+      },
     };
     return chances[animalType] || chances.Cattle;
   }
 
-  private pickWeighted(chances: Record<string, number>): 'healthy' | 'sick' | 'under_treatment' | 'needs_attention' {
+  private pickWeighted(
+    chances: Record<string, number>,
+  ): 'healthy' | 'sick' | 'under_treatment' | 'needs_attention' {
     const rand = Math.random();
     let cumulative = 0;
     for (const [status, weight] of Object.entries(chances)) {
       cumulative += weight;
-      if (rand <= cumulative) return status as any;
+      if (rand <= cumulative)
+        return status as
+          'healthy' | 'sick' | 'under_treatment' | 'needs_attention';
     }
     return 'healthy';
   }
@@ -104,9 +141,10 @@ export class HealthAssessmentService {
     findings.push({
       category: 'Body Condition',
       status: status === 'healthy' ? 'normal' : 'warning',
-      description: status === 'healthy'
-        ? `Adequate body condition score for ${animalType.toLowerCase()}`
-        : `Body condition below optimal — may indicate nutritional deficiency`,
+      description:
+        status === 'healthy'
+          ? `Adequate body condition score for ${animalType.toLowerCase()}`
+          : `Body condition below optimal — may indicate nutritional deficiency`,
       confidence: 0.7 + Math.random() * 0.25,
     });
 
@@ -114,9 +152,10 @@ export class HealthAssessmentService {
     findings.push({
       category: 'Coat/Skin',
       status: status === 'sick' ? 'abnormal' : 'normal',
-      description: status === 'sick'
-        ? 'Coat appears dull, possible signs of parasite load or infection'
-        : 'Coat appears glossy and healthy',
+      description:
+        status === 'sick'
+          ? 'Coat appears dull, possible signs of parasite load or infection'
+          : 'Coat appears glossy and healthy',
       confidence: 0.65 + Math.random() * 0.3,
     });
 
@@ -124,9 +163,10 @@ export class HealthAssessmentService {
     findings.push({
       category: 'Eye Appearance',
       status: status === 'needs_attention' ? 'warning' : 'normal',
-      description: status === 'needs_attention'
-        ? 'Slight discharge or cloudiness observed — monitor closely'
-        : 'Eyes clear and bright',
+      description:
+        status === 'needs_attention'
+          ? 'Slight discharge or cloudiness observed — monitor closely'
+          : 'Eyes clear and bright',
       confidence: 0.7 + Math.random() * 0.2,
     });
 
@@ -135,7 +175,8 @@ export class HealthAssessmentService {
       findings.push({
         category: 'Posture/Gait',
         status: 'abnormal',
-        description: 'Slight head droop or reduced mobility — possible lameness or illness',
+        description:
+          'Slight head droop or reduced mobility — possible lameness or illness',
         confidence: 0.6 + Math.random() * 0.25,
       });
     } else {
@@ -169,7 +210,9 @@ export class HealthAssessmentService {
       recommendations.push('Isolate animal from herd immediately');
       recommendations.push('Contact veterinarian for examination');
       recommendations.push('Take temperature and record symptoms');
-      recommendations.push('Report to county health office if notifiable disease suspected');
+      recommendations.push(
+        'Report to county health office if notifiable disease suspected',
+      );
     } else if (status === 'under_treatment') {
       recommendations.push('Continue prescribed treatment course');
       recommendations.push('Monitor response to treatment daily');
