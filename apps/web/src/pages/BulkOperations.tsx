@@ -149,7 +149,7 @@ export default function BulkOperations() {
           </span>
           <select
             value={bulkAction}
-            onChange={(e) => setBulkAction(e.target.value as any)}
+            onChange={(e) => setBulkAction(e.target.value as "health" | "delete" | "export" | "")}
             className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)]"
           >
             <option value="">{t("Choose action...", "Choose action...")}</option>

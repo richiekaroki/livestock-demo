@@ -26,6 +26,10 @@
     "test:api:e2e": "npm run test:e2e -w apps/api",
     "prisma:generate": "npm run prisma:generate -w apps/api",
     "dev:mobile": "npm run start -w apps/mobile",
-    "typecheck:mobile": "npm run typecheck -w apps/mobile"
+    "typecheck:mobile": "npm run typecheck -w apps/mobile",
+    "lint:all": "npm run lint:web && npm run lint -w apps/api",
+    "typecheck:all": "npm run typecheck -w apps/mobile && npm run typecheck -w apps/web && npm run typecheck -w apps/api",
+    "test:all": "npm run test:web && npm run test:api",
+    "build:all": "npm run build:web && npm run build:api"
   }
 }

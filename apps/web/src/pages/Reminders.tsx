@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { backend } from "../services/backend";
 
@@ -21,11 +21,7 @@ export default function Reminders() {
   const [loading, setLoading] = useState(true);
   const [daysAhead, setDaysAhead] = useState(7);
 
-  useEffect(() => {
-    loadReminders();
-  }, [daysAhead]);
-
-  const loadReminders = async () => {
+  const loadReminders = useCallback(async () => {
     setLoading(true);
     try {
       const res = await backend.getVaccinationReminders(daysAhead);
@@ -35,7 +31,11 @@ export default function Reminders() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [daysAhead]);
+
+  useEffect(() => {
+    loadReminders();
+  }, [loadReminders]);
 
   const getDaysUntilDue = (dueDate: string) => {
     const now = new Date();

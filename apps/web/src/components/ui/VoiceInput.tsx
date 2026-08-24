@@ -28,10 +28,12 @@ export default function VoiceInput({
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
   const [transcript, setTranscript] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     const SR =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) {
       setIsSupported(false);
@@ -46,6 +48,7 @@ export default function VoiceInput({
     }
 
     const SR =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) return;
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { backend } from "../services/backend";
 import { KENYA_COUNTIES, LIVESTOCK_TYPES } from "@wam-mfugo/shared";
-import type { Livestock } from "@wam-mfugo/shared";
+import type { Livestock, Filters } from "@wam-mfugo/shared";
 
 interface ReportData {
   summary: {
@@ -36,7 +36,7 @@ export default function KalroReportBuilder() {
       if (dateRange.from) params.from = dateRange.from;
       if (dateRange.to) params.to = dateRange.to;
 
-      const res = await backend.getAnimals(params as any);
+      const res = await backend.getAnimals(params as Filters);
       if (res.success && res.data) {
         const data = Array.isArray(res.data) ? res.data : (res.data as { data: Livestock[] }).data;
         const animals = data || [];
