@@ -4,7 +4,7 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View, useColors } from '@/components/Themed';
-import { spacing, radius, fontSize, fontWeight, shadows } from '@/constants/Tokens';
+import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
 import { updateAnimal as apiUpdateAnimal, registerKIAMIS } from '@/src/services/api';
 import { impactMedium } from '@/src/services/haptics';
 import type { Livestock } from '@wam-mfugo/shared';
@@ -12,8 +12,8 @@ import { KENYA_COUNTIES, LIVESTOCK_TYPES } from '@wam-mfugo/shared';
 import type { AnimalType, HealthStatus } from '@wam-mfugo/shared';
 
 // Suppress TS type incompatibility with Expo SDK 54
-const BottomSheetAny = BottomSheet as any;
-const BottomSheetScrollViewAny = BottomSheetScrollView as any;
+const BottomSheetAny = BottomSheet as unknown as typeof BottomSheet;
+const BottomSheetScrollViewAny = BottomSheetScrollView as unknown as typeof BottomSheetScrollView;
 
 interface AnimalDetailSheetProps {
   animal: Livestock | null;
@@ -21,7 +21,7 @@ interface AnimalDetailSheetProps {
   onSaved?: () => void;
 }
 
-const AnimalDetailSheet = forwardRef<any, AnimalDetailSheetProps>(
+const AnimalDetailSheet = forwardRef<BottomSheet, AnimalDetailSheetProps>(
   ({ animal, onClose, onSaved }, ref) => {
     const colors = useColors();
     const snapPoints = useMemo(() => ['40%', '75%'], []);
@@ -307,7 +307,7 @@ const AnimalDetailSheet = forwardRef<any, AnimalDetailSheetProps>(
 );
 
 function DetailRow({ icon, label, value, colors, mono }: {
-  icon: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
   label: string;
   value: string;
   colors: ReturnType<typeof import('@/components/Themed').useColors>;
@@ -315,7 +315,7 @@ function DetailRow({ icon, label, value, colors, mono }: {
 }) {
   return (
     <RNView style={sheetStyles.detailRow}>
-      <Ionicons name={icon as any} size={16} color={colors.textSecondary} />
+      <Ionicons name={icon} size={16} color={colors.textSecondary} />
       <Text style={[sheetStyles.detailLabel, { color: colors.textSecondary }]}>{label}</Text>
       <Text style={[sheetStyles.detailValue, { color: colors.text }, mono && { fontFamily: 'FiraCode-Regular' }]}>
         {value}

@@ -47,7 +47,9 @@ ${animals.map((a) => {
 }
 
 async function shareFile(content: string, filename: string, mimeType: string) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const FileSystem = require('expo-file-system');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const Sharing = require('expo-sharing');
   const fileUri = FileSystem.documentDirectory + filename;
   await FileSystem.writeAsStringAsync(fileUri, content, { encoding: FileSystem.EncodingType.UTF8 });

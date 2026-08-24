@@ -84,7 +84,7 @@ export default function DiseasesScreen() {
         <View style={styles.summaryGrid}>
           {(['critical', 'high', 'medium', 'low'] as const).map((level) => (
             <View key={level} style={[styles.summaryCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <Text style={[styles.summaryLabel, { color: colors.text }]}>{t(level as any)}</Text>
+              <Text style={[styles.summaryLabel, { color: colors.text }]}>{t(level as string)}</Text>
               <Text style={[styles.summaryValue, { color: RISK_COLORS[level] }]}>{summary.riskBreakdown[level]}</Text>
             </View>
           ))}

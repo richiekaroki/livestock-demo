@@ -94,11 +94,17 @@ function RootNavigator() {
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     'FiraSans-Regular': require('../assets/fonts/FiraSans-Regular.ttf'),
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     'FiraSans-Medium': require('../assets/fonts/FiraSans-Medium.ttf'),
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     'FiraSans-SemiBold': require('../assets/fonts/FiraSans-SemiBold.ttf'),
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     'FiraSans-Bold': require('../assets/fonts/FiraSans-Bold.ttf'),
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     'FiraCode-Regular': require('../assets/fonts/FiraCode-Regular.ttf'),
   });
 
@@ -145,7 +151,7 @@ function PushNotificationsEffect() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    let removed: { remove(): void }[] = [];
+    const removed: { remove(): void }[] = [];
 
     (async () => {
       const token = await registerForPushNotifications();

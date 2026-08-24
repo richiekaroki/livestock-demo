@@ -7,14 +7,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View, useColors } from "@/components/Themed";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { spacing, radius, fontSize, fontWeight } from "@/constants/Tokens";
-import { impactLight, impactMedium, notificationSuccess, notificationError } from "@/src/services/haptics";
+import { impactMedium, notificationSuccess, notificationError } from "@/src/services/haptics";
 import { useToast } from "@/src/components/Toast";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 

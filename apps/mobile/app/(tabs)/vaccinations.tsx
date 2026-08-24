@@ -5,8 +5,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View, useColors } from '@/components/Themed';
-import { spacing, radius, fontSize, fontWeight, shadows } from '@/constants/Tokens';
-import { impactLight, impactMedium, notificationSuccess, notificationError, selectionChanged } from '@/src/services/haptics';
+import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
+import { impactLight, impactMedium, notificationSuccess, selectionChanged } from '@/src/services/haptics';
 import { useToast } from '@/src/components/Toast';
 import * as api from '@/src/services/api';
 import type { Livestock } from '@wam-mfugo/shared';
@@ -51,7 +51,7 @@ export default function VaccinationsScreen() {
       if (animalsRes.success && Array.isArray(animalsRes.data)) {
         setAnimals(animalsRes.data);
       }
-    } catch {}
+    } catch { /* ignored */ }
     setLoading(false);
   };
 

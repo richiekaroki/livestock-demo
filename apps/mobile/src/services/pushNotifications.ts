@@ -1,6 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { API_BASE_URL, apiCall } from './api';
+import { apiCall } from './api';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -15,11 +15,11 @@ Notifications.setNotificationHandler({
 export async function registerForPushNotifications(): Promise<string | null> {
   try {
     const existing = await Notifications.getPermissionsAsync();
-    let finalStatus = (existing as any).status;
+    let finalStatus: string = existing.status;
 
     if (finalStatus !== 'granted') {
       const requested = await Notifications.requestPermissionsAsync();
-      finalStatus = (requested as any).status;
+      finalStatus = requested.status;
     }
 
     if (finalStatus !== 'granted') {

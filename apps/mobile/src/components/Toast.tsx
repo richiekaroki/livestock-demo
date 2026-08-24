@@ -76,7 +76,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
     return () => clearTimeout(timer);
   }, [toast.id, onDismiss, opacity, translateY]);
 
-  const iconMap: Record<ToastType, string> = {
+  const iconMap: Record<ToastType, React.ComponentProps<typeof Ionicons>['name']> = {
     success: 'checkmark-circle',
     error: 'alert-circle',
     warning: 'warning',
@@ -100,7 +100,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
         style={[toastStyles.content, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
         accessibilityLabel="Dismiss notification"
       >
-        <Ionicons name={iconMap[toast.type] as any} size={20} color={colorMap[toast.type]} />
+        <Ionicons name={iconMap[toast.type]} size={20} color={colorMap[toast.type]} />
         <Text style={[toastStyles.message, { color: colors.text }]} numberOfLines={2}>
           {toast.message}
         </Text>

@@ -3,11 +3,11 @@ import { Animated, StyleSheet, Pressable, View as RNView } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useColors } from '@/components/Themed';
-import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
+import { fontSize, fontWeight } from '@/constants/Tokens';
 import { impactMedium } from '@/src/services/haptics';
 
 // Suppress TS type incompatibility with react-native-gesture-handler
-const SwipeableAny = Swipeable as any;
+const SwipeableAny = Swipeable as unknown as typeof Swipeable;
 
 interface SwipeableRowProps {
   children: React.ReactNode;
@@ -24,7 +24,7 @@ export function SwipeableRow({
   deleteLabel = 'Delete',
   editLabel = 'Edit',
 }: SwipeableRowProps) {
-  const swipeableRef = useRef<any>(null);
+  const swipeableRef = useRef<Swipeable>(null);
   const colors = useColors();
 
   const renderRightActions = (progress: Animated.AnimatedInterpolation<number>) => {

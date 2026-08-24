@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated } from 'react-native';
 
 interface StaggeredItemProps {
   index: number;

@@ -6,7 +6,7 @@ import { Text, View, useColors } from '@/components/Themed';
 import AnimalMap from '@/src/components/AnimalMap';
 import { useAnimals } from '@/src/hooks/useAnimals';
 import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
-import { impactLight, selectionChanged } from '@/src/services/haptics';
+import { selectionChanged } from '@/src/services/haptics';
 import { useI18n } from '@/src/i18n';
 
 type HeatmapMetric = 'all' | 'sick' | 'healthy' | 'treatment';

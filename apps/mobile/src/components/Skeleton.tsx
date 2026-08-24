@@ -5,7 +5,7 @@ import { useColors } from '@/components/Themed';
 import { spacing, radius } from '@/constants/Tokens';
 
 // Suppress TS type incompatibility with Expo SDK 54
-const LinearGradientAny = LinearGradient as any;
+const LinearGradientAny = LinearGradient as unknown as typeof LinearGradient;
 
 interface SkeletonProps {
   width?: number | string;

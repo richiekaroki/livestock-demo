@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '@/components/Themed';
-import { spacing, radius } from '@/constants/Tokens';
+import { radius } from '@/constants/Tokens';
 import { impactLight } from '@/src/services/haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, createContext, useContext } from 'react';
@@ -42,7 +42,7 @@ export function ThemeModeProvider({ children }: { children: React.ReactNode }) {
 
 export function DarkModeToggle({ size = 22 }: { size?: number }) {
   const colors = useColors();
-  const { mode, setMode } = useThemeMode();
+  const { setMode } = useThemeMode();
   const isDark = colors.background === '#0C1A0C';
 
   const handlePress = () => {

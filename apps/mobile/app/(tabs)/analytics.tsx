@@ -1,14 +1,12 @@
 import { useMemo, useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View, useColors } from '@/components/Themed';
 import { useAnimals } from '@/src/hooks/useAnimals';
 import { getVaccinationCoverage, type VaccinationCoverageRecord } from '@/src/services/api';
-import { spacing, radius, fontSize, fontWeight, shadows } from '@/constants/Tokens';
-import type { Livestock, AnimalType, HealthStatus } from '@wam-mfugo/shared';
-
-const screenWidth = Dimensions.get('window').width;
+import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
+import type { AnimalType, HealthStatus } from '@wam-mfugo/shared';
 
 // Chart colors — designed for card surfaces, work in both light and dark modes
 const ANIMAL_COLORS: Record<AnimalType, string> = {
@@ -169,12 +167,12 @@ export default function AnalyticsScreen() {
 }
 
 function SummaryCard({ icon, label, value, color, colors }: {
-  icon: string; label: string; value: string; color: string;
+  icon: React.ComponentProps<typeof Ionicons>['name']; label: string; value: string; color: string;
   colors: ReturnType<typeof import('@/components/Themed').useColors>;
 }) {
   return (
     <View style={[styles.summaryCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-      <Ionicons name={icon as any} size={20} color={color} />
+      <Ionicons name={icon} size={20} color={color} />
       <Text style={[styles.summaryValue, { color: colors.text }]}>{value}</Text>
       <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>{label}</Text>
     </View>

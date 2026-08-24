@@ -36,7 +36,7 @@ export function OfflineBanner() {
 
   if (!showBanner) return null;
 
-  let icon: string;
+  let icon: React.ComponentProps<typeof Ionicons>['name'];
   let message: string;
   let bgColor: string;
   let textColor: string;
@@ -81,9 +81,9 @@ export function OfflineBanner() {
       accessibilityRole="alert"
     >
       {isSyncing ? (
-        <Ionicons name={icon as any} size={16} color={textColor} style={offStyles.spin} />
+        <Ionicons name={icon} size={16} color={textColor} style={offStyles.spin} />
       ) : (
-        <Ionicons name={icon as any} size={16} color={textColor} />
+        <Ionicons name={icon} size={16} color={textColor} />
       )}
       <Text style={[offStyles.text, { color: textColor }]}>{message}</Text>
       {onRetry && (

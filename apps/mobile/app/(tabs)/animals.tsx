@@ -6,15 +6,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, View, useColors } from '@/components/Themed';
 import { useAnimals } from '@/src/hooks/useAnimals';
 import { spacing, radius, fontSize, fontWeight, shadows } from '@/constants/Tokens';
-import { selectionChanged, impactLight, impactMedium } from '@/src/services/haptics';
+import { selectionChanged, impactLight } from '@/src/services/haptics';
 import { SearchBar } from '@/src/components/SearchBar';
 import { SwipeableRow } from '@/src/components/SwipeableRow';
 import { StaggeredItem } from '@/src/components/StaggeredItem';
 import AnimalDetailSheet from '@/src/components/AnimalDetailSheet';
-import { useI18n } from '@/src/i18n';
 import { exportCSV } from '@/src/services/export';
-import { deleteAnimal as apiDeleteAnimal, apiCall } from '@/src/services/api';
-import { KENYA_COUNTIES } from '@wam-mfugo/shared';
+import { apiCall } from '@/src/services/api';
 import type { AnimalType, HealthStatus, Livestock } from '@wam-mfugo/shared';
 import { connectSocket, getSocket } from '@/src/services/socket';
 
@@ -29,7 +27,6 @@ export default function AnimalsScreen() {
   const { animals, loading, refresh } = useAnimals();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { t } = useI18n();
   const [type, setType] = useState<AnimalType | 'All'>('All');
   const [health, setHealth] = useState<HealthStatus | 'All'>('All');
   const [county, setCounty] = useState<string>('All');
@@ -99,8 +96,6 @@ export default function AnimalsScreen() {
           try {
             const result = await apiCall<{ queued?: boolean }>('DELETE', `/animals/${animal.id}`);
             if (result && 'queued' in result && result.queued) {
-              const { useToast } = await import('@/src/components/Toast');
-              // Toast needs to be called from a component — use a workaround
               Alert.alert('Queued', 'Deletion queued — will sync when online');
             } else {
               await refresh();

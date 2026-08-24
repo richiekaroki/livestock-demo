@@ -8,11 +8,11 @@ import {
   Platform,
   Pressable,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View, useColors } from "@/components/Themed";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { spacing, radius, fontSize, fontWeight, shadows } from "@/constants/Tokens";
+import { spacing, radius, fontSize, fontWeight } from "@/constants/Tokens";
 import { impactMedium, notificationSuccess, impactLight } from "@/src/services/haptics";
 import { useToast } from "@/src/components/Toast";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -243,7 +243,7 @@ export default function ProfileScreen() {
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, marginTop: spacing.lg }]}>
           <Text style={[styles.label, { color: colors.text }]}>Admin</Text>
           <Pressable
-            onPress={() => { impactLight(); router.push({ pathname: '/admin/users' } as any); }}
+            onPress={() => { impactLight(); router.push('/admin/users' as Href); }}
             style={({ pressed }) => [styles.adminRow, { opacity: pressed ? 0.7 : 1, borderBottomColor: colors.border }]}
             accessibilityLabel="Open user management"
           >
@@ -252,7 +252,7 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
           </Pressable>
           <Pressable
-            onPress={() => { impactLight(); router.push({ pathname: '/admin/audit-logs' } as any); }}
+            onPress={() => { impactLight(); router.push('/admin/audit-logs' as Href); }}
             style={({ pressed }) => [styles.adminRow, { opacity: pressed ? 0.7 : 1 }]}
             accessibilityLabel="Open audit log"
           >

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import {
-  StyleSheet, ScrollView, TextInput, Pressable, Alert, RefreshControl,
+  StyleSheet, ScrollView, TextInput, Pressable, RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View, useColors } from '@/components/Themed';
 import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
-import { impactLight, impactMedium, notificationSuccess, selectionChanged } from '@/src/services/haptics';
+import { impactLight, impactMedium, notificationSuccess } from '@/src/services/haptics';
 import { useToast } from '@/src/components/Toast';
 import * as api from '@/src/services/api';
 
@@ -52,7 +52,7 @@ export default function OutbreaksScreen() {
       if (res.success && Array.isArray(res.data)) {
         setOutbreaks(res.data);
       }
-    } catch {}
+    } catch { /* ignored */ }
     setLoading(false);
   };
 

@@ -8,7 +8,6 @@ import {
   loadAnimalsCache,
   saveAnimalsCache,
 } from "../services/storage";
-import { processQueue } from "../services/offlineQueue";
 import { startSyncService } from "../services/syncService";
 
 export interface UseAnimalsResult {

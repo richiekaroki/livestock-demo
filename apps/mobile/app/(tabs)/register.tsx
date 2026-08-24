@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,10 +12,9 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Text, View, useColors } from '@/components/Themed';
 import { captureAnimalPhoto } from '@/src/services/camera';
-import { useAnimals } from '@/src/hooks/useAnimals';
 import * as api from '@/src/services/api';
-import { spacing, radius, fontSize, fontWeight, shadows } from '@/constants/Tokens';
-import { impactLight, impactMedium, notificationSuccess, notificationError, selectionChanged } from '@/src/services/haptics';
+import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
+import { impactMedium, notificationSuccess, notificationError, selectionChanged } from '@/src/services/haptics';
 import { useToast } from '@/src/components/Toast';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KENYA_COUNTIES, LIVESTOCK_TYPES } from '@wam-mfugo/shared';
@@ -38,8 +36,6 @@ export default function RegisterScreen() {
 
   const [farmers, setFarmers] = useState<Farmer[]>([]);
   const [selectedFarmerId, setSelectedFarmerId] = useState<number | undefined>(undefined);
-
-  const { addAnimal } = useAnimals();
 
   useEffect(() => {
     api.getFarmers().then((res) => {

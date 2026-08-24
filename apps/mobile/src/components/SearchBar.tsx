@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { TextInput, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '@/components/Themed';
-import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
+import { spacing, radius, fontSize } from '@/constants/Tokens';
 import { impactLight } from '@/src/services/haptics';
 
 interface SearchBarProps {

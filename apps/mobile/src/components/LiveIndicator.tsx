@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { StyleSheet, Animated, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { Text, useColors } from '@/components/Themed';
-import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
+import { spacing, fontSize, fontWeight } from '@/constants/Tokens';
 import { connectSocket, getSocket } from '@/src/services/socket';
 
 export function LiveIndicator() {
