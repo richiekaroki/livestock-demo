@@ -17,8 +17,9 @@ export class RegisterDto {
   @MinLength(2)
   name!: string;
 
+  @IsOptional()
   @IsString()
-  phone!: string;
+  phone?: string;
 
   @IsOptional()
   @IsIn(validRoles)

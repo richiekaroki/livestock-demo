@@ -1,7 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-import { PrismaService } from '../common/prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
 import { PredictRiskDto, GetRiskDto, Season } from './dto/predict.dto';
+import {
+  DISEASES_REPOSITORY,
+  DiseasesRepository,
+  DiseaseRiskRecord,
+} from './disease.repository';
+import { parsePagination } from '../common/pagination';
 
 export interface RiskFactor {
   name: string;
@@ -10,15 +14,7 @@ export interface RiskFactor {
   description: string;
 }
 
-export interface DiseaseRiskRecord {
-  id: number;
-  county: string;
-  diseaseType: string;
-  riskLevel: string;
-  confidence: number;
-  factors: RiskFactor[];
-  lastCalculated: string;
-}
+export type { DiseaseRiskRecord };
 
 interface DiseaseProfile {
   name: string;
@@ -68,7 +64,9 @@ const DISEASE_PROFILES: Record<string, DiseaseProfile> = {
 
 @Injectable()
 export class DiseasesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(DISEASES_REPOSITORY) private readonly repo: DiseasesRepository,
+  ) {}
 
   private getCurrentSeason(): Season {
     const month = new Date().getMonth();
@@ -81,44 +79,15 @@ export class DiseasesService {
   private async getOutbreakHistory(county: string, diseaseType: string) {
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-    const outbreaks = await this.prisma.outbreak.findMany({
-      where: {
-        county,
-        diseaseType,
-        reportedAt: { gte: sixMonthsAgo },
-      },
-      orderBy: { reportedAt: 'desc' },
-    });
-
-    return outbreaks.map((o) => ({
-      date: o.reportedAt.toISOString(),
-      affected: o.affectedAnimals,
-      status: o.status,
-    }));
+    return this.repo.findOutbreaks(county, diseaseType, sixMonthsAgo);
   }
 
   private async getAnimalDensity(county: string) {
-    const total = await this.prisma.animal.count({ where: { county } });
-    return total;
+    return this.repo.countAnimalsInCounty(county);
   }
 
   private async getVaccinationCoverage(county: string, diseaseType: string) {
-    const animalsInCounty = await this.prisma.animal.findMany({
-      where: { county },
-      select: { id: true },
-    });
-    const animalIds = animalsInCounty.map((a) => a.id);
-    if (animalIds.length === 0) return 0;
-
-    const vaccinated = await this.prisma.vaccination.count({
-      where: {
-        animalId: { in: animalIds },
-        type: diseaseType,
-      },
-    });
-
-    return vaccinated / animalsInCounty.length;
+    return this.repo.getVaccinationCoverage(county, diseaseType);
   }
 
   private calculateRiskLevel(score: number): string {
@@ -203,32 +172,26 @@ export class DiseasesService {
       const riskLevel = this.calculateRiskLevel(totalScore);
       const confidence = this.calculateConfidence(factors);
 
-      let existing = await this.prisma.diseaseRisk.findUnique({
-        where: {
-          county_diseaseType: { county: dto.county, diseaseType: diseaseName },
-        },
-      });
+      let existing = await this.repo.findDiseaseRiskUnique(
+        dto.county,
+        diseaseName,
+      );
 
       if (existing) {
-        existing = await this.prisma.diseaseRisk.update({
-          where: { id: existing.id },
-          data: {
-            riskLevel,
-            confidence,
-            factors: factors as unknown as Prisma.InputJsonValue,
-            lastCalculated: new Date(),
-          },
+        existing = await this.repo.updateDiseaseRisk(existing.id, {
+          riskLevel,
+          confidence,
+          factors,
+          lastCalculated: new Date(),
         });
       } else {
-        existing = await this.prisma.diseaseRisk.create({
-          data: {
-            county: dto.county,
-            diseaseType: diseaseName,
-            riskLevel,
-            confidence,
-            factors: factors as unknown as Prisma.InputJsonValue,
-            lastCalculated: new Date(),
-          },
+        existing = await this.repo.createDiseaseRisk({
+          county: dto.county,
+          diseaseType: diseaseName,
+          riskLevel,
+          confidence,
+          factors,
+          lastCalculated: new Date(),
         });
       }
 
@@ -238,8 +201,8 @@ export class DiseasesService {
         diseaseType: existing.diseaseType,
         riskLevel: existing.riskLevel,
         confidence: existing.confidence,
-        factors: existing.factors as unknown as RiskFactor[],
-        lastCalculated: existing.lastCalculated.toISOString(),
+        factors: existing.factors,
+        lastCalculated: String(existing.lastCalculated),
       });
     }
 
@@ -252,15 +215,14 @@ export class DiseasesService {
     if (query.diseaseType) where.diseaseType = query.diseaseType;
     if (query.riskLevel) where.riskLevel = query.riskLevel;
 
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 50;
+    const { skip, take } = parsePagination(query);
 
-    const records = await this.prisma.diseaseRisk.findMany({
+    const records = await this.repo.findDiseaseRisks(
       where,
-      orderBy: { lastCalculated: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+      { lastCalculated: 'desc' },
+      skip,
+      take,
+    );
 
     return records.map((r) => ({
       id: r.id,
@@ -268,16 +230,18 @@ export class DiseasesService {
       diseaseType: r.diseaseType,
       riskLevel: r.riskLevel,
       confidence: r.confidence,
-      factors: r.factors as unknown as RiskFactor[],
-      lastCalculated: r.lastCalculated.toISOString(),
+      factors: r.factors,
+      lastCalculated: String(r.lastCalculated),
     }));
   }
 
   async getCountyRiskSummary(county: string) {
-    const risks = await this.prisma.diseaseRisk.findMany({
-      where: { county },
-      orderBy: { riskLevel: 'desc' },
-    });
+    const risks = await this.repo.findDiseaseRisks(
+      { county },
+      { riskLevel: 'desc' },
+      0,
+      1000,
+    );
 
     const levels = { critical: 0, high: 0, medium: 0, low: 0 };
     for (const r of risks) {
@@ -326,14 +290,7 @@ export class DiseasesService {
       });
 
       const newScore = newFactors.reduce((sum, f) => sum + f.weight, 0);
-      const newLevel =
-        newScore >= 0.75
-          ? 'critical'
-          : newScore >= 0.5
-            ? 'high'
-            : newScore >= 0.25
-              ? 'medium'
-              : 'low';
+      const newLevel = this.calculateRiskLevel(newScore);
 
       return {
         ...risk,

@@ -109,7 +109,7 @@ describe("remoteApi", () => {
     mockFetch.mockResolvedValue(jsonResponse({}, false, 500));
 
     await expect(remoteApi.getAnimals()).rejects.toThrow(
-      "Request failed with status 500"
+      "Something went wrong. Please try again."
     );
   });
 

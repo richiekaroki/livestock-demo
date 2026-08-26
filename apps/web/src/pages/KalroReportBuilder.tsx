@@ -110,66 +110,70 @@ export default function KalroReportBuilder() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[var(--color-text)]">
-          {t("KALRO Report Builder", "KALRO Report Builder")}
+        <h1 className="text-2xl font-bold text-text-primary">
+          {t("kalro.title")}
         </h1>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          {t("Generate custom reports for KALRO submission", "Generate custom reports for KALRO submission")}
+        <p className="mt-1 text-sm text-text-secondary">
+          {t("kalro.desc")}
         </p>
       </div>
 
       {/* Filters */}
-      <div className="bg-[var(--color-surface)] rounded-xl p-6 shadow-sm border border-[var(--color-border)] mb-8">
+      <div className="bg-bg-secondary rounded-xl p-6 shadow-sm border border-border mb-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-              {t("Date From", "Date From")}
+            <label htmlFor="kalro-from" className="block text-sm font-medium text-text-primary mb-2">
+              {t("kalro.date_from")}
             </label>
             <input
+              id="kalro-from"
               type="date"
               value={dateRange.from}
               onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
-              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none"
+              className="w-full rounded-lg border border-border bg-bg-secondary px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-              {t("Date To", "Date To")}
+            <label htmlFor="kalro-to" className="block text-sm font-medium text-text-primary mb-2">
+              {t("kalro.date_to")}
             </label>
             <input
+              id="kalro-to"
               type="date"
               value={dateRange.to}
               onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
-              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none"
+              className="w-full rounded-lg border border-border bg-bg-secondary px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-              {t("County", "County")}
+            <label htmlFor="kalro-county" className="block text-sm font-medium text-text-primary mb-2">
+              {t("kalro.county")}
             </label>
             <select
+              id="kalro-county"
               value={county}
               onChange={(e) => setCounty(e.target.value)}
-              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none"
+              className="w-full rounded-lg border border-border bg-bg-secondary px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
             >
-              <option value="">{t("All Counties", "All Counties")}</option>
+              <option value="">{t("kalro.all_counties")}</option>
               {KENYA_COUNTIES.map((c) => (
                 <option key={c.code} value={c.name}>{c.name}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-              {t("Animal Type", "Animal Type")}
+            <label htmlFor="kalro-type" className="block text-sm font-medium text-text-primary mb-2">
+              {t("kalro.animal_type")}
             </label>
             <select
+              id="kalro-type"
               value={animalType}
               onChange={(e) => setAnimalType(e.target.value)}
-              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none"
+              className="w-full rounded-lg border border-border bg-bg-secondary px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
             >
-              <option value="">{t("All Types", "All Types")}</option>
-              {LIVESTOCK_TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
+              <option value="">{t("kalro.all_types")}</option>
+              {LIVESTOCK_TYPES.map((lt) => (
+                <option key={lt} value={lt}>{lt}</option>
               ))}
             </select>
           </div>
@@ -178,16 +182,16 @@ export default function KalroReportBuilder() {
           <button
             onClick={generateReport}
             disabled={loading}
-            className="rounded-lg bg-[var(--color-primary)] px-6 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-primary)]/90 disabled:opacity-50 transition-colors min-h-[44px]"
+            className="rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50 transition-colors min-h-[44px]"
           >
-            {loading ? t("Generating...", "Generating...") : t("Generate Report", "Generate Report")}
+            {loading ? t("kalro.generating") : t("kalro.generate")}
           </button>
           {report && (
             <button
               onClick={exportReport}
-              className="rounded-lg border border-[var(--color-border)] px-6 py-2.5 text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-bg)] transition-colors min-h-[44px]"
+              className="rounded-lg border border-border px-6 py-2.5 text-sm font-medium text-text-primary hover:bg-bg-primary transition-colors min-h-[44px]"
             >
-              {t("Export CSV", "Export CSV")}
+              {t("kalro.export_csv")}
             </button>
           )}
         </div>
@@ -197,21 +201,21 @@ export default function KalroReportBuilder() {
       {report && (
         <div className="space-y-6">
           {/* Summary */}
-          <div className="bg-[var(--color-surface)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-            <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-              {t("Summary", "Summary")}
+          <div className="bg-bg-secondary rounded-xl p-6 shadow-sm border border-border">
+            <h2 className="text-lg font-semibold text-text-primary mb-4">
+              {t("kalro.summary")}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
               {[
-                { label: t("Total", "Total"), value: report.summary.totalAnimals, color: "text-blue-600" },
-                { label: t("Healthy", "Healthy"), value: report.summary.healthy, color: "text-green-600" },
-                { label: t("Sick", "Sick"), value: report.summary.sick, color: "text-red-600" },
-                { label: t("Treatment", "Treatment"), value: report.summary.underTreatment, color: "text-orange-600" },
-                { label: t("Recovered", "Recovered"), value: report.summary.recovered, color: "text-purple-600" },
+                { label: t("kalro.total"), value: report.summary.totalAnimals, color: "text-info" },
+                { label: t("kalro.healthy"), value: report.summary.healthy, color: "text-success" },
+                { label: t("kalro.sick"), value: report.summary.sick, color: "text-error" },
+                { label: t("kalro.treatment"), value: report.summary.underTreatment, color: "text-warning" },
+                { label: t("kalro.recovered"), value: report.summary.recovered, color: "text-purple-600" },
               ].map((s) => (
                 <div key={s.label} className="text-center">
                   <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
-                  <div className="text-sm text-[var(--color-text-secondary)]">{s.label}</div>
+                  <div className="text-sm text-text-secondary">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -219,27 +223,28 @@ export default function KalroReportBuilder() {
 
           {/* By County */}
           {report.byCounty.length > 0 && (
-            <div className="bg-[var(--color-surface)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-              <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-                {t("By County", "By County")}
+            <div className="bg-bg-secondary rounded-xl p-6 shadow-sm border border-border">
+              <h2 className="text-lg font-semibold text-text-primary mb-4">
+                {t("kalro.by_county")}
               </h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="border-b border-[var(--color-border)]">
+                  <caption className="sr-only">Report breakdown</caption>
+                  <thead className="border-b border-border">
                     <tr>
-                      <th className="px-4 py-2 text-left font-medium text-[var(--color-text)]">{t("County", "County")}</th>
-                      <th className="px-4 py-2 text-right font-medium text-[var(--color-text)]">{t("Total", "Total")}</th>
-                      <th className="px-4 py-2 text-right font-medium text-[var(--color-text)]">{t("Healthy", "Healthy")}</th>
-                      <th className="px-4 py-2 text-right font-medium text-[var(--color-text)]">{t("Sick", "Sick")}</th>
+                      <th className="px-4 py-2 text-left font-medium text-text-primary">{t("kalro.county")}</th>
+                      <th className="px-4 py-2 text-right font-medium text-text-primary">{t("kalro.total")}</th>
+                      <th className="px-4 py-2 text-right font-medium text-text-primary">{t("kalro.healthy")}</th>
+                      <th className="px-4 py-2 text-right font-medium text-text-primary">{t("kalro.sick")}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[var(--color-border)]">
+                  <tbody className="divide-y divide-border">
                     {report.byCounty.map((c) => (
                       <tr key={c.county}>
-                        <td className="px-4 py-2 text-[var(--color-text)]">{c.county}</td>
-                        <td className="px-4 py-2 text-right text-[var(--color-text)]">{c.count}</td>
-                        <td className="px-4 py-2 text-right text-green-600">{c.healthy}</td>
-                        <td className="px-4 py-2 text-right text-red-600">{c.sick}</td>
+                        <td className="px-4 py-2 text-text-primary">{c.county}</td>
+                        <td className="px-4 py-2 text-right text-text-primary">{c.count}</td>
+                        <td className="px-4 py-2 text-right text-success">{c.healthy}</td>
+                        <td className="px-4 py-2 text-right text-error">{c.sick}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -250,27 +255,28 @@ export default function KalroReportBuilder() {
 
           {/* By Type */}
           {report.byType.length > 0 && (
-            <div className="bg-[var(--color-surface)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-              <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-                {t("By Animal Type", "By Animal Type")}
+            <div className="bg-bg-secondary rounded-xl p-6 shadow-sm border border-border">
+              <h2 className="text-lg font-semibold text-text-primary mb-4">
+                {t("kalro.by_type")}
               </h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="border-b border-[var(--color-border)]">
+                  <caption className="sr-only">Report breakdown</caption>
+                  <thead className="border-b border-border">
                     <tr>
-                      <th className="px-4 py-2 text-left font-medium text-[var(--color-text)]">{t("Type", "Type")}</th>
-                      <th className="px-4 py-2 text-right font-medium text-[var(--color-text)]">{t("Total", "Total")}</th>
-                      <th className="px-4 py-2 text-right font-medium text-[var(--color-text)]">{t("Healthy", "Healthy")}</th>
-                      <th className="px-4 py-2 text-right font-medium text-[var(--color-text)]">{t("Sick", "Sick")}</th>
+                      <th className="px-4 py-2 text-left font-medium text-text-primary">{t("kalro.type")}</th>
+                      <th className="px-4 py-2 text-right font-medium text-text-primary">{t("kalro.total")}</th>
+                      <th className="px-4 py-2 text-right font-medium text-text-primary">{t("kalro.healthy")}</th>
+                      <th className="px-4 py-2 text-right font-medium text-text-primary">{t("kalro.sick")}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[var(--color-border)]">
+                  <tbody className="divide-y divide-border">
                     {report.byType.map((ty) => (
                       <tr key={ty.type}>
-                        <td className="px-4 py-2 text-[var(--color-text)]">{ty.type}</td>
-                        <td className="px-4 py-2 text-right text-[var(--color-text)]">{ty.count}</td>
-                        <td className="px-4 py-2 text-right text-green-600">{ty.healthy}</td>
-                        <td className="px-4 py-2 text-right text-red-600">{ty.sick}</td>
+                        <td className="px-4 py-2 text-text-primary">{ty.type}</td>
+                        <td className="px-4 py-2 text-right text-text-primary">{ty.count}</td>
+                        <td className="px-4 py-2 text-right text-success">{ty.healthy}</td>
+                        <td className="px-4 py-2 text-right text-error">{ty.sick}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -279,8 +285,8 @@ export default function KalroReportBuilder() {
             </div>
           )}
 
-          <div className="text-xs text-[var(--color-text-secondary)] text-right">
-            {t("Generated", "Generated")}: {new Date(report.generatedAt).toLocaleString()}
+          <div className="text-xs text-text-secondary text-right">
+            {t("kalro.generated")}: {new Date(report.generatedAt).toLocaleString()}
           </div>
         </div>
       )}

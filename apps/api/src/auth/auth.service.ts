@@ -34,7 +34,7 @@ export class AuthService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async requestOtp(email: string, _ip?: string): Promise<{ message: string }> {
+  async requestOtp(email: string, _ip?: string): Promise<{ message: string; otp?: string }> {
     const user = await this.userRepo.findByEmail(email);
 
     if (user && !user.isActive) {
@@ -51,7 +51,14 @@ export class AuthService {
     const otp = await this.otpService.createOtp(email, 'login');
     await this.emailService.sendOtpEmail(email, otp, 'login', user?.name);
 
-    return { message: 'If an account exists, an OTP has been sent.' };
+    // In demo mode, return the OTP so the frontend can display it
+    const isDemo = (process.env.EMAIL_PROVIDER || 'console') === 'console';
+    const autoVerify = process.env.DEV_AUTO_VERIFY === 'true';
+    return {
+      message: 'If an account exists, an OTP has been sent.',
+      ...(isDemo && !autoVerify && { otp }),
+      ...(autoVerify && { otp: '000000', autoVerified: true }),
+    };
   }
 
   async verifyOtp(
@@ -74,28 +81,31 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or OTP code');
     }
 
-    const result = await this.otpService.verifyOtp(email, otp, 'login', ip);
+    // In dev auto-verify mode, skip OTP check entirely
+    if (process.env.DEV_AUTO_VERIFY !== 'true') {
+      const result = await this.otpService.verifyOtp(email, otp, 'login', ip);
 
-    if (!result.valid) {
-      const { failedOtpAttempts, lockedUntil } =
-        await this.otpService.incrementFailedAttempts(user.failedOtpAttempts);
+      if (!result.valid) {
+        const { failedOtpAttempts, lockedUntil } =
+          await this.otpService.incrementFailedAttempts(user.failedOtpAttempts);
 
-      await this.userRepo.update(user.id, {
-        failedOtpAttempts,
-        lockedUntil: lockedUntil?.toISOString(),
-      });
-
-      if (lockedUntil) {
-        await this.auditService.logEvent({
-          event: 'account_locked',
-          email,
-          userId: user.id,
-          ip,
-          metadata: { lockedUntil: lockedUntil.toISOString() },
+        await this.userRepo.update(user.id, {
+          failedOtpAttempts,
+          lockedUntil: lockedUntil?.toISOString(),
         });
-      }
 
-      throw new UnauthorizedException('Invalid email or OTP code');
+        if (lockedUntil) {
+          await this.auditService.logEvent({
+            event: 'account_locked',
+            email,
+            userId: user.id,
+            ip,
+            metadata: { lockedUntil: lockedUntil.toISOString() },
+          });
+        }
+
+        throw new UnauthorizedException('Invalid email or OTP code');
+      }
     }
 
     await this.userRepo.update(user.id, {
@@ -109,7 +119,7 @@ export class AuthService {
   async register(
     data: RegisterRequest,
     ip?: string,
-  ): Promise<{ message: string }> {
+  ): Promise<{ message: string; otp?: string }> {
     const existing = await this.userRepo.findByEmail(data.email);
     if (existing) {
       throw new ConflictException('An account with this email already exists');
@@ -140,8 +150,14 @@ export class AuthService {
       data.name,
     );
 
+    // In demo mode, return the OTP so the frontend can display it
+    const isDemo = (process.env.EMAIL_PROVIDER || 'console') === 'console';
+    // In dev auto-verify mode, skip OTP entirely — user is immediately active
+    const autoVerify = process.env.DEV_AUTO_VERIFY === 'true';
     return {
       message: 'Account created. Please verify your email with the OTP sent.',
+      ...(isDemo && !autoVerify && { otp }),
+      ...(autoVerify && { otp: '000000', autoVerified: true }),
     };
   }
 
@@ -151,9 +167,12 @@ export class AuthService {
     ip?: string,
     device?: string,
   ): Promise<AuthResponse> {
-    const result = await this.otpService.verifyOtp(email, otp, 'register', ip);
-    if (!result.valid) {
-      throw new UnauthorizedException('Invalid email or OTP code');
+    // In dev auto-verify mode, skip OTP check entirely
+    if (process.env.DEV_AUTO_VERIFY !== 'true') {
+      const result = await this.otpService.verifyOtp(email, otp, 'register', ip);
+      if (!result.valid) {
+        throw new UnauthorizedException('Invalid email or OTP code');
+      }
     }
 
     const user = await this.userRepo.findByEmail(email);

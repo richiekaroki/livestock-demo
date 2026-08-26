@@ -7,8 +7,8 @@ import { StatsModule } from './stats/stats.module';
 import { KalroModule } from './kalro/kalro.module';
 import { KiamisModule } from './kiamis/kiamis.module';
 import { OutbreaksModule } from './outbreaks/outbreaks.module';
-import { HealthModule } from './health/health.module';
-import { RefModule } from './ref/ref.module';
+import { HealthCheckModule } from './health-check/health-check.module';
+import { ReferenceModule } from './reference/reference.module';
 import { FarmersModule } from './farmers/farmers.module';
 import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
@@ -37,8 +37,8 @@ import { HealthAssessmentModule } from './health-assessment/health-assessment.mo
     KalroModule,
     KiamisModule,
     OutbreaksModule,
-    HealthModule,
-    RefModule,
+    HealthCheckModule,
+    ReferenceModule,
     FarmersModule,
     VaccinationsModule,
     UploadModule,

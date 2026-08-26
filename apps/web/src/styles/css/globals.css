@@ -80,7 +80,7 @@ code, pre, .font-mono {
 
 /* Ensure full black margins on dark mode */
 [data-theme="dark"] body {
-  background-color: #0C1A0C;
+  background-color: #0F1117;
 }
 
 /* ============================================

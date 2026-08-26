@@ -20,8 +20,8 @@ export default class ErrorBoundary extends Component<
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, errorMessage: error.message };
+  static getDerivedStateFromError(): ErrorBoundaryState {
+    return { hasError: true };
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
@@ -41,7 +41,7 @@ export default class ErrorBoundary extends Component<
             Something went wrong
           </h1>
           <p className="text-text-secondary mb-4">
-            {this.state.errorMessage || "An unexpected error occurred."}
+            Something went wrong. Please reload the page.
           </p>
           <button
             onClick={this.handleReload}

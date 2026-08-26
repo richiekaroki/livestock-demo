@@ -120,6 +120,7 @@ export default function UserList() {
       {!loading && filteredUsers.length > 0 && (
         <div className="card overflow-x-auto">
           <table className="w-full text-sm">
+            <caption className="sr-only">User management</caption>
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left p-3 font-medium text-text-secondary">{t("admin.users_col_name")}</th>
@@ -150,13 +151,13 @@ export default function UserList() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleDeactivate(user.id)}
-                        className="text-xs text-error hover:text-error/80 transition-colors cursor-pointer"
+                        className="text-xs text-error hover:text-error/80 transition-colors cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         {user.isActive ? t("admin.users_deactivate") : t("admin.users_activate")}
                       </button>
                       <button
                         onClick={() => handleRevokeSessions(user.id)}
-                        className="text-xs text-warning hover:text-warning/80 transition-colors cursor-pointer"
+                        className="text-xs text-warning hover:text-warning/80 transition-colors cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         {t("admin.users_revoke_sessions")}
                       </button>

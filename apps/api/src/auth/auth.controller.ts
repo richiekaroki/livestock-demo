@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Patch,
   Post,
   Req,
@@ -12,9 +13,11 @@ import {
 import type { Response } from 'express';
 import type { ApiResponse } from '@wam-mfugo/shared';
 import { AuthService } from './auth.service';
+import { InvitationService } from './invitation.service';
 import { RequestOtpDto } from './dto/request-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { RegisterDto } from './dto/register.dto';
+import { InviteDto } from './dto/invite.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { SessionService } from './session.service';
@@ -45,6 +48,7 @@ function clearRefreshCookie(res: Response) {
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly invitationService: InvitationService,
     private readonly sessionService: SessionService,
   ) {}
 
@@ -52,7 +56,7 @@ export class AuthController {
   async requestOtp(
     @Body() dto: RequestOtpDto,
     @Req() req: { ip?: string },
-  ): Promise<ApiResponse<{ message: string }>> {
+  ): Promise<ApiResponse<{ message: string; otp?: string }>> {
     const result = await this.authService.requestOtp(dto.email, req.ip);
     return { success: true, data: result };
   }
@@ -88,8 +92,11 @@ export class AuthController {
   async register(
     @Body() dto: RegisterDto,
     @Req() req: { ip?: string },
-  ): Promise<ApiResponse<{ message: string }>> {
-    const result = await this.authService.register(dto, req.ip);
+  ): Promise<ApiResponse<{ message: string; otp?: string }>> {
+    const result = await this.authService.register(
+      { ...dto, phone: dto.phone || '' },
+      req.ip,
+    );
     return { success: true, data: result };
   }
 
@@ -103,6 +110,40 @@ export class AuthController {
     const data = await this.authService.verifyRegistration(
       dto.email,
       dto.otp,
+      req.ip,
+      device,
+    );
+
+    const refreshExpires = new Date();
+    refreshExpires.setDate(refreshExpires.getDate() + 7);
+    setRefreshCookie(res, data.refreshToken, refreshExpires);
+
+    res.json({
+      success: true,
+      data: {
+        ...data,
+        refreshToken: undefined,
+      },
+    });
+  }
+
+  @Post('invite')
+  async invite(
+    @Body() dto: InviteDto,
+  ): Promise<ApiResponse<{ message: string; inviteLink?: string }>> {
+    const result = await this.invitationService.createInvitation(dto);
+    return { success: true, data: result };
+  }
+
+  @Get('verify-invite/:token')
+  async verifyInvite(
+    @Param('token') token: string,
+    @Req() req: { ip?: string; headers: Record<string, string> },
+    @Res() res: Response,
+  ): Promise<void> {
+    const device = req.headers['user-agent'];
+    const data = await this.invitationService.verifyInvitation(
+      token,
       req.ip,
       device,
     );

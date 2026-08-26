@@ -1,7 +1,7 @@
 // src/pages/MapView.tsx
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import FilterBar from "../components/filters/FilterBar";
+import FilterBar from "../components/ui/FilterBar";
 import LivestockMap from "../components/map/LivestockMap";
 import { useLivestockStore } from "../store/livestockStore";
 import type { Livestock } from "@wam-mfugo/shared";
@@ -13,17 +13,18 @@ interface MapViewProps {
 }
 
 function StatsSkeleton() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm animate-pulse" role="status" aria-busy="true" aria-label="Loading map statistics">
       <div className="flex items-center gap-2">
-        <span className="text-text-tertiary">Showing:</span>
+        <span className="text-text-tertiary">{t("map.showing")}</span>
         <span className="w-8 h-4 bg-bg-tertiary rounded" />
-        <span className="text-text-tertiary">animals</span>
+        <span className="text-text-tertiary">{t("map.animals")}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-text-tertiary">Across:</span>
+        <span className="text-text-tertiary">{t("map.across")}</span>
         <span className="w-4 h-4 bg-bg-tertiary rounded" />
-        <span className="text-text-tertiary">counties</span>
+        <span className="text-text-tertiary">{t("map.counties")}</span>
       </div>
     </div>
   );
@@ -50,9 +51,9 @@ function ActiveFilterChips({
         <button
           key={chip.key}
           onClick={() => onRemove(chip.key)}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-accent/10 text-accent rounded-full hover:bg-accent/20 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-accent/10 text-accent rounded-full hover:bg-accent/20 transition-colors cursor-pointer min-h-[44px]"
           role="listitem"
-          aria-label={`Remove filter: ${chip.label}`}
+          aria-label={`${t("map.remove_filter")}${chip.label}`}
         >
           {chip.label}
           <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

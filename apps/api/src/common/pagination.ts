@@ -15,3 +15,9 @@ export class PaginatedDto {
   @Max(100)
   limit?: number;
 }
+
+export function parsePagination(query: { page?: number; limit?: number }) {
+  const page = query.page ?? 1;
+  const limit = query.limit ?? 50;
+  return { skip: (page - 1) * limit, take: limit, page, limit };
+}

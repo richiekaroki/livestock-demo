@@ -2,7 +2,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { UserRole } from '@wam-mfugo/shared';
 import { USER_REPOSITORY, type UserRepository } from '../auth/user.repository';
 import { SessionService } from '../auth/session.service';
-import { AuditService } from '../auth/audit.service';
+import { AuditService } from '../common/audit/audit.service';
 
 @Injectable()
 export class AdminService {

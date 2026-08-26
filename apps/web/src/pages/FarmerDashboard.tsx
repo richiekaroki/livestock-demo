@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { backend } from "../services/backend";
 import type { AnimalStats, Livestock } from "@wam-mfugo/shared";
 
@@ -13,11 +14,19 @@ interface DashboardStats {
   pendingSync: number;
 }
 
+const HEALTH_KEY_MAP: Record<string, string> = {
+  Healthy: "health.healthy",
+  Sick: "health.sick",
+  "Under Treatment": "health.under_treatment",
+  Recovered: "health.recovered",
+};
+
 export default function FarmerDashboard() {
   const { t } = useTranslation();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentAnimals, setRecentAnimals] = useState<Livestock[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadDashboard();
@@ -53,6 +62,8 @@ export default function FarmerDashboard() {
         upcomingReminders: reminders.length,
         pendingSync: 0,
       });
+    } catch {
+      setError(t("farmer.error"));
     } finally {
       setLoading(false);
     }
@@ -61,8 +72,21 @@ export default function FarmerDashboard() {
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center py-12 text-[var(--color-text-secondary)]">
-          {t("Loading dashboard...", "Loading dashboard...")}
+        <div className="text-center py-12 text-text-secondary">
+          {t("farmer.loading")}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">
+          <p className="text-error mb-4">{error}</p>
+          <button onClick={loadDashboard} className="btn btn-primary text-sm">
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -70,22 +94,22 @@ export default function FarmerDashboard() {
 
   const cards = stats
     ? [
-        { label: t("Total Animals", "Total Animals"), value: stats.totalAnimals, color: "bg-blue-500" },
-        { label: t("Healthy", "Healthy"), value: stats.healthy, color: "bg-green-500" },
-        { label: t("Sick", "Sick"), value: stats.sick, color: "bg-red-500" },
-        { label: t("Under Treatment", "Under Treatment"), value: stats.underTreatment, color: "bg-orange-500" },
-        { label: t("Upcoming Reminders", "Upcoming Reminders"), value: stats.upcomingReminders, color: "bg-purple-500" },
+        { label: t("farmer.total"), value: stats.totalAnimals, color: "bg-info" },
+        { label: t("farmer.healthy"), value: stats.healthy, color: "bg-success" },
+        { label: t("farmer.sick"), value: stats.sick, color: "bg-error" },
+        { label: t("farmer.treatment"), value: stats.underTreatment, color: "bg-warning" },
+        { label: t("farmer.upcoming"), value: stats.upcomingReminders, color: "bg-info" },
       ]
     : [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[var(--color-text)]">
-          {t("My Farm Dashboard", "My Farm Dashboard")}
+        <h1 className="text-2xl font-bold text-text-primary">
+          {t("farmer.title")}
         </h1>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          {t("Overview of your livestock and health status", "Overview of your livestock and health status")}
+        <p className="mt-1 text-sm text-text-secondary">
+          {t("farmer.desc")}
         </p>
       </div>
 
@@ -94,37 +118,40 @@ export default function FarmerDashboard() {
         {cards.map((c) => (
           <div
             key={c.label}
-            className="bg-[var(--color-surface)] rounded-xl p-4 shadow-sm border border-[var(--color-border)]"
+            className="bg-bg-secondary rounded-xl p-4 shadow-sm border border-border"
           >
             <div className={`w-3 h-3 rounded-full ${c.color} mb-2`} />
-            <div className="text-2xl font-bold text-[var(--color-text)]">{c.value}</div>
-            <div className="text-sm text-[var(--color-text-secondary)]">{c.label}</div>
+            <div className="text-2xl font-bold text-text-primary">{c.value}</div>
+            <div className="text-sm text-text-secondary">{c.label}</div>
           </div>
         ))}
       </div>
 
       {/* Recent Animals */}
-      <div className="bg-[var(--color-surface)] rounded-xl shadow-sm border border-[var(--color-border)]">
-        <div className="px-6 py-4 border-b border-[var(--color-border)]">
-          <h2 className="text-lg font-semibold text-[var(--color-text)]">
-            {t("Recent Animals", "Recent Animals")}
+      <div className="bg-bg-secondary rounded-xl shadow-sm border border-border">
+        <div className="px-6 py-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-text-primary">
+            {t("farmer.recent")}
           </h2>
         </div>
-        <div className="divide-y divide-[var(--color-border)]">
+        <div className="divide-y divide-border">
           {recentAnimals.length === 0 ? (
-            <div className="px-6 py-8 text-center text-[var(--color-text-secondary)]">
-              {t("No animals registered yet", "No animals registered yet")}
+            <div className="px-6 py-8 text-center text-text-secondary">
+              <p className="mb-4">{t("farmer.empty")}</p>
+              <Link to="/dashboard" className="btn btn-primary text-sm">
+                {t("farmer.registerFirst")}
+              </Link>
             </div>
           ) : (
             recentAnimals.map((a) => (
               <div key={a.id} className="px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)] font-medium">
+                  <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent font-medium">
                     {a.name?.charAt(0) || "A"}
                   </div>
                   <div>
-                    <div className="font-medium text-[var(--color-text)]">{a.name}</div>
-                    <div className="text-sm text-[var(--color-text-secondary)]">
+                    <div className="font-medium text-text-primary">{a.name}</div>
+                    <div className="text-sm text-text-secondary">
                       {a.type} — {a.county}
                     </div>
                   </div>
@@ -132,13 +159,13 @@ export default function FarmerDashboard() {
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     a.health === "Healthy"
-                      ? "bg-green-100 text-green-800"
+                      ? "bg-success/10 text-success"
                       : a.health === "Sick"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-orange-100 text-orange-800"
+                      ? "bg-error/10 text-error"
+                      : "bg-warning/10 text-warning"
                   }`}
                 >
-                  {t(a.health, a.health)}
+                  {t(HEALTH_KEY_MAP[a.health] || a.health, a.health)}
                 </span>
               </div>
             ))

@@ -86,7 +86,7 @@ export default function OfflineIndicator() {
 
           <button
             onClick={() => setIsDismissed(true)}
-            className="flex-shrink-0 text-white/70 hover:text-white transition-colors cursor-pointer"
+            className="flex-shrink-0 text-white/70 hover:text-white transition-colors cursor-pointer min-h-[44px] min-w-[44px] p-1"
             aria-label="Dismiss notification"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

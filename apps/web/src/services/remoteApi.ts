@@ -15,6 +15,7 @@ import type {
   User,
 } from "@wam-mfugo/shared";
 import { apiDelete, apiGet, apiPatch, apiPost } from "./apiClient";
+import { API_BASE, TOKEN_KEY } from "../config";
 
 interface KIAMISRegistrationPayload {
   animalType: string;
@@ -159,9 +160,9 @@ export const remoteApi = {
   importAnimalsCsv: (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    const token = localStorage.getItem("wam_auth_token") || "";
+    const token = localStorage.getItem(TOKEN_KEY) || "";
     return fetch(
-      `${import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api"}/animals/import`,
+      `${API_BASE}/animals/import`,
       {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -176,9 +177,9 @@ export const remoteApi = {
   bulkDelete: (ids: number[]) =>
     apiPost<ApiResponse<{ deleted: number }>>("/animals/bulk/delete", { ids }),
   bulkExport: (ids: number[]) => {
-    const token = localStorage.getItem("wam_auth_token") || "";
+    const token = localStorage.getItem(TOKEN_KEY) || "";
     window.open(
-      `${import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api"}/animals/bulk/export?ids=${ids.join(",")}&token=${token}`,
+      `${API_BASE}/animals/bulk/export?ids=${ids.join(",")}&token=${token}`,
       "_blank"
     );
   },
@@ -189,9 +190,9 @@ export const remoteApi = {
 
   // Report export
   downloadReport: () => {
-    const token = localStorage.getItem("wam_auth_token") || "";
+    const token = localStorage.getItem(TOKEN_KEY) || "";
     window.open(
-      `${import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api"}/stats/report?token=${token}`,
+      `${API_BASE}/stats/report?token=${token}`,
       "_blank"
     );
   },
@@ -243,11 +244,11 @@ export const remoteApi = {
     const formData = new FormData();
     formData.append("file", file);
     return new Promise((resolve, reject) => {
-      fetch(`${import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api"}/upload/animal-photo`, {
+      fetch(`${API_BASE}/upload/animal-photo`, {
         method: "POST",
         credentials: "include",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("wam_auth_token") || ""}`,
+          Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY) || ""}`,
         },
         body: formData,
       })
@@ -260,3 +261,123 @@ export const remoteApi = {
     });
   },
 };
+
+// Government API integration (KALRO/KIAMIS stubs)
+interface KALROSyncPayload {
+  animalType: string;
+  ownerNationalID: string;
+  countyCode: string;
+  subCountyCode: string;
+  wardCode: string;
+  biometricHash: string;
+  gpsCoordinates: { lat: number; lng: number };
+  timestamp: string;
+}
+
+interface SyncResult {
+  synced: number;
+  failed: number;
+  errors: string[];
+}
+
+class GovernmentAPIService {
+  private _useRemoteBackend =
+    Boolean(import.meta.env.VITE_API_BASE_URL) &&
+    import.meta.env.VITE_OFFLINE_MODE !== "true";
+
+  async registerWithKIAMIS(
+    payload: KALROSyncPayload
+  ): Promise<KIAMISRegistrationResponse> {
+    try {
+      if (this._useRemoteBackend) {
+        const res = await remoteApi.registerWithKIAMIS(payload);
+        return res.data;
+      }
+
+      await this.simulateNetworkDelay();
+
+      const registrationNumber = `KE-${payload.countyCode}-${Date.now().toString(36).toUpperCase()}`;
+
+      return {
+        success: true,
+        animalRegistrationNumber: registrationNumber,
+        qrCode: `data:image/svg+xml;base64,${btoa(`<svg>QR-${registrationNumber}</svg>`)}`,
+        message: "Animal successfully registered with KIAMIS",
+      };
+    } catch (error) {
+      console.error("KIAMIS registration failed:", error);
+      return {
+        success: false,
+        animalRegistrationNumber: "",
+        qrCode: "",
+        message: error instanceof Error ? error.message : "Registration failed",
+      };
+    }
+  }
+
+  async fetchKALROVeterinaryRecords(animalId: string): Promise<KALROVeterinaryRecord | null> {
+    try {
+      if (this._useRemoteBackend) {
+        const res = await remoteApi.fetchKALROVeterinaryRecords(animalId);
+        return res.success ? res.data : null;
+      }
+
+      await this.simulateNetworkDelay();
+
+      return {
+        animalId,
+        vaccination: [
+          { type: "FMD", date: "2024-09-15", batchNumber: "FMD-2024-KE-08932", veterinarian: "Dr. James Mwangi" },
+          { type: "LSD", date: "2024-07-20", batchNumber: "LSD-2024-KE-07654", veterinarian: "Dr. Sarah Njeri" },
+        ],
+        diseases: [{ name: "East Coast Fever", reportedDate: "2024-06-10", status: "treated" }],
+        lastInspection: "2024-10-01",
+      };
+    } catch (error) {
+      console.error("KALRO fetch failed:", error);
+      return null;
+    }
+  }
+
+  async reportDiseaseOutbreak(data: {
+    diseaseType: string;
+    affectedAnimals: number;
+    county: string;
+    lat: number;
+    lng: number;
+    reportedBy: string;
+  }): Promise<boolean> {
+    try {
+      if (this._useRemoteBackend) {
+        const res = await remoteApi.reportDiseaseOutbreak(data);
+        return res.success;
+      }
+      await this.simulateNetworkDelay();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async processOfflineQueue(): Promise<{ processed: number; failed: number }> {
+    try {
+      await this.simulateNetworkDelay(1000);
+      const queueStr = localStorage.getItem("kalro_sync_queue") || "[]";
+      const queue = JSON.parse(queueStr);
+      const processed = queue.length;
+      const failed = Math.floor(Math.random() * 2);
+      const remainingQueue = queue.slice(processed - failed);
+      localStorage.setItem("kalro_sync_queue", JSON.stringify(remainingQueue));
+      return { processed: processed - failed, failed };
+    } catch (error) {
+      console.error("Queue processing failed:", error);
+      return { processed: 0, failed: 1 };
+    }
+  }
+
+  private simulateNetworkDelay(ms: number = 800): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+}
+
+export const governmentAPI = new GovernmentAPIService();

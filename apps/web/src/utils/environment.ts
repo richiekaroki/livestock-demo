@@ -157,5 +157,10 @@ export const isValidKenyanPhone = (phone: string): boolean => {
   return config.validation.phonePattern.test(phone);
 };
 
+// Storage keys (single source of truth)
+export const API_BASE = config.api.baseUrl;
+export const TOKEN_KEY = 'wam_auth_token';
+export const USER_KEY = 'wam_auth_user';
+
 // Export for testing
 export default config;

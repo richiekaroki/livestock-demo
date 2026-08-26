@@ -1,5 +1,5 @@
 // src/components/animals/AnimalEditModal.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import type { Livestock } from "@wam-mfugo/shared";
 import { KENYA_COUNTIES, LIVESTOCK_TYPES } from "@wam-mfugo/shared";
 import { backend } from "../../services/backend";
@@ -23,6 +23,8 @@ export default function AnimalEditModal({
   const [health, setHealth] = useState<Livestock["health"]>("Healthy");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     if (animal) {
@@ -35,6 +37,34 @@ export default function AnimalEditModal({
       setError(null);
     }
   }, [animal]);
+
+  useEffect(() => {
+    if (!animal) return;
+    const previouslyFocused = document.activeElement as HTMLElement;
+    titleRef.current?.focus();
+    return () => previouslyFocused?.focus();
+  }, [animal]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      onClose();
+    }
+    if (e.key === "Tab" && modalRef.current) {
+      const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }, [onClose]);
 
   if (!animal) return null;
 
@@ -70,19 +100,25 @@ export default function AnimalEditModal({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
+      onKeyDown={handleKeyDown}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
     >
       <form
+        ref={modalRef}
         className="card p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto"
         onSubmit={handleSubmit}
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-text-primary">
+          <h2 id="modal-title" ref={titleRef} tabIndex={-1} className="text-xl font-bold text-text-primary outline-none">
             Edit Animal
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-text-tertiary hover:text-text-primary cursor-pointer"
+            className="p-2.5 text-text-tertiary hover:text-text-primary cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-bg-secondary transition-colors"
+            aria-label="Close dialog"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -93,8 +129,9 @@ export default function AnimalEditModal({
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-text-secondary">Animal Name</label>
+            <label htmlFor="edit-name" className="block text-sm font-medium mb-1.5 text-text-secondary">Animal Name</label>
             <input
+              id="edit-name"
               className="input-field"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -105,8 +142,9 @@ export default function AnimalEditModal({
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-text-secondary">Animal Type</label>
+              <label htmlFor="edit-type" className="block text-sm font-medium mb-1.5 text-text-secondary">Animal Type</label>
               <select
+                id="edit-type"
                 className="input-field"
                 value={type}
                 onChange={(e) => setType(e.target.value as Livestock["type"])}
@@ -119,8 +157,9 @@ export default function AnimalEditModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-text-secondary">Health Status</label>
+              <label htmlFor="edit-health" className="block text-sm font-medium mb-1.5 text-text-secondary">Health Status</label>
               <select
+                id="edit-health"
                 className="input-field"
                 value={health}
                 onChange={(e) => setHealth(e.target.value as Livestock["health"])}
@@ -135,8 +174,9 @@ export default function AnimalEditModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-text-secondary">Breed</label>
+            <label htmlFor="edit-breed" className="block text-sm font-medium mb-1.5 text-text-secondary">Breed</label>
             <input
+              id="edit-breed"
               className="input-field"
               value={breed}
               onChange={(e) => setBreed(e.target.value)}
@@ -146,8 +186,9 @@ export default function AnimalEditModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-text-secondary">County</label>
+            <label htmlFor="edit-county" className="block text-sm font-medium mb-1.5 text-text-secondary">County</label>
             <select
+              id="edit-county"
               className="input-field"
               value={county}
               onChange={(e) => setCounty(e.target.value)}
@@ -160,8 +201,9 @@ export default function AnimalEditModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-text-secondary">Owner Name</label>
+            <label htmlFor="edit-owner" className="block text-sm font-medium mb-1.5 text-text-secondary">Owner Name</label>
             <input
+              id="edit-owner"
               className="input-field"
               value={owner}
               onChange={(e) => setOwner(e.target.value)}

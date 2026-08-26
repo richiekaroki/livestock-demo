@@ -71,32 +71,33 @@ export default function MortalityTracking() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-[var(--color-text)]">
-            {t("Mortality Tracking", "Mortality Tracking")}
+            {t("mortality.title")}
           </h1>
           <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-            {t("Track and analyze animal mortality data", "Track and analyze animal mortality data")}
+            {t("mortality.desc")}
           </p>
         </div>
         <button
           onClick={() => setShowReport(!showReport)}
-          className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors min-h-[44px]"
+          className="rounded-lg bg-[var(--color-error)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-error)]/80 transition-colors min-h-[44px]"
         >
-          {t("Report Mortality", "Report Mortality")}
+          {t("mortality.report")}
         </button>
       </div>
 
       {showReport && (
         <div className="bg-[var(--color-surface)] rounded-xl p-6 shadow-sm border border-[var(--color-border)] mb-8">
           <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-            {t("Report Animal Mortality", "Report Animal Mortality")}
+            {t("mortality.report_title")}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text)] mb-1">{t("Animal ID", "Animal ID")}</label>
+              <label htmlFor="mortality-animal-id" className="block text-sm font-medium text-[var(--color-text)] mb-1">{t("mortality.animal_id")}</label>
               <input
+                id="mortality-animal-id"
                 type="number"
                 value={form.animalId}
                 onChange={(e) => setForm({ ...form, animalId: e.target.value })}
@@ -105,25 +106,27 @@ export default function MortalityTracking() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text)] mb-1">{t("Cause", "Cause")}</label>
+              <label htmlFor="mortality-cause" className="block text-sm font-medium text-[var(--color-text)] mb-1">{t("mortality.cause")}</label>
               <select
+                id="mortality-cause"
                 value={form.cause}
                 onChange={(e) => setForm({ ...form, cause: e.target.value })}
                 className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none"
               >
-                <option value="">{t("Select cause", "Select cause")}</option>
-                <option value="disease">{t("Disease", "Disease")}</option>
-                <option value="predation">{t("Predation", "Predation")}</option>
-                <option value="accident">{t("Accident", "Accident")}</option>
-                <option value="old_age">{t("Old Age", "Old Age")}</option>
-                <option value="malnutrition">{t("Malnutrition", "Malnutrition")}</option>
-                <option value="poisoning">{t("Poisoning", "Poisoning")}</option>
-                <option value="other">{t("Other", "Other")}</option>
+                <option value="">{t("mortality.select_cause")}</option>
+                <option value="disease">{t("mortality.disease")}</option>
+                <option value="predation">{t("mortality.predation")}</option>
+                <option value="accident">{t("mortality.accident")}</option>
+                <option value="old_age">{t("mortality.old_age")}</option>
+                <option value="malnutrition">{t("mortality.malnutrition")}</option>
+                <option value="poisoning">{t("mortality.poisoning")}</option>
+                <option value="other">{t("mortality.other")}</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text)] mb-1">{t("Disease Name (optional)", "Disease Name (optional)")}</label>
+              <label htmlFor="mortality-disease" className="block text-sm font-medium text-[var(--color-text)] mb-1">{t("mortality.disease_name")}</label>
               <input
+                id="mortality-disease"
                 type="text"
                 value={form.diseaseName}
                 onChange={(e) => setForm({ ...form, diseaseName: e.target.value })}
@@ -132,8 +135,9 @@ export default function MortalityTracking() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text)] mb-1">{t("Notes (optional)", "Notes (optional)")}</label>
+              <label htmlFor="mortality-notes" className="block text-sm font-medium text-[var(--color-text)] mb-1">{t("mortality.notes")}</label>
               <input
+                id="mortality-notes"
                 type="text"
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
@@ -145,15 +149,15 @@ export default function MortalityTracking() {
             <button
               onClick={handleReport}
               disabled={submitting || !form.animalId || !form.cause}
-              className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+               className="rounded-lg bg-[var(--color-error)] px-4 py-2 min-h-[44px] text-sm font-medium text-white hover:bg-[var(--color-error)]/80 disabled:opacity-50 transition-colors"
             >
-              {submitting ? t("Submitting...", "Submitting...") : t("Submit Report", "Submit Report")}
+              {submitting ? t("mortality.submitting") : t("mortality.submit_report")}
             </button>
             <button
               onClick={() => setShowReport(false)}
-              className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-colors"
+               className="rounded-lg border border-[var(--color-border)] px-4 py-2 min-h-[44px] text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-colors"
             >
-              {t("Cancel", "Cancel")}
+              {t("mortality.cancel")}
             </button>
           </div>
         </div>
@@ -162,21 +166,21 @@ export default function MortalityTracking() {
       {stats && (
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
           <div className="bg-[var(--color-surface)] rounded-xl p-4 shadow-sm border border-[var(--color-border)]">
-            <div className="text-sm text-[var(--color-text-secondary)]">{t("Total", "Total")}</div>
+            <div className="text-sm text-[var(--color-text-secondary)]">{t("mortality.total")}</div>
             <div className="text-2xl font-bold text-[var(--color-text)]">{stats.total}</div>
           </div>
           <div className="bg-[var(--color-surface)] rounded-xl p-4 shadow-sm border border-[var(--color-border)]">
-            <div className="text-sm text-[var(--color-text-secondary)]">{t("Last 30 Days", "Last 30 Days")}</div>
-            <div className="text-2xl font-bold text-red-600">{stats.recentCount}</div>
+            <div className="text-sm text-[var(--color-text-secondary)]">{t("mortality.last_30_days")}</div>
+            <div className="text-2xl font-bold text-[var(--color-error)]">{stats.recentCount}</div>
           </div>
           <div className="bg-[var(--color-surface)] rounded-xl p-4 shadow-sm border border-[var(--color-border)]">
-            <div className="text-sm text-[var(--color-text-secondary)]">{t("Top Cause", "Top Cause")}</div>
+            <div className="text-sm text-[var(--color-text-secondary)]">{t("mortality.top_cause")}</div>
             <div className="text-lg font-bold text-[var(--color-text)] capitalize">
               {stats.byCause[0]?.cause ?? "—"}
             </div>
           </div>
           <div className="bg-[var(--color-surface)] rounded-xl p-4 shadow-sm border border-[var(--color-border)]">
-            <div className="text-sm text-[var(--color-text-secondary)]">{t("Most Affected", "Most Affected")}</div>
+            <div className="text-sm text-[var(--color-text-secondary)]">{t("mortality.most_affected")}</div>
             <div className="text-lg font-bold text-[var(--color-text)]">
               {stats.byCounty[0]?.county ?? "—"}
             </div>
@@ -204,11 +208,11 @@ export default function MortalityTracking() {
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 capitalize">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--color-error)]/10 text-[var(--color-error)] capitalize">
                   {r.cause}
                 </span>
                 {r.diseaseName && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--color-warning)]/10 text-[var(--color-warning)]">
                     {r.diseaseName}
                   </span>
                 )}
@@ -222,7 +226,7 @@ export default function MortalityTracking() {
         </div>
       ) : (
         <div className="text-center py-12 text-[var(--color-text-secondary)]">
-          {t("No mortality records found.", "No mortality records found.")}
+          {t("mortality.no_records")}
         </div>
       )}
     </div>

@@ -6,7 +6,7 @@ import type { Server } from 'http';
 import { AppModule } from './../src/app.module';
 import { OtpService } from './../src/auth/otp.service';
 
-const ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || 'admin@example.com';
+const ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || 'demo@wamfugo.ke';
 
 describe('Wam Mfugo API (e2e)', () => {
   let app: INestApplication;

@@ -91,60 +91,63 @@ export default function WeightGainAnalytics() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text)]">
-            {t("Weight Gain Analytics", "Weight Gain Analytics")}
+          <h1 className="text-2xl font-bold text-text-primary">
+            {t("weight.title")}
           </h1>
-          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-            {t("Track animal weight over time and analyze growth rates", "Track animal weight over time and analyze growth rates")}
+          <p className="mt-1 text-sm text-text-secondary">
+            {t("weight.desc")}
           </p>
         </div>
         <button
           onClick={() => setShowRecord(!showRecord)}
-          className="rounded-lg bg-[var(--color-primary)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-primary)]/90 transition-colors min-h-[44px]"
+          className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-hover transition-colors min-h-[44px]"
         >
-          {t("Record Weight", "Record Weight")}
+          {t("weight.record_weight")}
         </button>
       </div>
 
       {showRecord && (
-        <div className="bg-[var(--color-surface)] rounded-xl p-6 shadow-sm border border-[var(--color-border)] mb-8">
-          <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-            {t("Record Animal Weight", "Record Animal Weight")}
+        <div className="bg-bg-secondary rounded-xl p-6 shadow-sm border border-border mb-8">
+          <h2 className="text-lg font-semibold text-text-primary mb-4">
+            {t("weight.record_animal_weight")}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text)] mb-1">{t("Animal", "Animal")}</label>
+              <label htmlFor="weight-animal" className="block text-sm font-medium text-text-primary mb-1">{t("weight.animal")}</label>
               <select
+                id="weight-animal"
                 value={form.animalId}
                 onChange={(e) => setForm({ ...form, animalId: e.target.value })}
-                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none"
+                className="w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
               >
-                <option value="">{t("Select animal", "Select animal")}</option>
+                <option value="">{t("weight.select_animal")}</option>
                 {animals.map((a) => (
                   <option key={a.id} value={a.id}>{a.name} ({a.type})</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text)] mb-1">{t("Weight (kg)", "Weight (kg)")}</label>
+              <label htmlFor="weight-kg" className="block text-sm font-medium text-text-primary mb-1">{t("weight.weight_kg")}</label>
               <input
+                id="weight-kg"
                 type="number"
                 step="0.1"
                 value={form.weight}
                 onChange={(e) => setForm({ ...form, weight: e.target.value })}
-                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none"
+                className="w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
                 placeholder="250"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text)] mb-1">{t("Notes (optional)", "Notes (optional)")}</label>
+              <label htmlFor="weight-notes" className="block text-sm font-medium text-text-primary mb-1">{t("weight.notes_optional")}</label>
               <input
+                id="weight-notes"
                 type="text"
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none"
+                className="w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
               />
             </div>
           </div>
@@ -152,15 +155,15 @@ export default function WeightGainAnalytics() {
             <button
               onClick={handleRecord}
               disabled={submitting || !form.animalId || !form.weight}
-              className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary)]/90 disabled:opacity-50 transition-colors"
+               className="rounded-lg bg-accent px-4 py-2 min-h-[44px] text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50 transition-colors"
             >
-              {submitting ? t("Saving...", "Saving...") : t("Save", "Save")}
+              {submitting ? t("weight.saving") : t("common.save")}
             </button>
             <button
               onClick={() => setShowRecord(false)}
-              className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-colors"
+               className="rounded-lg border border-border px-4 py-2 min-h-[44px] text-sm font-medium text-text-primary hover:bg-bg-secondary transition-colors"
             >
-              {t("Cancel", "Cancel")}
+              {t("common.cancel")}
             </button>
           </div>
         </div>
@@ -169,63 +172,66 @@ export default function WeightGainAnalytics() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 bg-[var(--color-surface)] rounded-xl animate-pulse" />
+            <div key={i} className="h-20 bg-bg-secondary rounded-xl animate-pulse" />
           ))}
         </div>
       ) : stats.length > 0 ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <div className="bg-[var(--color-surface)] rounded-xl p-5 shadow-sm border border-[var(--color-border)]">
-              <div className="text-sm text-[var(--color-text-secondary)]">{t("Animals Tracked", "Animals Tracked")}</div>
-              <div className="text-2xl font-bold text-[var(--color-text)] mt-1">{stats.length}</div>
+            <div className="bg-bg-secondary rounded-xl p-5 shadow-sm border border-border">
+              <div className="text-sm text-text-secondary">{t("weight.animals_tracked")}</div>
+              <div className="text-2xl font-bold text-text-primary mt-1">{stats.length}</div>
             </div>
-            <div className="bg-[var(--color-surface)] rounded-xl p-5 shadow-sm border border-[var(--color-border)]">
-              <div className="text-sm text-[var(--color-text-secondary)]">{t("Avg Gain", "Avg Gain")}</div>
-              <div className="text-2xl font-bold text-green-600 mt-1">
+            <div className="bg-bg-secondary rounded-xl p-5 shadow-sm border border-border">
+              <div className="text-sm text-text-secondary">{t("weight.avg_gain")}</div>
+              <div className="text-2xl font-bold text-success mt-1">
                 {Math.round(stats.reduce((s, g) => s + g.gainPercent, 0) / stats.length)}%
               </div>
             </div>
-            <div className="bg-[var(--color-surface)] rounded-xl p-5 shadow-sm border border-[var(--color-border)]">
-              <div className="text-sm text-[var(--color-text-secondary)]">{t("Top Performer", "Top Performer")}</div>
-              <div className="text-lg font-bold text-[var(--color-text)] mt-1">{stats[0]?.animalName}</div>
+            <div className="bg-bg-secondary rounded-xl p-5 shadow-sm border border-border">
+              <div className="text-sm text-text-secondary">{t("weight.top_performer")}</div>
+              <div className="text-lg font-bold text-text-primary mt-1">{stats[0]?.animalName}</div>
             </div>
           </div>
 
           <div className="space-y-3 mb-8">
-            <h2 className="text-lg font-semibold text-[var(--color-text)]">
-              {t("Weight Gain by Animal", "Weight Gain by Animal")}
+            <h2 className="text-lg font-semibold text-text-primary">
+              {t("weight.by_animal")}
             </h2>
             {stats.map((s) => (
               <div
                 key={s.animalId}
-                className="bg-[var(--color-surface)] rounded-xl p-4 shadow-sm border border-[var(--color-border)] cursor-pointer hover:border-[var(--color-primary)] transition-colors"
+                role="button"
+                tabIndex={0}
+                className="bg-bg-secondary rounded-xl p-4 shadow-sm border border-border cursor-pointer hover:border-accent transition-colors"
                 onClick={() => setSelectedAnimal(selectedAnimal === s.animalId ? null : s.animalId)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedAnimal(selectedAnimal === s.animalId ? null : s.animalId); } }}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <span className="font-medium text-[var(--color-text)]">{s.animalName}</span>
-                    <span className="text-sm text-[var(--color-text-secondary)] ml-2">({s.animalType})</span>
+                    <span className="font-medium text-text-primary">{s.animalName}</span>
+                    <span className="text-sm text-text-secondary ml-2">({s.animalType})</span>
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-semibold" style={{ color: getGainColor(s.gainPercent) }}>
                       {s.gainPercent >= 0 ? "+" : ""}{s.gainPercent}%
                     </span>
-                    <span className="text-xs text-[var(--color-text-secondary)] ml-2">
+                    <span className="text-xs text-text-secondary ml-2">
                       {s.firstWeight}{s.unit} &rarr; {s.latestWeight}{s.unit}
                     </span>
                   </div>
                 </div>
-                <div className="w-full bg-[var(--color-border)] rounded-full h-2">
+                <div className="w-full bg-border rounded-full h-2">
                   <div
-                    className="h-2 rounded-full transition-all duration-500"
+                    className="h-2 rounded-full transition-[width] duration-500"
                     style={{
                       width: `${Math.min(100, Math.max(5, Math.abs(s.gainPercent)))}%`,
                       backgroundColor: getGainColor(s.gainPercent),
                     }}
                   />
                 </div>
-                <div className="flex justify-between text-xs text-[var(--color-text-secondary)] mt-1">
-                  <span>{s.recordCount} {t("records", "records")}</span>
+                <div className="flex justify-between text-xs text-text-secondary mt-1">
+                  <span>{s.recordCount} {t("weight.records")}</span>
                   <span>{s.county}</span>
                 </div>
               </div>
@@ -233,9 +239,9 @@ export default function WeightGainAnalytics() {
           </div>
 
           {selectedAnimal && history.length > 0 && (
-            <div className="bg-[var(--color-surface)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-              <h3 className="font-semibold text-[var(--color-text)] mb-4">
-                {t("Weight History", "Weight History")} - {history[0]?.animalName}
+            <div className="bg-bg-secondary rounded-xl p-6 shadow-sm border border-border">
+              <h3 className="font-semibold text-text-primary mb-4">
+                {t("weight.weight_history")} - {history[0]?.animalName}
               </h3>
               <div className="overflow-x-auto">
                 <div className="flex items-end gap-1" style={{ minHeight: 200 }}>
@@ -246,12 +252,12 @@ export default function WeightGainAnalytics() {
                     const height = ((r.weight - minW) / range) * 150 + 30;
                     return (
                       <div key={r.id} className="flex flex-col items-center gap-1 min-w-[40px]">
-                        <span className="text-xs text-[var(--color-text-secondary)]">{r.weight}</span>
+                        <span className="text-xs text-text-secondary">{r.weight}</span>
                         <div
-                          className="w-8 rounded-t bg-[var(--color-primary)]"
+                          className="w-8 rounded-t bg-accent"
                           style={{ height: `${height}px` }}
                         />
-                        <span className="text-[10px] text-[var(--color-text-secondary)]">
+                        <span className="text-[10px] text-text-secondary">
                           {new Date(r.recordedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                         </span>
                       </div>
@@ -263,8 +269,8 @@ export default function WeightGainAnalytics() {
           )}
         </>
       ) : (
-        <div className="text-center py-12 text-[var(--color-text-secondary)]">
-          {t("No weight data recorded yet. Click Record Weight to start tracking.", "No weight data recorded yet. Click Record Weight to start tracking.")}
+        <div className="text-center py-12 text-text-secondary">
+          {t("weight.no_data")}
         </div>
       )}
     </div>

@@ -24,7 +24,7 @@ import { DataRetentionService } from './data-retention.service';
 import type { Permission } from '../auth/permissions.decorator';
 import { AdminUpdateUserDto } from './dto/admin-update-user.dto';
 import { AuditLogQueryDto } from './dto/audit-log-query.dto';
-import { toCsv } from '../common/csv';
+import { toCsv, sendCsv } from '../common/csv';
 
 @ApiTags('admin')
 @ApiBearerAuth('access-token')
@@ -127,12 +127,7 @@ export class AdminController {
       metadata: log.metadata ?? '',
       createdAt: log.createdAt,
     }));
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="audit-logs-${new Date().toISOString().slice(0, 10)}.csv"`,
-    );
-    res.send(toCsv(rows));
+    sendCsv(res, toCsv(rows), 'audit-logs');
   }
 
   @Get('users/:id/permissions')

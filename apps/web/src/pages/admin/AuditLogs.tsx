@@ -100,6 +100,7 @@ export default function AuditLogs() {
       {!loading && filteredLogs.length > 0 && (
         <div className="card overflow-x-auto">
           <table className="w-full text-sm">
+            <caption className="sr-only">Audit log entries</caption>
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left p-3 font-medium text-text-secondary">{t("admin.audit_col_event")}</th>
@@ -113,7 +114,7 @@ export default function AuditLogs() {
                 <tr key={log.id} className="border-b border-border hover:bg-bg-secondary transition-colors">
                   <td className="p-3">
                     <span className="px-2 py-1 text-xs font-medium rounded-full bg-accent/10 text-accent">
-                      {log.event}
+                      {eventOptions.find(o => o.value === log.event)?.label || log.event.replace(/_/g, " ")}
                     </span>
                   </td>
                   <td className="p-3 text-text-secondary">{log.email}</td>

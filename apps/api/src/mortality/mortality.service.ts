@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../common/prisma.service';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ReportMortalityDto, MortalityQueryDto } from './dto/mortality.dto';
+import { MORTALITY_REPOSITORY, MortalityRepository } from './mortality.repository';
+import { parsePagination } from '../common/pagination';
 
 export interface MortalityRecord {
   id: number;
@@ -18,127 +19,38 @@ export interface MortalityRecord {
 
 @Injectable()
 export class MortalityService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(MORTALITY_REPOSITORY) private readonly repo: MortalityRepository,
+  ) {}
 
   async report(dto: ReportMortalityDto): Promise<MortalityRecord> {
-    const animal = await this.prisma.animal.findUnique({
-      where: { id: dto.animalId },
+    return this.repo.report({
+      animalId: dto.animalId,
+      cause: dto.cause,
+      diseaseName: dto.diseaseName ?? null,
+      reportedBy: dto.reportedBy,
+      notes: dto.notes ?? null,
     });
-    if (!animal)
-      throw new NotFoundException(`Animal #${dto.animalId} not found`);
-
-    const record = await this.prisma.mortality.create({
-      data: {
-        animalId: dto.animalId,
-        cause: dto.cause,
-        diseaseName: dto.diseaseName ?? null,
-        reportedBy: dto.reportedBy,
-        notes: dto.notes ?? null,
-      },
-      include: {
-        animal: {
-          select: { name: true, type: true, county: true, owner: true },
-        },
-      },
-    });
-
-    return {
-      id: record.id,
-      animalId: record.animalId,
-      animalName: record.animal.name,
-      animalType: record.animal.type,
-      cause: record.cause,
-      diseaseName: record.diseaseName,
-      reportedBy: record.reportedBy,
-      reportedAt: record.reportedAt.toISOString(),
-      notes: record.notes,
-      county: record.animal.county,
-      owner: record.animal.owner,
-    };
   }
 
   async list(query: MortalityQueryDto): Promise<MortalityRecord[]> {
-    const where: Record<string, unknown> = {};
-    if (query.cause) where.cause = query.cause;
-    if (query.county) {
-      where.animal = { county: query.county };
-    }
-    if (query.fromDate || query.toDate) {
-      where.reportedAt = {
-        ...(query.fromDate ? { gte: new Date(query.fromDate) } : {}),
-        ...(query.toDate ? { lte: new Date(query.toDate) } : {}),
-      };
-    }
-
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 50;
-
-    const records = await this.prisma.mortality.findMany({
-      where,
-      include: {
-        animal: {
-          select: { name: true, type: true, county: true, owner: true },
-        },
-      },
-      orderBy: { reportedAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-
-    return records.map((r) => ({
-      id: r.id,
-      animalId: r.animalId,
-      animalName: r.animal.name,
-      animalType: r.animal.type,
-      cause: r.cause,
-      diseaseName: r.diseaseName,
-      reportedBy: r.reportedBy,
-      reportedAt: r.reportedAt.toISOString(),
-      notes: r.notes,
-      county: r.animal.county,
-      owner: r.animal.owner,
-    }));
+    const { skip, take } = parsePagination(query);
+    return this.repo.findMany(
+      { cause: query.cause, county: query.county, fromDate: query.fromDate, toDate: query.toDate },
+      skip,
+      take,
+    );
   }
 
   async getStats() {
-    const total = await this.prisma.mortality.count();
-
-    const byCause = await this.prisma.mortality.groupBy({
-      by: ['cause'],
-      _count: true,
-      orderBy: { _count: { cause: 'desc' } },
-    });
-
-    const byCounty = await this.prisma.mortality.findMany({
-      select: { animal: { select: { county: true } } },
-    });
-    const countyMap = new Map<string, number>();
-    for (const m of byCounty) {
-      countyMap.set(m.animal.county, (countyMap.get(m.animal.county) ?? 0) + 1);
-    }
-
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const recentCount = await this.prisma.mortality.count({
-      where: { reportedAt: { gte: thirtyDaysAgo } },
-    });
-
-    return {
-      total,
-      recentCount,
-      byCause: byCause.map((c) => ({ cause: c.cause, count: c._count })),
-      byCounty: Array.from(countyMap.entries())
-        .map(([county, count]) => ({ county, count }))
-        .sort((a, b) => b.count - a.count),
-    };
+    const total = await this.repo.count();
+    const byCause = await this.repo.groupByCause();
+    const byCounty = await this.repo.groupByCounty();
+    const recentCount = await this.repo.countRecent(30);
+    return { total, recentCount, byCause, byCounty };
   }
 
   async remove(id: number): Promise<boolean> {
-    try {
-      await this.prisma.mortality.delete({ where: { id } });
-      return true;
-    } catch {
-      return false;
-    }
+    return this.repo.remove(id);
   }
 }

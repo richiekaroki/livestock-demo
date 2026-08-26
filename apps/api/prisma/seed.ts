@@ -55,13 +55,13 @@ async function main() {
   }
   console.log(`Seeded ${demo.animals.length} animals`);
 
-  const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@example.com';
+  const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'demo@wamfugo.ke';
   await prisma.user.upsert({
     where: { email: adminEmail },
     update: {},
     create: {
       email: adminEmail,
-      name: process.env.DEFAULT_ADMIN_NAME || 'Richard Karoki',
+      name: 'Admin User',
       phone: '+254700000000',
       role: 'admin',
       county: 'Nairobi',

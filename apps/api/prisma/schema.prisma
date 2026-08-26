@@ -232,3 +232,18 @@ model WeightRecord {
   @@index([animalId, recordedAt])
   @@map("weight_records")
 }
+
+model PendingInvitation {
+  id        Int      @id @default(autoincrement())
+  email     String
+  name      String
+  phone     String?
+  county    String
+  subCounty String?
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("pending_invitations")
+}

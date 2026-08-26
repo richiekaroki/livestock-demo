@@ -26,7 +26,7 @@ const HealthBar = memo(function HealthBar({ stats }: HealthBarProps) {
           <div
             key={seg.label}
             style={{ width: `${seg.pct}%`, backgroundColor: seg.color }}
-            className="transition-all duration-300 first:rounded-l-full last:rounded-r-full"
+            className="transition-[width] duration-300 first:rounded-l-full last:rounded-r-full"
             title={`${seg.label}: ${seg.count}`}
           />
         ))}

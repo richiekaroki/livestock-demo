@@ -15,7 +15,7 @@ export default function LoadingSpinner({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-8">
+    <div className="flex flex-col items-center justify-center p-8" role="status" aria-live="polite" aria-label={text}>
       <div className={`relative ${sizeClasses[size]}`}>
         <div className="absolute inset-0 rounded-full border-2 border-accent/20" />
         <div className={`animate-spin rounded-full border-2 border-accent border-t-transparent ${sizeClasses[size]}`} />

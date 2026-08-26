@@ -1,11 +1,10 @@
 // src/services/apiClient.ts
 import { config } from "../utils/environment";
+import { TOKEN_KEY } from "../config";
 
 const BASE_URL = config.api.baseUrl;
 const TIMEOUT_MS = config.api.timeout;
 const RETRY_ATTEMPTS = config.api.retryAttempts;
-
-const TOKEN_KEY = "wam_auth_token";
 
 interface RequestOptions extends RequestInit {
   retries?: number;
@@ -79,7 +78,7 @@ async function request<T>(path: string, init: RequestOptions = {}): Promise<T> {
     }
 
     if (!res.ok) {
-      throw new Error(`Request failed with status ${res.status}`);
+      throw new Error("Something went wrong. Please try again.");
     }
 
     return (await res.json()) as T;

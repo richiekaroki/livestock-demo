@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { apiGet, apiDelete } from "../services/apiClient";
 import VaccinationForm from "../components/vaccinations/VaccinationForm";
 
@@ -22,6 +23,7 @@ interface VaccinationsResponse {
 }
 
 export default function Vaccinations() {
+  const { t } = useTranslation();
   const [vaccinations, setVaccinations] = useState<Vaccination[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -49,7 +51,7 @@ export default function Vaccinations() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Delete this vaccination record?")) return;
+    if (!confirm(t("vaccinations.confirmDelete"))) return;
     try {
       await apiDelete(`/vaccinations/${id}`);
       loadVaccinations();
@@ -61,9 +63,9 @@ export default function Vaccinations() {
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <h1 className="text-3xl font-bold text-text-primary">Vaccination Records</h1>
+        <h1 className="text-3xl font-bold text-text-primary">{t("vaccinations.title")}</h1>
         <button onClick={() => { setShowForm(!showForm); setEditingVaccination(null); }} className="btn btn-primary" aria-expanded={showForm}>
-          {showForm || editingVaccination ? "Cancel" : "Add Vaccination"}
+          {showForm || editingVaccination ? t("vaccinations.cancel") : t("vaccinations.add")}
         </button>
       </div>
 
@@ -91,13 +93,13 @@ export default function Vaccinations() {
         </div>
       )}
 
-      {loading && <p className="text-text-secondary">Loading vaccination records...</p>}
+      {loading && <p className="text-text-secondary">{t("vaccinations.loading")}</p>}
 
       {!loading && vaccinations.length === 0 && (
         <div className="card p-8 text-center">
-          <p className="text-text-secondary mb-4">No vaccination records yet.</p>
+          <p className="text-text-secondary mb-4">{t("vaccinations.empty")}</p>
           <button onClick={() => { setShowForm(true); setEditingVaccination(null); }} className="btn btn-primary">
-            Record First Vaccination
+            {t("vaccinations.recordFirst")}
           </button>
         </div>
       )}
@@ -105,17 +107,18 @@ export default function Vaccinations() {
       {!loading && vaccinations.length > 0 && (
         <div className="card overflow-x-auto">
           <table className="w-full text-sm">
+            <caption className="sr-only">Vaccination records</caption>
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left p-3 font-medium text-text-secondary">Animal</th>
-                <th className="text-left p-3 font-medium text-text-secondary">Type</th>
-                <th className="text-left p-3 font-medium text-text-secondary">Vaccine</th>
-                <th className="text-left p-3 font-medium text-text-secondary">Date</th>
-                <th className="text-left p-3 font-medium text-text-secondary">Batch</th>
-                <th className="text-left p-3 font-medium text-text-secondary">Vet</th>
-                <th className="text-left p-3 font-medium text-text-secondary">Next Due</th>
-                <th className="text-left p-3 font-medium text-text-secondary">County</th>
-                <th className="text-left p-3 font-medium text-text-secondary">Actions</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("vaccinations.animal")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("vaccinations.type")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("vaccinations.vaccine")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("vaccinations.date")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("vaccinations.batch")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("vaccinations.vet")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("vaccinations.nextDue")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("vaccinations.county")}</th>
+                <th className="text-left p-3 font-medium text-text-secondary">{t("vaccinations.actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -153,15 +156,15 @@ export default function Vaccinations() {
                     <div className="flex gap-3">
                       <button
                         onClick={() => handleEdit(v)}
-                        className="text-xs text-accent hover:text-accent/80 transition-colors cursor-pointer"
+                        className="text-xs text-accent hover:text-accent/80 transition-colors cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
-                        Edit
+                        {t("vaccinations.edit")}
                       </button>
                       <button
                         onClick={() => handleDelete(v.id)}
-                        className="text-xs text-error hover:text-error/80 transition-colors cursor-pointer"
+                        className="text-xs text-error hover:text-error/80 transition-colors cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
-                        Delete
+                        {t("vaccinations.delete")}
                       </button>
                     </div>
                   </td>

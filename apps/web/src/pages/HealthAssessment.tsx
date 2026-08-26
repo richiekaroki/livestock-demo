@@ -19,16 +19,16 @@ interface AssessmentResult {
 }
 
 const STATUS_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
-  healthy: { color: "text-green-700", bg: "bg-green-50 border-green-200", label: "Healthy" },
-  sick: { color: "text-red-700", bg: "bg-red-50 border-red-200", label: "Sick" },
-  under_treatment: { color: "text-orange-700", bg: "bg-orange-50 border-orange-200", label: "Under Treatment" },
-  needs_attention: { color: "text-yellow-700", bg: "bg-yellow-50 border-yellow-200", label: "Needs Attention" },
+  healthy: { color: "text-success", bg: "bg-success/10 border-success/30", label: "Healthy" },
+  sick: { color: "text-error", bg: "bg-error/10 border-error/30", label: "Sick" },
+  under_treatment: { color: "text-warning", bg: "bg-warning/10 border-warning/30", label: "Under Treatment" },
+  needs_attention: { color: "text-warning", bg: "bg-warning/10 border-warning/30", label: "Needs Attention" },
 };
 
 const FINDING_STATUS: Record<string, string> = {
-  normal: "text-green-600",
-  warning: "text-yellow-600",
-  abnormal: "text-red-600",
+  normal: "text-success",
+  warning: "text-warning",
+  abnormal: "text-error",
 };
 
 export default function HealthAssessment() {
@@ -73,7 +73,7 @@ export default function HealthAssessment() {
         setError("Assessment failed. Please try again.");
       }
     } catch {
-      setError("Could not connect to assessment service.");
+      setError("Could not connect. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -90,47 +90,51 @@ export default function HealthAssessment() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[var(--color-text)]">
-          {t("Photo Health Assessment", "Photo Health Assessment")}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-text-primary">
+          {t("assessment.title")}
         </h1>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          {t("Upload a photo for AI-powered health analysis", "Upload a photo for AI-powered health analysis")}
+        <p className="mt-1 text-sm text-text-secondary">
+          {t("assessment.desc")}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {/* Upload Form */}
-        <div className="bg-[var(--color-surface)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-          <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-            {t("Upload Photo", "Upload Photo")}
+        <div className="bg-bg-secondary rounded-xl p-5 sm:p-6 shadow-sm border border-border">
+          <h2 className="text-base sm:text-lg font-semibold text-text-primary mb-4">
+            {t("assessment.upload_photo")}
           </h2>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                {t("Animal Photo", "Animal Photo")}
+              <label htmlFor="assessment-photo" className="block text-sm font-medium text-text-primary mb-2">
+                {t("assessment.animal_photo")}
               </label>
               <div
-                className="border-2 border-dashed border-[var(--color-border)] rounded-lg p-6 text-center cursor-pointer hover:border-[var(--color-primary)] transition-colors"
+                role="button"
+                tabIndex={0}
+                className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-accent transition-colors"
                 onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInputRef.current?.click(); } }}
               >
                 {preview ? (
                   <img src={preview} alt="Preview" className="max-h-48 mx-auto rounded-lg" />
                 ) : (
-                  <div className="text-[var(--color-text-secondary)]">
+                  <div className="text-text-secondary">
                     <svg className="w-12 h-12 mx-auto mb-2 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <rect x="3" y="3" width="18" height="18" rx="2" />
                       <circle cx="8.5" cy="8.5" r="1.5" />
                       <polyline points="21 15 16 10 5 21" />
                     </svg>
-                    <p>{t("Click to upload or drag and drop", "Click to upload or drag and drop")}</p>
-                    <p className="text-xs mt-1">JPG, PNG {t("up to 10MB", "up to 10MB")}</p>
+                    <p>{t("assessment.click_upload")}</p>
+                    <p className="text-xs mt-1">JPG, PNG {t("assessment.up_to")}</p>
                   </div>
                 )}
               </div>
               <input
+                id="assessment-photo"
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
@@ -140,66 +144,69 @@ export default function HealthAssessment() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                {t("Animal Type", "Animal Type")}
+              <label htmlFor="assessment-type" className="block text-sm font-medium text-text-primary mb-2">
+                {t("assessment.animal_type")}
               </label>
               <select
+                id="assessment-type"
                 value={animalType}
                 onChange={(e) => setAnimalType(e.target.value)}
-                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                className="w-full rounded-lg border border-border bg-bg-secondary px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
               >
-                {LIVESTOCK_TYPES.map((t) => (
-                  <option key={t} value={t}>{t}</option>
+                {LIVESTOCK_TYPES.map((lt) => (
+                  <option key={lt} value={lt}>{lt}</option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                {t("Animal Name (optional)", "Animal Name (optional)")}
+              <label htmlFor="assessment-name" className="block text-sm font-medium text-text-primary mb-2">
+                {t("assessment.animal_name")}
               </label>
               <input
+                id="assessment-name"
                 type="text"
                 value={animalName}
                 onChange={(e) => setAnimalName(e.target.value)}
-                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                placeholder={t("e.g. Mwende", "e.g. Mwende")}
+                className="w-full rounded-lg border border-border bg-bg-secondary px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                placeholder={t("assessment.animal_name_placeholder")}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                {t("Notes (optional)", "Notes (optional)")}
+              <label htmlFor="assessment-notes" className="block text-sm font-medium text-text-primary mb-2">
+                {t("assessment.notes")}
               </label>
               <textarea
+                id="assessment-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 resize-none"
-                placeholder={t("Observed symptoms or concerns...", "Observed symptoms or concerns...")}
+                className="w-full rounded-lg border border-border bg-bg-secondary px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 resize-none"
+                placeholder={t("assessment.notes_placeholder")}
               />
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleAssess}
                 disabled={!imageUrl || loading}
-                className="flex-1 rounded-lg bg-[var(--color-primary)] px-6 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[44px]"
+                className="flex-1 rounded-lg bg-accent px-6 py-3 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[48px]"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
                     <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                    {t("Analyzing...", "Analyzing...")}
+                    {t("assessment.analyzing")}
                   </span>
                 ) : (
-                  t("Assess Health", "Assess Health")
+                  t("assessment.assess_health")
                 )}
               </button>
               <button
                 onClick={handleReset}
-                className="rounded-lg border border-[var(--color-border)] px-6 py-2.5 text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-bg)] transition-colors min-h-[44px]"
+                className="rounded-lg border border-border px-6 py-3 text-sm font-medium text-text-primary hover:bg-bg-primary transition-colors min-h-[48px]"
               >
-                {t("Reset", "Reset")}
+                {t("assessment.reset")}
               </button>
             </div>
           </div>
@@ -208,7 +215,7 @@ export default function HealthAssessment() {
         {/* Results */}
         <div>
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm mb-6">
+            <div className="bg-error/10 border border-error/30 rounded-xl p-4 text-error text-sm mb-6">
               {error}
             </div>
           )}
@@ -216,40 +223,40 @@ export default function HealthAssessment() {
           {result && (
             <div className="space-y-6">
               {/* Status Card */}
-              <div className={`rounded-xl border-2 p-6 ${STATUS_CONFIG[result.healthStatus]?.bg || "bg-gray-50 border-gray-200"}`}>
+              <div className={`rounded-xl border-2 p-6 ${STATUS_CONFIG[result.healthStatus]?.bg || "bg-bg-primary border-border"}`}>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-[var(--color-text)]">
-                    {t("Assessment Result", "Assessment Result")}
+                  <h3 className="text-lg font-semibold text-text-primary">
+                    {t("assessment.result")}
                   </h3>
-                  <span className={`text-2xl font-bold ${STATUS_CONFIG[result.healthStatus]?.color || "text-gray-700"}`}>
+                  <span className={`text-2xl font-bold ${STATUS_CONFIG[result.healthStatus]?.color || "text-text-secondary"}`}>
                     {t(STATUS_CONFIG[result.healthStatus]?.label || result.healthStatus, STATUS_CONFIG[result.healthStatus]?.label || result.healthStatus)}
                   </span>
                 </div>
-                <div className="text-sm text-[var(--color-text-secondary)]">
-                  {t("Confidence", "Confidence")}: {Math.round(result.confidence * 100)}%
+                <div className="text-sm text-text-secondary">
+                  {t("assessment.confidence")}: {Math.round(result.confidence * 100)}%
                 </div>
-                <div className="text-xs text-[var(--color-text-secondary)] mt-2 opacity-70">
-                  {t("Model", "Model")}: {result.model}
+                <div className="text-xs text-text-secondary mt-2 opacity-70">
+                  {t("assessment.ai_powered")}
                 </div>
               </div>
 
               {/* Findings */}
-              <div className="bg-[var(--color-surface)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-                <h3 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-                  {t("Findings", "Findings")}
+              <div className="bg-bg-secondary rounded-xl p-6 shadow-sm border border-border">
+                <h3 className="text-lg font-semibold text-text-primary mb-4">
+                  {t("assessment.findings")}
                 </h3>
                 <div className="space-y-3">
                   {result.findings.map((f, i) => (
-                    <div key={i} className="flex items-start justify-between p-3 rounded-lg bg-[var(--color-bg)]">
+                    <div key={i} className="flex items-start justify-between p-3 rounded-lg bg-bg-primary">
                       <div>
-                        <div className="font-medium text-sm text-[var(--color-text)]">{f.category}</div>
-                        <div className="text-sm text-[var(--color-text-secondary)]">{f.description}</div>
+                        <div className="font-medium text-sm text-text-primary">{f.category}</div>
+                        <div className="text-sm text-text-secondary">{f.description}</div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`text-xs font-medium capitalize ${FINDING_STATUS[f.status] || "text-gray-600"}`}>
+                        <span className={`text-xs font-medium capitalize ${FINDING_STATUS[f.status] || "text-text-secondary"}`}>
                           {f.status}
                         </span>
-                        <span className="text-xs text-[var(--color-text-secondary)]">
+                        <span className="text-xs text-text-secondary">
                           {Math.round(f.confidence * 100)}%
                         </span>
                       </div>
@@ -259,14 +266,14 @@ export default function HealthAssessment() {
               </div>
 
               {/* Recommendations */}
-              <div className="bg-[var(--color-surface)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-                <h3 className="text-lg font-semibold text-[var(--color-text)] mb-4">
-                  {t("Recommendations", "Recommendations")}
+              <div className="bg-bg-secondary rounded-xl p-6 shadow-sm border border-border">
+                <h3 className="text-lg font-semibold text-text-primary mb-4">
+                  {t("assessment.recommendations")}
                 </h3>
                 <ul className="space-y-2">
                   {result.recommendations.map((r, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-[var(--color-text)]">
-                      <span className="text-[var(--color-primary)] mt-0.5">&#10003;</span>
+                    <li key={i} className="flex items-start gap-2 text-sm text-text-primary">
+                      <span className="text-accent mt-0.5">&#10003;</span>
                       {r}
                     </li>
                   ))}
@@ -276,14 +283,14 @@ export default function HealthAssessment() {
           )}
 
           {!result && !error && !loading && (
-            <div className="bg-[var(--color-surface)] rounded-xl p-12 shadow-sm border border-[var(--color-border)] text-center">
-              <svg className="w-16 h-16 mx-auto mb-4 text-[var(--color-text-secondary)] opacity-30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <div className="bg-bg-secondary rounded-xl p-12 shadow-sm border border-border text-center">
+              <svg className="w-16 h-16 mx-auto mb-4 text-text-secondary opacity-30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <rect x="3" y="3" width="18" height="18" rx="2" />
                 <circle cx="8.5" cy="8.5" r="1.5" />
                 <polyline points="21 15 16 10 5 21" />
               </svg>
-              <p className="text-[var(--color-text-secondary)]">
-                {t("Upload a photo and click Assess Health to get started", "Upload a photo and click Assess Health to get started")}
+              <p className="text-text-secondary">
+                {t("assessment.upload_prompt")}
               </p>
             </div>
           )}

@@ -104,13 +104,13 @@ export default function VoiceInput({
         type="button"
         onClick={toggleListening}
         disabled={disabled}
-        className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 ${
+        className={`relative flex items-center justify-center w-11 h-11 min-h-[44px] min-w-[44px] rounded-full transition-colors duration-200 ${
           isListening
-            ? "bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/30"
+            ? "bg-[var(--color-error)] text-white animate-pulse shadow-lg shadow-[var(--color-error)]/30"
             : "bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20"
         } disabled:opacity-50 disabled:cursor-not-allowed`}
-        title={isListening ? t("Stop recording", "Stop recording") : t("Start voice input", "Start voice input")}
-        aria-label={isListening ? t("Stop recording", "Stop recording") : t("Start voice input", "Start voice input")}
+        title={isListening ? t("nav.stop_recording") : t("nav.start_voice_input")}
+        aria-label={isListening ? t("nav.stop_recording") : t("nav.start_voice_input")}
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
@@ -119,7 +119,7 @@ export default function VoiceInput({
           <line x1="8" y1="23" x2="16" y2="23" />
         </svg>
         {isListening && (
-          <span className="absolute inset-0 rounded-full border-2 border-red-500 animate-ping opacity-75" />
+          <span className="absolute inset-0 rounded-full border-2 border-[var(--color-error)] animate-ping opacity-75" />
         )}
       </button>
       {transcript && (

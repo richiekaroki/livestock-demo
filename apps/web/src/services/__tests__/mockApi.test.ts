@@ -1,6 +1,6 @@
 // src/services/__tests__/mockApi.test.ts
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { livestockData } from "../../data/livestockData";
+import { seedLivestock as livestockData } from "@wam-mfugo/shared";
 import type { Filters, Livestock } from "@wam-mfugo/shared";
 import { mockAPI } from "../mockApi";
 

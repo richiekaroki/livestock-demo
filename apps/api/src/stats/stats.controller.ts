@@ -4,7 +4,7 @@ import type { Response } from 'express';
 import type { AnimalStats, ApiResponse } from '@wam-mfugo/shared';
 import { StatsService } from './stats.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { toCsv } from '../common/csv';
+import { toCsv, sendCsv } from '../common/csv';
 
 @ApiTags('stats')
 @ApiBearerAuth('access-token')
@@ -64,12 +64,7 @@ export class StatsController {
         value: data.lastUpdated,
       },
     ]);
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="stats-${new Date().toISOString().slice(0, 10)}.csv"`,
-    );
-    res.send(csv);
+    sendCsv(res, csv, 'stats');
   }
 
   @Get('report')
@@ -145,11 +140,6 @@ export class StatsController {
     }
 
     const csv = toCsv(sections);
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="wam-mfugo-report-${new Date().toISOString().slice(0, 10)}.csv"`,
-    );
-    res.send(csv);
+    sendCsv(res, csv, 'wam-mfugo-report');
   }
 }

@@ -1,8 +1,18 @@
 // src/hooks/useLiveData.ts
 import { useCallback, useEffect, useRef, useState } from "react";
 import { backend } from "../services/backend";
+import { mockAPI } from "../services/mockApi";
 import type { Livestock } from "@wam-mfugo/shared";
 import { loadOfflineData, saveOfflineData } from "../utils/offlineStorage";
+import { TOKEN_KEY } from "../config";
+
+function isAuthenticated(): boolean {
+  try {
+    return Boolean(localStorage.getItem(TOKEN_KEY));
+  } catch {
+    return false;
+  }
+}
 
 export function useLiveData() {
   const [data, setData] = useState<Livestock[]>([]);
@@ -25,11 +35,15 @@ export function useLiveData() {
     setLoading(true);
     setError(null);
 
+    // Decide API once per call — don't re-evaluate on retry
+    const api = isAuthenticated() ? backend : mockAPI;
+
+    // Mock data never fails, so skip retries entirely
+    const maxRetries = api === mockAPI ? 0 : 2;
+
     try {
-      const response = await backend.getAnimals();
+      const response = await api.getAnimals();
       if (response.success && validateData(response.data)) {
-        // Skip redundant updates: if the API returned the same animal
-        // references, there is nothing new to render or persist.
         const prev = dataRef.current;
         const unchanged =
           prev.length === response.data.length &&
@@ -45,7 +59,9 @@ export function useLiveData() {
       }
     } catch (err) {
       console.warn("API fetch failed:", err);
-      if (retryCount < 2) {
+      if (retryCount < maxRetries) {
+        await new Promise((r) => setTimeout(r, 1000 * (retryCount + 1)));
+        setLoading(false);
         await fetchData(retryCount + 1);
         return;
       }

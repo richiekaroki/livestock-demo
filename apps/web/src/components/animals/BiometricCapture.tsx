@@ -256,7 +256,7 @@ export default function BiometricCapture({
       <button
         onClick={handleCapture}
         disabled={isCapturing}
-        className={`w-full py-3 px-4 rounded-lg font-medium text-sm transition-all ${
+        className={`w-full py-3 px-4 rounded-lg font-medium text-sm transition-colors ${
           isCapturing
             ? "bg-bg-tertiary text-text-tertiary cursor-not-allowed"
             : "btn btn-primary"

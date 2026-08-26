@@ -34,10 +34,10 @@ export default function CsvImport() {
       if (res.success && res.data) {
         setResult(res.data as ImportResult);
       } else {
-        setError(res.error || "Import failed");
+        setError(res.error || t("import.import_failed_fallback", "Import failed. Please check your file and try again."));
       }
     } catch {
-      setError("Could not connect to server");
+      setError(t("import.connection_error", "Could not connect. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -54,24 +54,24 @@ export default function CsvImport() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[var(--color-text)]">
-          {t("Import Animals from CSV", "Import Animals from CSV")}
+          {t("import.title")}
         </h1>
         <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          {t("Bulk import animals from a CSV file", "Bulk import animals from a CSV file")}
+          {t("import.desc")}
         </p>
       </div>
 
       <div className="bg-[var(--color-surface)] rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
         {/* CSV Format Info */}
         <div className="mb-6 p-4 bg-[var(--color-bg)] rounded-lg border border-[var(--color-border)]">
-          <h3 className="text-sm font-semibold text-[var(--color-text)] mb-2">
-            {t("Required CSV Format", "Required CSV Format")}
+          <h2 className="text-sm font-semibold text-[var(--color-text)] mb-2">
+            {t("import.csv_format")}
           </h3>
           <p className="text-xs text-[var(--color-text-secondary)] mb-2">
-            {t("Your CSV must include these columns: name, type, county, owner", "Your CSV must include these columns: name, type, county, owner")}
+            {t("import.csv_required")}
           </p>
           <p className="text-xs text-[var(--color-text-secondary)] mb-2">
-            {t("Optional columns: breed, health, lat, lng", "Optional columns: breed, health, lat, lng")}
+            {t("import.csv_optional")}
           </p>
           <code className="block text-xs text-[var(--color-text)] bg-[var(--color-surface)] p-2 rounded mt-2">
             name,type,county,owner,breed,health{"\n"}
@@ -82,12 +82,15 @@ export default function CsvImport() {
 
         {/* File Upload */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-[var(--color-text)] mb-2">
-            {t("Select CSV File", "Select CSV File")}
+          <label htmlFor="import-file" className="block text-sm font-medium text-[var(--color-text)] mb-2">
+            {t("import.select_file")}
           </label>
           <div
+            role="button"
+            tabIndex={0}
             className="border-2 border-dashed border-[var(--color-border)] rounded-lg p-8 text-center cursor-pointer hover:border-[var(--color-primary)] transition-colors"
             onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInputRef.current?.click(); } }}
           >
             {file ? (
               <div>
@@ -104,11 +107,12 @@ export default function CsvImport() {
                   <line x1="16" y1="13" x2="8" y2="13" />
                   <line x1="16" y1="17" x2="8" y2="17" />
                 </svg>
-                <p>{t("Click to select a CSV file", "Click to select a CSV file")}</p>
+                <p>{t("import.click_to_select")}</p>
               </div>
             )}
           </div>
           <input
+            id="import-file"
             ref={fileInputRef}
             type="file"
             accept=".csv"
@@ -127,42 +131,42 @@ export default function CsvImport() {
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                {t("Importing...", "Importing...")}
+                {t("import.importing")}
               </span>
             ) : (
-              t("Import Animals", "Import Animals")
+              t("import.import_btn")
             )}
           </button>
           <button
             onClick={handleReset}
             className="rounded-lg border border-[var(--color-border)] px-6 py-2.5 text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-bg)] transition-colors min-h-[44px]"
           >
-            {t("Reset", "Reset")}
+            {t("import.reset")}
           </button>
         </div>
       </div>
 
       {/* Results */}
       {error && (
-        <div className="mt-6 bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
+        <div className="mt-6 bg-[var(--color-error)]/10 border border-[var(--color-error)]/30 rounded-xl p-4 text-[var(--color-error)] text-sm">
           {error}
         </div>
       )}
 
       {result && (
         <div className="mt-6 space-y-4">
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-            <div className="text-green-700 font-medium">
-              {t("Import complete", "Import complete")}: {result.imported} {t("animals imported", "animals imported")}
+          <div className="bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 rounded-xl p-4">
+            <div className="text-[var(--color-success)] font-medium">
+              {t("import.import_complete")}: {result.imported} {t("import.animals_imported")}
             </div>
           </div>
 
           {result.errors.length > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-              <div className="text-yellow-700 font-medium mb-2">
-                {result.errors.length} {t("errors", "errors")}
+            <div className="bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/30 rounded-xl p-4">
+              <div className="text-[var(--color-warning)] font-medium mb-2">
+                {result.errors.length} {t("import.errors")}
               </div>
-              <ul className="text-sm text-yellow-600 space-y-1">
+              <ul className="text-sm text-[var(--color-warning)] space-y-1">
                 {result.errors.map((err, i) => (
                   <li key={i}>• {err}</li>
                 ))}

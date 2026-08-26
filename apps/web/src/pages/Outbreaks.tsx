@@ -20,10 +20,10 @@ interface OutbreaksResponse {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  reported: "bg-yellow-100 text-yellow-800",
-  investigating: "bg-blue-100 text-blue-800",
-  contained: "bg-orange-100 text-orange-800",
-  resolved: "bg-green-100 text-green-800",
+  reported: "bg-[var(--color-warning)]/10 text-[var(--color-warning)]",
+  investigating: "bg-[var(--color-info)]/10 text-[var(--color-info)]",
+  contained: "bg-[var(--color-warning)]/10 text-[var(--color-warning)]",
+  resolved: "bg-[var(--color-success)]/10 text-[var(--color-success)]",
 };
 
 export default function Outbreaks() {
@@ -59,7 +59,7 @@ export default function Outbreaks() {
   const handleReport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!diseaseType.trim() || !affectedAnimals || !county.trim() || !reportedBy.trim()) {
-      setError("Disease type, affected animals, county, and reporter are required");
+      setError("Please fill in all required fields");
       return;
     }
     setSubmitting(true);
@@ -84,7 +84,7 @@ export default function Outbreaks() {
       setReportedBy("");
       loadOutbreaks();
     } catch {
-      setError("Failed to report outbreak");
+      setError("Failed to submit report. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -112,8 +112,9 @@ export default function Outbreaks() {
         <form onSubmit={handleReport} className="card p-6 space-y-4 mb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">Disease Type *</label>
+              <label htmlFor="outbreak-disease" className="block text-sm font-medium text-text-primary mb-1">Disease Type *</label>
               <input
+                id="outbreak-disease"
                 type="text"
                 value={diseaseType}
                 onChange={(e) => setDiseaseType(e.target.value)}
@@ -123,8 +124,9 @@ export default function Outbreaks() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">Affected Animals *</label>
+              <label htmlFor="outbreak-animals" className="block text-sm font-medium text-text-primary mb-1">Affected Animals *</label>
               <input
+                id="outbreak-animals"
                 type="number"
                 value={affectedAnimals}
                 onChange={(e) => setAffectedAnimals(e.target.value)}
@@ -137,8 +139,9 @@ export default function Outbreaks() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">County *</label>
+              <label htmlFor="outbreak-county" className="block text-sm font-medium text-text-primary mb-1">County *</label>
               <input
+                id="outbreak-county"
                 type="text"
                 value={county}
                 onChange={(e) => setCounty(e.target.value)}
@@ -148,8 +151,9 @@ export default function Outbreaks() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">Reported By *</label>
+              <label htmlFor="outbreak-reported-by" className="block text-sm font-medium text-text-primary mb-1">Reported By *</label>
               <input
+                id="outbreak-reported-by"
                 type="text"
                 value={reportedBy}
                 onChange={(e) => setReportedBy(e.target.value)}
@@ -160,8 +164,9 @@ export default function Outbreaks() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Symptoms</label>
+            <label htmlFor="outbreak-symptoms" className="block text-sm font-medium text-text-primary mb-1">Symptoms</label>
             <input
+              id="outbreak-symptoms"
               type="text"
               value={symptoms}
               onChange={(e) => setSymptoms(e.target.value)}
@@ -170,8 +175,9 @@ export default function Outbreaks() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Actions Taken</label>
+            <label htmlFor="outbreak-actions" className="block text-sm font-medium text-text-primary mb-1">Actions Taken</label>
             <input
+              id="outbreak-actions"
               type="text"
               value={actionsTaken}
               onChange={(e) => setActionsTaken(e.target.value)}
@@ -208,7 +214,7 @@ export default function Outbreaks() {
             <div key={o.id} className="card p-5">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                 <div>
-                  <h3 className="text-lg font-semibold text-text-primary">{o.diseaseType}</h3>
+                  <h2 className="text-lg font-semibold text-text-primary">{o.diseaseType}</h2>
                   <p className="text-sm text-text-secondary">
                     {o.county} · {o.affectedAnimals} affected · Reported by {o.reportedBy}
                   </p>
@@ -217,13 +223,14 @@ export default function Outbreaks() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${STATUS_STYLES[o.status] || "bg-gray-100 text-gray-800"}`}>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${STATUS_STYLES[o.status] || "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]"}`}>
                     {o.status.charAt(0).toUpperCase() + o.status.slice(1)}
                   </span>
                   <select
                     value={o.status}
                     onChange={(e) => handleStatusUpdate(o.id, e.target.value)}
                     className="input-field text-xs py-1 px-2"
+                    aria-label="Change outbreak status"
                   >
                     <option value="reported">Reported</option>
                     <option value="investigating">Investigating</option>

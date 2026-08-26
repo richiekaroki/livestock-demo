@@ -14,35 +14,21 @@ import type {
   GovernmentRegistration,
   HealthStatus,
 } from '@wam-mfugo/shared';
-
-const animalTypes = [
-  'Cattle',
-  'Goat',
-  'Sheep',
-  'Camel',
-  'Pig',
-  'Chicken',
-] as const;
-const healthStatuses = [
-  'Healthy',
-  'Sick',
-  'Under Treatment',
-  'Recovered',
-] as const;
+import { ANIMAL_TYPES, HEALTH_STATUSES } from '../constants';
 
 export class CreateAnimalDto {
   @IsString()
   @MinLength(2)
   name!: string;
 
-  @IsIn(animalTypes)
+  @IsIn(ANIMAL_TYPES)
   type!: AnimalType;
 
   @IsOptional()
   @IsString()
   breed?: string;
 
-  @IsIn(healthStatuses)
+  @IsIn(HEALTH_STATUSES)
   health!: HealthStatus;
 
   @IsString()

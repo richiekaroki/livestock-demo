@@ -122,6 +122,13 @@
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Legacy aliases — used by pages that reference var(--color-surface) etc. */
+  --color-surface: var(--color-bg-secondary);
+  --color-surface-alt: var(--color-bg-tertiary);
+  --color-primary: var(--color-accent);
+  --color-text: var(--color-text-primary);
+  --color-bg: var(--color-bg-primary);
 }
 
 /* Scroll reveal base classes */
@@ -180,17 +187,18 @@
    ============================================ */
 
 [data-theme="dark"] {
-  --color-bg-primary: #0C1A0C;
-  --color-bg-secondary: #132413;
-  --color-bg-tertiary: #1A2E1A;
-  --color-text-primary: #E8F5E9;
-  --color-text-secondary: #A5D6A7;
-  --color-text-tertiary: #66BB6A;
-  --color-border: #2E4A2E;
+  --color-bg-primary: #0F1117;
+  --color-bg-secondary: #1A1D27;
+  --color-bg-tertiary: #242836;
+  --color-text-primary: #E8E9ED;
+  --color-text-secondary: #9CA3AF;
+  --color-text-tertiary: #6B7280;
+  --color-border: #2D3142;
   --color-accent: #4ADE80;
   --color-accent-hover: #22C55E;
   --color-accent-gold: #FBBF24;
   --color-accent-gold-hover: #F59E0B;
+  --color-warning: #F59E0B;
 }
 
 [data-theme="light"] {
@@ -269,5 +277,114 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Safe area for mobile notch/rounded corners */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Hide scrollbar but keep scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================
+   MOBILE POLISH
+   ============================================ */
+
+/* Bottom nav spacing — main content needs room on mobile */
+@media (max-width: 767px) {
+  #main-content {
+    padding-bottom: 5rem;
+    padding-top: 0.5rem;
+  }
+}
+
+/* Hide footer on mobile — bottom nav covers it */
+@media (max-width: 767px) {
+  footer {
+    display: none !important;
+  }
+}
+
+/* Mobile nav */
+@media (max-width: 767px) {
+  .mobile-nav-bar {
+    background: color-mix(in srgb, var(--color-bg-primary) 88%, transparent);
+    border-top: 1px solid var(--color-border);
+  }
+}
+
+/* Active tab indicator pill for mobile nav */
+.mobile-tab-active {
+  position: relative;
+}
+.mobile-tab-active::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1.25rem;
+  height: 3px;
+  border-radius: 9999px;
+  background-color: var(--color-accent);
+}
+
+/* Scroll fade edges for horizontal scroll containers */
+.scroll-fade-left,
+.scroll-fade-right {
+  position: relative;
+}
+.scroll-fade-left::before,
+.scroll-fade-right::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2rem;
+  pointer-events: none;
+  z-index: 2;
+}
+.scroll-fade-left::before {
+  left: 0;
+  background: linear-gradient(to right, var(--color-bg-secondary), transparent);
+}
+.scroll-fade-right::after {
+  right: 0;
+  background: linear-gradient(to left, var(--color-bg-secondary), transparent);
+}
+
+/* Touch-friendly button minimum height on mobile */
+@media (max-width: 767px) {
+  .btn {
+    min-height: 44px;
+    font-size: 0.9375rem;
+  }
+}
+
+/* Card touch feedback */
+@media (max-width: 767px) {
+  .card:active {
+    transform: scale(0.995);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* Mobile-optimized form inputs */
+@media (max-width: 767px) {
+  .input-field {
+    font-size: 1rem; /* Prevent iOS zoom on focus */
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+  select.input-field {
+    min-height: 48px;
   }
 }

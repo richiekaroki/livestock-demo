@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
+import { API_BASE } from "../config";
 
 interface StatsUpdate {
   totalAnimals: number;
@@ -18,8 +19,6 @@ interface AnimalEvent {
   timestamp: string;
 }
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
-
 export function useWebSocket() {
   const socketRef = useRef<Socket | null>(null);
   const [connected, setConnected] = useState(false);
@@ -27,34 +26,47 @@ export function useWebSocket() {
   const [lastAnimalEvent, setLastAnimalEvent] = useState<AnimalEvent | null>(null);
 
   useEffect(() => {
-    const socket = io(API_URL, {
+    let cancelled = false;
+
+    const socket = io(API_BASE, {
       transports: ["websocket", "polling"],
       reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 10000,
+      timeout: 10000,
+      forceNew: false,
     });
 
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      setConnected(true);
-      socket.emit("subscribe:stats");
-      socket.emit("subscribe:animal-events");
+      if (!cancelled) {
+        setConnected(true);
+        socket.emit("subscribe:stats");
+        socket.emit("subscribe:animal-events");
+      }
     });
 
     socket.on("disconnect", () => {
-      setConnected(false);
+      if (!cancelled) setConnected(false);
+    });
+
+    socket.on("connect_error", () => {
+      // Suppress — API may not be running
     });
 
     socket.on("stats:updated", (data: StatsUpdate) => {
-      setStats(data);
+      if (!cancelled) setStats(data);
     });
 
     socket.on("animal:event", (data: AnimalEvent) => {
-      setLastAnimalEvent(data);
+      if (!cancelled) setLastAnimalEvent(data);
     });
 
     return () => {
+      cancelled = true;
+      socket.removeAllListeners();
       socket.disconnect();
       socketRef.current = null;
     };

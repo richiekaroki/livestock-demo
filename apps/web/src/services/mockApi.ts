@@ -1,6 +1,6 @@
 // src/services/mockApi.ts
 
-import { livestockData } from "../data/livestockData";
+import { seedLivestock as livestockData } from "@wam-mfugo/shared";
 import type {
   AnimalStats,
   ApiResponse,

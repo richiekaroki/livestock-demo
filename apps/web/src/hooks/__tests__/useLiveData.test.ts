@@ -16,6 +16,14 @@ vi.mock("../../services/backend", () => ({
   },
 }));
 
+vi.mock("../../services/mockApi", () => ({
+  mockAPI: {
+    getAnimals: vi.fn(),
+  },
+}));
+
+import { mockAPI } from "../../services/mockApi";
+
 // Helper to generate test livestock entries
 const createMockLivestock = (
   overrides: Partial<Livestock> = {}
@@ -35,6 +43,8 @@ describe("useLiveData", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     await clearOfflineData();
+    // Set auth token so useLiveData calls backend (mocked) instead of mockAPI
+    localStorage.setItem("wam_auth_token", "test-token");
   });
 
   it("fetches data successfully and saves to offline cache", async () => {

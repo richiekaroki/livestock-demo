@@ -311,7 +311,7 @@ export default function RegistrationForm({
           <button
             type="button"
             onClick={() => setShowBiometric(!showBiometric)}
-            className="text-xs text-accent hover:text-accent-hover font-medium cursor-pointer"
+            className="text-xs text-accent hover:text-accent-hover font-medium cursor-pointer min-h-[44px] min-w-[44px]"
             aria-expanded={showBiometric}
             disabled={isSubmitting}
           >

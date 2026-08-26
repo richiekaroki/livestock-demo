@@ -9,11 +9,9 @@ import MobileNav from "./components/layout/MobileNav";
 import Navbar from "./components/layout/Navbar";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 import OfflineIndicator from "./components/ui/OfflineIndicator";
-import OfflineBanner from "./components/ui/OfflineBanner";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import RoleRoute from "./components/layout/RoleRoute";
 import { useLiveData } from "./hooks/useLiveData";
-import { useOnlineStatus } from "./hooks/useOnlineStatus";
 import { useLivestockStore } from "./store/livestockStore";
 import "./styles/css/main.css";
 
@@ -23,6 +21,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MapView = lazy(() => import("./pages/MapView"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
+const VerifyInvite = lazy(() => import("./pages/VerifyInvite"));
 const Profile = lazy(() => import("./pages/Profile"));
 const UserList = lazy(() => import("./pages/admin/UserList"));
 const AuditLogs = lazy(() => import("./pages/admin/AuditLogs"));
@@ -41,6 +40,7 @@ const HealthAssessment = lazy(() => import("./pages/HealthAssessment"));
 const CsvImport = lazy(() => import("./pages/CsvImport"));
 const BulkOperations = lazy(() => import("./pages/BulkOperations"));
 const KalroReportBuilder = lazy(() => import("./pages/KalroReportBuilder"));
+const More = lazy(() => import("./pages/More"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 function AnimatedRoutes({
@@ -74,7 +74,7 @@ function AnimatedRoutes({
 
   return (
     <div
-      className={`transition-all duration-200 ease-out ${
+      className={`transition-opacity transition-transform duration-200 ease-out ${
         isTransitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
       }`}
     >
@@ -112,6 +112,7 @@ function AnimatedRoutes({
           />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify-invite/:token" element={<VerifyInvite />} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute><RoleRoute allowedRoles={['admin']}><UserList /></RoleRoute></ProtectedRoute>} />
           <Route path="/admin/audit-logs" element={<ProtectedRoute><RoleRoute allowedRoles={['admin']}><AuditLogs /></RoleRoute></ProtectedRoute>} />
@@ -130,6 +131,7 @@ function AnimatedRoutes({
           <Route path="/import" element={<ProtectedRoute><RoleRoute allowedRoles={['admin', 'field_agent']}><CsvImport /></RoleRoute></ProtectedRoute>} />
           <Route path="/bulk" element={<ProtectedRoute><RoleRoute allowedRoles={['admin', 'field_agent']}><BulkOperations /></RoleRoute></ProtectedRoute>} />
           <Route path="/kalro-report" element={<ProtectedRoute><RoleRoute allowedRoles={['admin', 'field_agent']}><KalroReportBuilder /></RoleRoute></ProtectedRoute>} />
+          <Route path="/more" element={<ProtectedRoute><More /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
@@ -140,7 +142,6 @@ function AnimatedRoutes({
 function AppContent() {
   const { data, loading, error, refetch } = useLiveData();
   const filters = useLivestockStore((s) => s.filters);
-  const isOffline = !useOnlineStatus();
   const { t } = useTranslation();
 
   // Apply filters
@@ -181,7 +182,6 @@ function AppContent() {
       <AuthProvider>
         <div className="min-h-screen flex flex-col transition-colors bg-bg-primary text-text-primary">
           <a href="#main-content" className="skip-link">Skip to content</a>
-          <OfflineBanner />
           <OfflineIndicator />
 
           <div className="hidden md:block">
@@ -193,9 +193,7 @@ function AppContent() {
 
           <main
             id="main-content"
-            className={`w-full px-4 sm:px-6 md:px-8 py-4 flex-grow bg-bg-primary transition-all duration-200 ${
-              isOffline ? "mt-12" : ""
-            }`}
+            className="w-full px-4 sm:px-6 md:px-8 py-3 sm:py-4 flex-grow bg-bg-primary"
           >
             <AnimatedRoutes
               data={data}

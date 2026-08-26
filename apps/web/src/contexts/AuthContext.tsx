@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { User, AuthResponse } from '@wam-mfugo/shared';
+import { API_BASE, TOKEN_KEY, USER_KEY } from '../config';
 
 interface AuthContextType {
   user: Omit<User, 'failedOtpAttempts' | 'lockedUntil'> | null;
@@ -7,7 +8,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   isOffline: boolean;
-  requestOtp: (email: string) => Promise<{ message: string }>;
+  requestOtp: (email: string) => Promise<{ message: string; otp?: string }>;
   verifyOtp: (email: string, otp: string) => Promise<void>;
   register: (data: {
     email: string;
@@ -15,7 +16,7 @@ interface AuthContextType {
     phone: string;
     county: string;
     subCounty?: string;
-  }) => Promise<{ message: string }>;
+  }) => Promise<{ message: string; otp?: string }>;
   verifyRegistration: (email: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: {
@@ -27,10 +28,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
-const TOKEN_KEY = 'wam_auth_token';
-const USER_KEY = 'wam_auth_user';
 
 function getToken(): string | null {
   try {

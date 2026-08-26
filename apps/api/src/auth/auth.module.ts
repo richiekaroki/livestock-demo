@@ -4,23 +4,27 @@ import { PassportModule } from '@nestjs/passport';
 import { PrismaService } from '../common/prisma.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { InvitationService } from './invitation.service';
 import { OtpService } from './otp.service';
 import { SessionService } from './session.service';
-import { AuditService } from './audit.service';
-import { EmailService } from './email.service';
+import { AuditService } from '../common/audit/audit.service';
+import { EmailService } from '../common/email/email.service';
 import { JwtStrategy } from './jwt.strategy';
 import { USER_REPOSITORY } from './user.repository';
 import { OTP_REPOSITORY } from './otp.repository';
 import { SESSION_REPOSITORY } from './session.repository';
-import { AUDIT_REPOSITORY } from './audit.repository';
+import { AUDIT_REPOSITORY } from '../common/audit/audit.repository';
+import { INVITATION_REPOSITORY } from './invitation.repository';
 import { PrismaUserRepository } from './prisma-user.repository';
 import { PrismaOtpRepository } from './prisma-otp.repository';
 import { PrismaSessionRepository } from './prisma-session.repository';
-import { PrismaAuditRepository } from './prisma-audit.repository';
+import { PrismaAuditRepository } from '../common/audit/prisma-audit.repository';
+import { PrismaInvitationRepository } from './prisma-invitation.repository';
 import { InMemoryUserRepository } from './in-memory-user.repository';
 import { InMemoryOtpRepository } from './in-memory-otp.repository';
 import { InMemorySessionRepository } from './in-memory-session.repository';
-import { InMemoryAuditRepository } from './in-memory-audit.repository';
+import { InMemoryAuditRepository } from '../common/audit/in-memory-audit.repository';
+import { InMemoryInvitationRepository } from './in-memory-invitation.repository';
 
 @Module({
   imports: [
@@ -35,6 +39,7 @@ import { InMemoryAuditRepository } from './in-memory-audit.repository';
   controllers: [AuthController],
   providers: [
     AuthService,
+    InvitationService,
     OtpService,
     SessionService,
     AuditService,
@@ -76,9 +81,19 @@ import { InMemoryAuditRepository } from './in-memory-audit.repository';
         return new InMemoryAuditRepository();
       },
     },
+    {
+      provide: INVITATION_REPOSITORY,
+      useFactory: () => {
+        if (process.env.DATABASE_URL) {
+          return new PrismaInvitationRepository(new PrismaService());
+        }
+        return new InMemoryInvitationRepository();
+      },
+    },
   ],
   exports: [
     AuthService,
+    InvitationService,
     JwtModule,
     JwtStrategy,
     USER_REPOSITORY,

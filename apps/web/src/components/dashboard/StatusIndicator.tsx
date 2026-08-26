@@ -15,8 +15,8 @@ export default function StatusIndicator({ error }: StatusIndicatorProps) {
           <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <div>
-          <strong className="font-semibold">Connection Issue: </strong>
-          <span>{error}</span>
+          <strong className="font-semibold">Connection issue: </strong>
+          <span>Could not reach the server. Retrying...</span>
         </div>
       </div>
     </div>

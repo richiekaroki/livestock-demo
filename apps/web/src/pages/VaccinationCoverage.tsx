@@ -38,24 +38,24 @@ export default function VaccinationCoverage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[var(--color-text)]">
-          {t("Vaccination Coverage", "Vaccination Coverage")}
+          {t("coverage.title")}
         </h1>
         <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          {t("Vaccination rates across all counties", "Vaccination rates across all counties")}
+          {t("coverage.desc")}
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div className="bg-[var(--color-surface)] rounded-xl p-5 shadow-sm border border-[var(--color-border)]">
-          <div className="text-sm text-[var(--color-text-secondary)]">{t("Total Animals", "Total Animals")}</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">{t("coverage.total")}</div>
           <div className="text-2xl font-bold text-[var(--color-text)] mt-1">{totalAnimals.toLocaleString()}</div>
         </div>
         <div className="bg-[var(--color-surface)] rounded-xl p-5 shadow-sm border border-[var(--color-border)]">
-          <div className="text-sm text-[var(--color-text-secondary)]">{t("Vaccinated", "Vaccinated")}</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">{t("coverage.vaccinated")}</div>
           <div className="text-2xl font-bold text-[var(--color-text)] mt-1">{totalVaccinated.toLocaleString()}</div>
         </div>
         <div className="bg-[var(--color-surface)] rounded-xl p-5 shadow-sm border border-[var(--color-border)]">
-          <div className="text-sm text-[var(--color-text-secondary)]">{t("Overall Coverage", "Overall Coverage")}</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">{t("coverage.rate")}</div>
           <div className="text-2xl font-bold mt-1" style={{ color: getCoverageColor(overallCoverage) }}>
             {overallCoverage}%
           </div>
@@ -80,7 +80,7 @@ export default function VaccinationCoverage() {
               </div>
               <div className="w-full bg-[var(--color-border)] rounded-full h-3 mb-2">
                 <div
-                  className="h-3 rounded-full transition-all duration-500"
+                  className="h-3 rounded-full transition-[width] duration-500"
                   style={{
                     width: `${county.coveragePercent}%`,
                     backgroundColor: getCoverageColor(county.coveragePercent),
@@ -88,8 +88,8 @@ export default function VaccinationCoverage() {
                 />
               </div>
               <div className="flex justify-between text-xs text-[var(--color-text-secondary)]">
-                <span>{county.vaccinatedAnimals} / {county.totalAnimals} {t("animals", "animals")}</span>
-                <span>{Object.keys(county.vaccinationTypes).length} {t("vaccine types", "vaccine types")}</span>
+                <span>{county.vaccinatedAnimals} / {county.totalAnimals} {t("coverage.animals")}</span>
+                <span>{Object.keys(county.vaccinationTypes).length} {t("coverage.vaccineTypes")}</span>
               </div>
             </div>
           ))}
@@ -98,7 +98,7 @@ export default function VaccinationCoverage() {
 
       {data.length === 0 && !loading && (
         <div className="text-center py-12 text-[var(--color-text-secondary)]">
-          {t("No vaccination data available.", "No vaccination data available.")}
+          {t("coverage.empty")}
         </div>
       )}
     </div>

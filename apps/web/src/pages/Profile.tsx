@@ -16,6 +16,7 @@ export default function Profile() {
   const [subCounty, setSubCounty] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [messageType, setMessageType] = useState<"success" | "error">("success");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Session management state
@@ -115,8 +116,10 @@ export default function Profile() {
     try {
       await updateProfile({ name, phone, county, subCounty });
       setMessage(t("profile.update_success"));
+      setMessageType("success");
     } catch {
       setMessage(t("profile.update_failed"));
+      setMessageType("error");
     } finally {
       setLoading(false);
     }
@@ -129,12 +132,12 @@ export default function Profile() {
     });
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold text-text-primary mb-8">
+    <div className="max-w-2xl mx-auto py-6 sm:py-8 px-4">
+      <h1 className="text-2xl sm:text-3xl font-bold text-text-primary mb-6 sm:mb-8">
         {t("profile.title")}
       </h1>
 
-      <form onSubmit={handleSubmit} className="card p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="card p-5 sm:p-6 space-y-5 sm:space-y-6">
         <div>
           <label htmlFor="profile-email" className="block text-sm font-medium text-text-primary mb-1">
             {t("profile.email")}
@@ -228,7 +231,7 @@ export default function Profile() {
         </div>
 
         {message && (
-          <p className={`text-sm ${message.includes("success") || message.includes("fanikio") ? "text-success" : "text-error"}`}>
+          <p className={`text-sm ${messageType === "success" ? "text-success" : "text-error"}`}>
             {message}
           </p>
         )}
@@ -245,14 +248,14 @@ export default function Profile() {
       {/* Active Sessions */}
       <div className="card p-6 mt-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-text-primary">Active Sessions</h2>
+          <h2 className="text-xl font-bold text-text-primary">{t("profile.sessions_title")}</h2>
           {sessions.length > 0 && (
             <button
               onClick={handleRevokeAll}
               disabled={revokingAll}
-              className="btn btn-danger text-xs"
+              className="btn btn-danger text-xs min-h-[44px] min-w-[44px]"
             >
-              {revokingAll ? "Revoking..." : "Revoke All"}
+              {revokingAll ? t("profile.sessions_revoking") : t("profile.sessions_revoke_all")}
             </button>
           )}
         </div>
@@ -262,9 +265,9 @@ export default function Profile() {
         )}
 
         {sessionsLoading ? (
-          <p className="text-sm text-text-secondary">Loading sessions...</p>
+          <p className="text-sm text-text-secondary">{t("profile.sessions_loading")}</p>
         ) : sessions.length === 0 ? (
-          <p className="text-sm text-text-tertiary">No active sessions.</p>
+          <p className="text-sm text-text-tertiary">{t("profile.sessions_empty")}</p>
         ) : (
           <div className="space-y-3">
             {sessions.map((session) => (
@@ -274,20 +277,20 @@ export default function Profile() {
               >
                 <div className="space-y-1 min-w-0">
                   <p className="text-sm font-medium text-text-primary truncate">
-                    {session.device || "Unknown device"}
+                    {session.device || t("profile.sessions_unknown_device")}
                   </p>
                   <div className="flex items-center gap-3 text-xs text-text-tertiary">
                     {session.ip && <span>{session.ip}</span>}
-                    <span>Last active: {formatDate(session.lastActive)}</span>
-                    <span>Created: {formatDate(session.createdAt)}</span>
+                    <span>{t("profile.sessions_last_active")} {formatDate(session.lastActive)}</span>
+                    <span>{t("profile.sessions_created")} {formatDate(session.createdAt)}</span>
                   </div>
                 </div>
                 <button
                   onClick={() => handleRevokeSession(session.id)}
                   disabled={revokingId === session.id}
-                  className="btn btn-ghost text-xs text-error flex-shrink-0 ml-3"
+                  className="btn btn-ghost text-xs text-error flex-shrink-0 ml-3 min-h-[44px] min-w-[44px]"
                 >
-                  {revokingId === session.id ? "Revoking..." : "Revoke"}
+                  {revokingId === session.id ? t("profile.sessions_revoking") : t("profile.sessions_revoke")}
                 </button>
               </div>
             ))}
@@ -299,19 +302,19 @@ export default function Profile() {
       {'Notification' in window && (
         <div className="card p-6 mt-8">
           <h2 className="text-xl font-bold text-text-primary mb-4">
-            Notifications
+            {t("profile.notifications_title")}
           </h2>
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-sm font-medium text-text-primary">
-                Push Notifications
+                {t("profile.notifications_push")}
               </p>
               <p className="text-xs text-text-tertiary">
                 {notificationPermission === 'granted'
-                  ? 'Enabled — you will receive health alerts and outbreak notifications.'
+                  ? t("profile.notifications_enabled")
                   : notificationPermission === 'denied'
-                    ? 'Blocked — enable in browser settings.'
-                    : 'Not enabled yet.'}
+                    ? t("profile.notifications_blocked")
+                    : t("profile.notifications_not_enabled")}
               </p>
             </div>
             <button
@@ -330,12 +333,12 @@ export default function Profile() {
               }`}
             >
               {notificationsLoading
-                ? 'Requesting...'
+                ? t("profile.notifications_requesting")
                 : notificationPermission === 'granted'
-                  ? 'Enabled'
+                  ? t("profile.notifications_enabled")
                   : notificationPermission === 'denied'
-                    ? 'Blocked'
-                    : 'Enable'}
+                    ? t("profile.notifications_blocked")
+                    : t("profile.notifications_enable")}
             </button>
           </div>
         </div>

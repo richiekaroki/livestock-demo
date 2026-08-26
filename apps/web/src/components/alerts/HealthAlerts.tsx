@@ -1,6 +1,6 @@
 // src/components/alerts/HealthAlerts.tsx
 
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { Livestock } from "@wam-mfugo/shared";
 import { useDelayedUnmount } from '../../hooks/useDelayedUnmount';
 
@@ -18,7 +18,7 @@ interface Alert {
   timestamp: string;
 }
 
-function AnimatedAlert({
+const AnimatedAlert = React.memo(function AnimatedAlert({
   alert,
   onDismiss,
   onRestore,
@@ -35,6 +35,9 @@ function AnimatedAlert({
   const [showConfirm, setShowConfirm] = useState(false);
   const [reported, setReported] = useState(false);
   const { shouldRender, isAnimating } = useDelayedUnmount(!isDismissing, 200);
+
+  const prefersReducedMotion = typeof window !== "undefined"
+    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const handleDismiss = () => {
     setIsDismissing(true);
@@ -114,7 +117,7 @@ function AnimatedAlert({
       className={`card p-4 border ${styles.container} ${
         isAnimating ? 'animate-fade-out' : 'animate-slide-up'
       }`}
-      style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'backwards' }}
+      style={prefersReducedMotion ? undefined : { animationDelay: `${index * 60}ms`, animationFillMode: 'backwards' }}
     >
       <div className="flex items-start gap-3">
         <div className={`flex-shrink-0 ${styles.icon}`}>
@@ -139,7 +142,7 @@ function AnimatedAlert({
                 ) : (
                   <button
                     onClick={handleReportKALRO}
-                    className={`text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer font-medium ${
+                    className={`text-xs px-3 py-1.5 min-h-[44px] rounded-lg transition-colors cursor-pointer font-medium ${
                       showConfirm
                         ? "bg-warning text-white hover:bg-warning/90"
                         : "bg-error text-white hover:bg-error/90"
@@ -151,7 +154,7 @@ function AnimatedAlert({
                 {showConfirm && !reported && (
                   <button
                     onClick={() => setShowConfirm(false)}
-                    className="text-xs px-3 py-1.5 bg-bg-secondary text-text-secondary rounded-lg hover:bg-bg-tertiary transition-colors cursor-pointer font-medium border border-border"
+                    className="text-xs px-3 py-1.5 min-h-[44px] bg-bg-secondary text-text-secondary rounded-lg hover:bg-bg-tertiary transition-colors cursor-pointer font-medium border border-border"
                   >
                     Cancel
                   </button>
@@ -161,14 +164,14 @@ function AnimatedAlert({
             {isDismissed ? (
               <button
                 onClick={() => onRestore(alert.id)}
-                className="text-xs px-3 py-1.5 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors cursor-pointer font-medium"
+                className="text-xs px-3 py-1.5 min-h-[44px] bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors cursor-pointer font-medium"
               >
                 Restore
               </button>
             ) : (
               <button
                 onClick={handleDismiss}
-                className="text-xs px-3 py-1.5 bg-bg-secondary text-text-secondary rounded-lg hover:bg-bg-tertiary transition-colors cursor-pointer font-medium border border-border"
+                className="text-xs px-3 py-1.5 min-h-[44px] bg-bg-secondary text-text-secondary rounded-lg hover:bg-bg-tertiary transition-colors cursor-pointer font-medium border border-border"
               >
                 Dismiss
               </button>
@@ -178,7 +181,7 @@ function AnimatedAlert({
 
         <button
           onClick={handleDismiss}
-          className="flex-shrink-0 text-text-tertiary hover:text-text-primary transition-colors cursor-pointer"
+          className="flex-shrink-0 p-2.5 text-text-tertiary hover:text-text-primary transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-bg-secondary"
           aria-label="Dismiss alert"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -195,7 +198,7 @@ function AnimatedAlert({
       </div>
     </div>
   );
-}
+});
 
 const DISMISSED_KEY = "livestock-dismissed-alerts";
 
@@ -216,7 +219,7 @@ function saveDismissed(ids: Set<string>) {
   }
 }
 
-export default function HealthAlerts({ data }: HealthAlertsProps) {
+export default React.memo(function HealthAlerts({ data }: HealthAlertsProps) {
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(loadDismissed);
   const [showDismissed, setShowDismissed] = useState(false);
 
@@ -340,21 +343,20 @@ export default function HealthAlerts({ data }: HealthAlertsProps) {
         {dismissedCount > 0 && (
           <button
             onClick={() => setShowDismissed(true)}
-            className="text-xs text-text-tertiary hover:text-text-secondary transition-colors cursor-pointer font-medium"
+            className="text-xs text-text-tertiary hover:text-text-secondary transition-colors cursor-pointer font-medium min-h-[44px] flex items-center"
           >
             Show {dismissedCount} dismissed {dismissedCount === 1 ? 'alert' : 'alerts'}
           </button>
         )}
-      </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <div className="space-y-3">
       {dismissedCount > 0 && (
         <button
           onClick={() => setShowDismissed(!showDismissed)}
-          className="text-xs text-text-tertiary hover:text-text-secondary transition-colors cursor-pointer font-medium"
+          className="text-xs text-text-tertiary hover:text-text-secondary transition-colors cursor-pointer font-medium min-h-[44px] flex items-center"
         >
           {showDismissed ? 'Hide dismissed' : `Show ${dismissedCount} dismissed ${dismissedCount === 1 ? 'alert' : 'alerts'}`}
         </button>
@@ -372,3 +374,4 @@ export default function HealthAlerts({ data }: HealthAlertsProps) {
     </div>
   );
 }
+});

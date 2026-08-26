@@ -19,8 +19,8 @@ const AnimatedAnimalCard = memo(function AnimatedAnimalCard({
 }: {
   animal: Livestock;
   index: number;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit: (animal: Livestock) => void;
+  onDelete: (animal: Livestock) => void;
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -35,7 +35,7 @@ const AnimatedAnimalCard = memo(function AnimatedAnimalCard({
   return (
     <div
       ref={cardRef}
-      className={`card hover-lift p-5 transition-all duration-200 ${
+      className={`card hover-lift p-5 transition-opacity transition-transform duration-200 ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       }`}
       style={{
@@ -92,8 +92,8 @@ const AnimatedAnimalCard = memo(function AnimatedAnimalCard({
         <div className="flex items-center gap-2">
           <span className="text-xs text-text-tertiary font-mono mr-2">#{animal.id}</span>
           <button
-            onClick={onEdit}
-            className="p-1.5 text-text-tertiary hover:text-accent transition-colors cursor-pointer"
+            onClick={() => onEdit(animal)}
+            className="p-2.5 text-text-tertiary hover:text-accent transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-accent/10"
             aria-label={`Edit ${animal.name}`}
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -102,8 +102,8 @@ const AnimatedAnimalCard = memo(function AnimatedAnimalCard({
             </svg>
           </button>
           <button
-            onClick={onDelete}
-            className="p-1.5 text-text-tertiary hover:text-error transition-colors cursor-pointer"
+            onClick={() => onDelete(animal)}
+            className="p-2.5 text-text-tertiary hover:text-error transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-error/10"
             aria-label={`Delete ${animal.name}`}
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -177,8 +177,8 @@ export default function AnimalList({ data, onRefresh }: AnimalListProps) {
             key={animal.id}
             animal={animal}
             index={isTransitioning ? 0 : index}
-            onEdit={() => setEditingAnimal(animal)}
-            onDelete={() => handleDelete(animal)}
+            onEdit={setEditingAnimal}
+            onDelete={handleDelete}
           />
         ))}
       </div>

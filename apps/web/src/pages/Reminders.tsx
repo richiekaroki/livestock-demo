@@ -45,27 +45,28 @@ export default function Reminders() {
   };
 
   const getUrgencyColor = (days: number) => {
-    if (days <= 1) return "text-red-600 bg-red-50 border-red-200";
-    if (days <= 3) return "text-orange-600 bg-orange-50 border-orange-200";
-    return "text-green-600 bg-green-50 border-green-200";
+    if (days <= 1) return "text-[var(--color-error)] bg-[var(--color-error)]/10 border-[var(--color-error)]/30";
+    if (days <= 3) return "text-[var(--color-warning)] bg-[var(--color-warning)]/10 border-[var(--color-warning)]/30";
+    return "text-[var(--color-success)] bg-[var(--color-success)]/10 border-[var(--color-success)]/30";
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[var(--color-text)]">
-          {t("Vaccination Reminders", "Vaccination Reminders")}
+          {t("reminders.title")}
         </h1>
         <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          {t("Upcoming vaccination due dates", "Upcoming vaccination due dates")}
+          {t("reminders.desc")}
         </p>
       </div>
 
-      <div className="flex items-center gap-4 mb-6">
-        <label className="text-sm font-medium text-[var(--color-text)]">
-          {t("Show next", "Show next")}:
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+        <label htmlFor="reminders-show-next" className="text-sm font-medium text-[var(--color-text)]">
+          {t("reminders.show_next")}:
         </label>
         <select
+          id="reminders-show-next"
           value={daysAhead}
           onChange={(e) => setDaysAhead(Number(e.target.value))}
           className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none"
@@ -77,20 +78,20 @@ export default function Reminders() {
         </select>
         <button
           onClick={loadReminders}
-          className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary)]/90 transition-colors"
+          className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary)]/90 transition-colors min-h-[44px]"
         >
-          {t("Refresh", "Refresh")}
+          {t("reminders.refresh")}
         </button>
       </div>
 
       {loading ? (
         <div className="text-center py-12 text-[var(--color-text-secondary)]">
-          {t("Loading reminders...", "Loading reminders...")}
+          {t("reminders.loading")}
         </div>
       ) : reminders.length === 0 ? (
         <div className="text-center py-12 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
           <p className="text-[var(--color-text-secondary)]">
-            {t("No upcoming vaccination reminders", "No upcoming vaccination reminders")}
+            {t("reminders.empty")}
           </p>
         </div>
       ) : (
@@ -109,12 +110,12 @@ export default function Reminders() {
                     {r.type} — {r.owner}, {r.county}
                   </div>
                   <div className="text-xs opacity-60 mt-1">
-                    {t("Vet", "Vet")}: {r.veterinarian} | {t("Batch", "Batch")}: {r.batchNumber}
+                    {t("reminders.vet")}: {r.veterinarian} | {t("reminders.batch")}: {r.batchNumber}
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold">
-                    {days === 0 ? t("Today", "Today") : days === 1 ? t("Tomorrow", "Tomorrow") : `${days}d`}
+                    {days === 0 ? t("reminders.today") : days === 1 ? t("reminders.tomorrow") : `${days}d`}
                   </div>
                   <div className="text-xs opacity-75">
                     {new Date(r.nextDueDate).toLocaleDateString("en-KE")}

@@ -10,7 +10,9 @@
   "overrides": {
     "deepmerge-ts": "^8.0.0",
     "image-size": "^2.0.0",
-    "uuid": "^11.1.1"
+    "uuid": "^11.1.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   },
   "scripts": {
     "dev:web": "npm run dev -w apps/web",
@@ -26,6 +28,7 @@
     "test:api:e2e": "npm run test:e2e -w apps/api",
     "prisma:generate": "npm run prisma:generate -w apps/api",
     "dev:mobile": "npm run start -w apps/mobile",
+    "dev:mobile:tunnel": "npm run start:tunnel -w apps/mobile",
     "typecheck:mobile": "npm run typecheck -w apps/mobile",
     "lint:all": "npm run lint:web && npm run lint -w apps/api && npm run lint -w apps/mobile",
     "typecheck:all": "npm run typecheck -w apps/mobile && npm run typecheck -w apps/web && npm run typecheck -w apps/api",

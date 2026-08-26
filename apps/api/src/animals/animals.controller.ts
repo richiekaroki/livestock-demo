@@ -23,9 +23,9 @@ import { CreateAnimalDto } from './dto/create-animal.dto';
 import { UpdateAnimalDto } from './dto/update-animal.dto';
 import { UpdateHealthDto } from './dto/update-health.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { sendCsv, toCsv } from '../common/csv';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { toCsv } from '../common/csv';
 import { EventsGateway } from '../events/events.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -85,12 +85,7 @@ export class AnimalsController {
       lng: a.lng,
       createdAt: a.createdAt ?? '',
     }));
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="animals-${new Date().toISOString().slice(0, 10)}.csv"`,
-    );
-    res.send(toCsv(rows));
+    sendCsv(res, toCsv(rows), 'animals');
   }
 
   @Post()
@@ -291,11 +286,6 @@ export class AnimalsController {
       lng: a.lng,
       createdAt: a.createdAt ?? '',
     }));
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="animals-bulk-${new Date().toISOString().slice(0, 10)}.csv"`,
-    );
-    res.send(toCsv(rows));
+    sendCsv(res, toCsv(rows), 'animals-bulk');
   }
 }
