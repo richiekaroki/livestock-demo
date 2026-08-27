@@ -18,40 +18,40 @@ describe("StatisticsCards", () => {
   it("renders total animals count", () => {
     render(<StatisticsCards stats={mockStats} />);
     expect(screen.getByText("150")).toBeInTheDocument();
-    expect(screen.getByText("total animals tracked")).toBeInTheDocument();
+    expect(screen.getByText("total animals")).toBeInTheDocument();
   });
 
   it("renders healthy count", () => {
     render(<StatisticsCards stats={mockStats} />);
     const items = screen.getAllByText("120");
     expect(items.length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("healthy")).toBeInTheDocument();
+    expect(screen.getByText("Healthy")).toBeInTheDocument();
   });
 
   it("renders sick count", () => {
     render(<StatisticsCards stats={mockStats} />);
     const items = screen.getAllByText("15");
     expect(items.length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("sick")).toBeInTheDocument();
+    expect(screen.getByText("Sick")).toBeInTheDocument();
   });
 
   it("renders under treatment count", () => {
     render(<StatisticsCards stats={mockStats} />);
     const items = screen.getAllByText("10");
     expect(items.length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("treatment")).toBeInTheDocument();
+    expect(screen.getByText("Treatment")).toBeInTheDocument();
   });
 
   it("renders recovered count", () => {
     render(<StatisticsCards stats={mockStats} />);
-    expect(screen.getByText("recovered")).toBeInTheDocument();
+    expect(screen.getByText("Recovered")).toBeInTheDocument();
     const fives = screen.getAllByText("5");
     expect(fives.length).toBeGreaterThanOrEqual(2);
   });
 
   it("renders counties count", () => {
     render(<StatisticsCards stats={mockStats} />);
-    expect(screen.getByText("counties")).toBeInTheDocument();
+    expect(screen.getByText("Counties")).toBeInTheDocument();
   });
 
   it("renders last updated timestamp", () => {

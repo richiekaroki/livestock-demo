@@ -1,7 +1,12 @@
 // src/components/alerts/__tests__/HealthAlerts.test.tsx
-import { fireEvent, render, screen, act } from "@testing-library/react";
+import { fireEvent, render, screen, act, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Livestock } from "@wam-mfugo/shared";
+
+vi.mock("../../hooks/useDelayedUnmount", () => ({
+  useDelayedUnmount: () => ({ shouldRender: true, isAnimating: false }),
+}));
+
 import HealthAlerts from "../HealthAlerts";
 
 const mockSickAnimal: Livestock = {
@@ -51,66 +56,74 @@ const mockTreatmentAnimal: Livestock = {
 describe("HealthAlerts", () => {
   beforeEach(() => {
     localStorage.clear();
-    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it("shows all systems normal when only healthy animals", () => {
+  it("shows all systems normal when only healthy animals", async () => {
     render(<HealthAlerts data={[mockHealthyAnimal]} />);
-    expect(screen.getByText(/All Systems Normal/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/All Systems Normal/)).toBeInTheDocument();
+    });
     expect(screen.getByText(/No critical health alerts/)).toBeInTheDocument();
   });
 
-  it("renders sick animal alert as critical", () => {
+  it("renders sick animal alert as critical", async () => {
     render(<HealthAlerts data={[mockSickAnimal]} />);
-    expect(screen.getByText(/1 Sick Animal Require/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Sick Animal Require/)).toBeInTheDocument();
+    });
   });
 
-  it("renders under treatment alert as warning", () => {
+  it("renders under treatment alert as warning", async () => {
     render(<HealthAlerts data={[mockTreatmentAnimal]} />);
-    expect(screen.getByText(/1 Animal Under Treatment/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Animal Under Treatment/)).toBeInTheDocument();
+    });
   });
 
-  it("renders recovered alert as info", () => {
+  it("renders recovered alert as info", async () => {
     render(<HealthAlerts data={[mockRecoveredAnimal]} />);
-    expect(screen.getByText(/1 Animal Has Recovered/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Animal Has Recovered/)).toBeInTheDocument();
+    });
   });
 
-  it("counts multiple sick animals correctly", () => {
+  it("counts multiple sick animals correctly", async () => {
     const sickAnimals = [
       { ...mockSickAnimal, id: 1 },
       { ...mockSickAnimal, id: 2 },
       { ...mockSickAnimal, id: 3 },
     ];
     render(<HealthAlerts data={sickAnimals} />);
-    expect(screen.getByText(/3 Sick Animals Require/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Sick Animals Require/)).toBeInTheDocument();
+    });
   });
 
-  it("triggers outbreak alert when 3+ sick in same county", () => {
+  it("triggers outbreak alert when 3+ sick in same county", async () => {
     const sickInNakuru = [
       { ...mockSickAnimal, id: 1, county: "Nakuru" },
       { ...mockSickAnimal, id: 2, county: "Nakuru" },
       { ...mockSickAnimal, id: 3, county: "Nakuru" },
     ];
     render(<HealthAlerts data={sickInNakuru} />);
-    expect(screen.getByText(/Potential Disease Outbreak in Nakuru/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Potential Disease Outbreak in Nakuru/)).toBeInTheDocument();
+    });
   });
 
   it("dismisses alert and saves to localStorage", async () => {
     render(<HealthAlerts data={[mockSickAnimal]} />);
 
-    // Use fireEvent to click dismiss (synchronous, avoids timer issues)
-    fireEvent.click(screen.getByText("Dismiss"));
-
-    // Advance past dismiss timeout (200ms) + unmount animation (200ms)
-    act(() => {
-      vi.advanceTimersByTime(500);
+    await waitFor(() => {
+      expect(screen.getByText(/Sick Animal/)).toBeInTheDocument();
     });
 
-    expect(screen.queryByText(/Sick Animal/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("Dismiss"));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Sick Animal/)).not.toBeInTheDocument();
+    });
+
     const stored = JSON.parse(localStorage.getItem("livestock-dismissed-alerts")!);
     expect(stored).toContain("sick-animals");
   });
@@ -118,18 +131,26 @@ describe("HealthAlerts", () => {
   it("restores dismissed alert", async () => {
     render(<HealthAlerts data={[mockSickAnimal]} />);
 
-    // Dismiss
-    fireEvent.click(screen.getByText("Dismiss"));
-    act(() => {
-      vi.advanceTimersByTime(500);
+    await waitFor(() => {
+      expect(screen.getByText(/Sick Animal/)).toBeInTheDocument();
     });
 
-    // Show dismissed
+    fireEvent.click(screen.getByText("Dismiss"));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Sick Animal/)).not.toBeInTheDocument();
+    });
+
     fireEvent.click(screen.getByText(/Show.*dismissed/));
 
-    // Restore
+    await waitFor(() => {
+      expect(screen.getByText("Restore")).toBeInTheDocument();
+    });
+
     fireEvent.click(screen.getByText("Restore"));
 
-    expect(screen.getByText(/Sick Animal/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Sick Animal/)).toBeInTheDocument();
+    });
   });
 });

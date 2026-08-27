@@ -348,8 +348,9 @@ export default React.memo(function HealthAlerts({ data }: HealthAlertsProps) {
             Show {dismissedCount} dismissed {dismissedCount === 1 ? 'alert' : 'alerts'}
           </button>
         )}
-    </div>
-  );
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -374,4 +375,4 @@ export default React.memo(function HealthAlerts({ data }: HealthAlertsProps) {
     </div>
   );
 }
-});
+);

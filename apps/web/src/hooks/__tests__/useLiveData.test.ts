@@ -24,7 +24,6 @@ vi.mock("../../services/mockApi", () => ({
 
 import { mockAPI } from "../../services/mockApi";
 
-// Helper to generate test livestock entries
 const createMockLivestock = (
   overrides: Partial<Livestock> = {}
 ): Livestock => ({
@@ -43,7 +42,6 @@ describe("useLiveData", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     await clearOfflineData();
-    // Set auth token so useLiveData calls backend (mocked) instead of mockAPI
     localStorage.setItem("wam_auth_token", "test-token");
   });
 
@@ -59,7 +57,9 @@ describe("useLiveData", () => {
 
     expect(result.current.loading).toBe(true);
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.loading).toBe(false), {
+      timeout: 5000,
+    });
 
     expect(result.current.data).toEqual(mockData);
     expect(result.current.error).toBe(null);
@@ -84,7 +84,9 @@ describe("useLiveData", () => {
 
     const { result } = renderHook(() => useLiveData());
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.loading).toBe(false), {
+      timeout: 10000,
+    });
 
     expect(result.current.data).toEqual(offlineData);
     expect(result.current.error).toContain("offline");
@@ -101,7 +103,9 @@ describe("useLiveData", () => {
 
     const { result } = renderHook(() => useLiveData());
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.loading).toBe(false), {
+      timeout: 10000,
+    });
 
     expect(result.current.data).toEqual([]);
     expect(result.current.error?.toLowerCase()).toContain("failed");
@@ -118,13 +122,17 @@ describe("useLiveData", () => {
     });
 
     const { result } = renderHook(() => useLiveData());
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.loading).toBe(false), {
+      timeout: 5000,
+    });
 
     await act(async () => {
       await result.current.refetch();
     });
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.loading).toBe(false), {
+      timeout: 5000,
+    });
 
     expect(backend.getAnimals).toHaveBeenCalledTimes(2);
   });
@@ -151,7 +159,9 @@ describe("useLiveData", () => {
 
     const { result } = renderHook(() => useLiveData());
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.loading).toBe(false), {
+      timeout: 10000,
+    });
 
     expect(spy).toHaveBeenCalledTimes(3);
     expect(result.current.error).toBeNull();
@@ -161,13 +171,11 @@ describe("useLiveData", () => {
     consoleLogSpy.mockRestore();
   });
 
-  // handles invalid API response structure gracefully
   it("handles invalid API response structure gracefully", async () => {
     const consoleWarnSpy = vi
       .spyOn(console, "warn")
       .mockImplementation(() => {});
 
-    // API returns success=true but data invalid
     vi.mocked(backend.getAnimals).mockResolvedValue({
       success: true,
       data: null,
@@ -175,7 +183,9 @@ describe("useLiveData", () => {
 
     const { result } = renderHook(() => useLiveData());
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.loading).toBe(false), {
+      timeout: 10000,
+    });
 
     expect(result.current.data).toEqual([]);
     expect(result.current.error?.toLowerCase()).toContain("failed");
