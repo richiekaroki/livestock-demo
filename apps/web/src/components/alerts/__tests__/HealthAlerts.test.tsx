@@ -1,9 +1,9 @@
 // src/components/alerts/__tests__/HealthAlerts.test.tsx
 import { fireEvent, render, screen, act, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Livestock } from "@wam-mfugo/shared";
 
-vi.mock("../../hooks/useDelayedUnmount", () => ({
+vi.mock("../../../hooks/useDelayedUnmount", () => ({
   useDelayedUnmount: () => ({ shouldRender: true, isAnimating: false }),
 }));
 

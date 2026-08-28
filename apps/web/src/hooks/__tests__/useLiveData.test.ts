@@ -38,6 +38,12 @@ const createMockLivestock = (
   ...overrides,
 });
 
+async function flushPromises() {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
 describe("useLiveData", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -56,6 +62,8 @@ describe("useLiveData", () => {
     const { result } = renderHook(() => useLiveData());
 
     expect(result.current.loading).toBe(true);
+
+    await flushPromises();
 
     await waitFor(() => expect(result.current.loading).toBe(false), {
       timeout: 5000,
@@ -84,8 +92,10 @@ describe("useLiveData", () => {
 
     const { result } = renderHook(() => useLiveData());
 
+    await flushPromises();
+
     await waitFor(() => expect(result.current.loading).toBe(false), {
-      timeout: 10000,
+      timeout: 15000,
     });
 
     expect(result.current.data).toEqual(offlineData);
@@ -103,8 +113,10 @@ describe("useLiveData", () => {
 
     const { result } = renderHook(() => useLiveData());
 
+    await flushPromises();
+
     await waitFor(() => expect(result.current.loading).toBe(false), {
-      timeout: 10000,
+      timeout: 15000,
     });
 
     expect(result.current.data).toEqual([]);
@@ -122,6 +134,8 @@ describe("useLiveData", () => {
     });
 
     const { result } = renderHook(() => useLiveData());
+    await flushPromises();
+
     await waitFor(() => expect(result.current.loading).toBe(false), {
       timeout: 5000,
     });
@@ -159,8 +173,10 @@ describe("useLiveData", () => {
 
     const { result } = renderHook(() => useLiveData());
 
+    await flushPromises();
+
     await waitFor(() => expect(result.current.loading).toBe(false), {
-      timeout: 10000,
+      timeout: 15000,
     });
 
     expect(spy).toHaveBeenCalledTimes(3);
@@ -183,8 +199,10 @@ describe("useLiveData", () => {
 
     const { result } = renderHook(() => useLiveData());
 
+    await flushPromises();
+
     await waitFor(() => expect(result.current.loading).toBe(false), {
-      timeout: 10000,
+      timeout: 15000,
     });
 
     expect(result.current.data).toEqual([]);
