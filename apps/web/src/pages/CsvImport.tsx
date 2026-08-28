@@ -66,7 +66,7 @@ export default function CsvImport() {
         <div className="mb-6 p-4 bg-[var(--color-bg)] rounded-lg border border-[var(--color-border)]">
           <h2 className="text-sm font-semibold text-[var(--color-text)] mb-2">
             {t("import.csv_format")}
-          </h3>
+          </h2>
           <p className="text-xs text-[var(--color-text-secondary)] mb-2">
             {t("import.csv_required")}
           </p>
