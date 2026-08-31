@@ -42,12 +42,16 @@ export class PrismaWeightRepository implements WeightRepository {
     return this.toRecord(r);
   }
 
-  async findMany(filters: {
-    animalId?: number;
-    county?: string;
-    fromDate?: string;
-    toDate?: string;
-  }, skip: number, take: number): Promise<WeightRecord[]> {
+  async findMany(
+    filters: {
+      animalId?: number;
+      county?: string;
+      fromDate?: string;
+      toDate?: string;
+    },
+    skip: number,
+    take: number,
+  ): Promise<WeightRecord[]> {
     const where: Record<string, unknown> = {};
     if (filters.animalId) where.animalId = filters.animalId;
     if (filters.county) where.animal = { county: filters.county };
@@ -61,7 +65,8 @@ export class PrismaWeightRepository implements WeightRepository {
       where,
       include: { animal: { select: { name: true, type: true, county: true } } },
       orderBy: { recordedAt: 'desc' },
-      skip, take,
+      skip,
+      take,
     });
     return rows.map((r) => this.toRecord(r));
   }
@@ -75,7 +80,10 @@ export class PrismaWeightRepository implements WeightRepository {
     return rows.map((r) => this.toRecord(r));
   }
 
-  async getGainStats(query?: { county?: string; animalId?: number }): Promise<WeightGainStats[]> {
+  async getGainStats(query?: {
+    county?: string;
+    animalId?: number;
+  }): Promise<WeightGainStats[]> {
     const where: Record<string, unknown> = {};
     if (query?.county) where.county = query.county;
     const animals = await this.prisma.animal.findMany({
@@ -93,12 +101,20 @@ export class PrismaWeightRepository implements WeightRepository {
       const first = records[0];
       const latest = records[records.length - 1];
       const gain = latest.weight - first.weight;
-      const gainPercent = first.weight > 0 ? Math.round((gain / first.weight) * 100) : 0;
+      const gainPercent =
+        first.weight > 0 ? Math.round((gain / first.weight) * 100) : 0;
       results.push({
-        animalId: animal.id, animalName: animal.name, animalType: animal.type,
-        county: animal.county, firstWeight: first.weight, latestWeight: latest.weight,
-        gain: Math.round(gain * 100) / 100, gainPercent, recordCount: records.length,
-        firstRecorded: first.recordedAt.toISOString(), lastRecorded: latest.recordedAt.toISOString(),
+        animalId: animal.id,
+        animalName: animal.name,
+        animalType: animal.type,
+        county: animal.county,
+        firstWeight: first.weight,
+        latestWeight: latest.weight,
+        gain: Math.round(gain * 100) / 100,
+        gainPercent,
+        recordCount: records.length,
+        firstRecorded: first.recordedAt.toISOString(),
+        lastRecorded: latest.recordedAt.toISOString(),
         unit: latest.unit,
       });
     }
@@ -106,7 +122,11 @@ export class PrismaWeightRepository implements WeightRepository {
   }
 
   async remove(id: number): Promise<boolean> {
-    try { await this.prisma.weightRecord.delete({ where: { id } }); return true; }
-    catch { return false; }
+    try {
+      await this.prisma.weightRecord.delete({ where: { id } });
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

@@ -15,10 +15,14 @@ export interface OutbreaksRepository {
     actions: string[];
     status: string;
   }): Promise<OutbreakRecord>;
-  findMany(filters: {
-    status?: string;
-    county?: string;
-    diseaseType?: string;
-  }, skip: number, take: number): Promise<OutbreakRecord[]>;
+  findMany(
+    filters: {
+      status?: string;
+      county?: string;
+      diseaseType?: string;
+    },
+    skip: number,
+    take: number,
+  ): Promise<OutbreakRecord[]>;
   update(id: number, data: Record<string, unknown>): Promise<OutbreakRecord>;
 }

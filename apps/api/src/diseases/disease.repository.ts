@@ -19,10 +19,7 @@ export interface DiseasesRepository {
     since: Date,
   ): Promise<{ date: string; affected: number; status: string }[]>;
   countAnimalsInCounty(county: string): Promise<number>;
-  getVaccinationCoverage(
-    county: string,
-    diseaseType: string,
-  ): Promise<number>;
+  getVaccinationCoverage(county: string, diseaseType: string): Promise<number>;
   findDiseaseRiskUnique(
     county: string,
     diseaseType: string,

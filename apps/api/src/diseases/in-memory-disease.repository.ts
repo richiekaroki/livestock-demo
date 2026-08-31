@@ -47,7 +47,10 @@ export class InMemoryDiseasesRepository implements DiseasesRepository {
     record.riskLevel = data.riskLevel;
     record.confidence = data.confidence;
     record.factors = data.factors;
-    record.lastCalculated = data.lastCalculated instanceof Date ? data.lastCalculated.toISOString() : data.lastCalculated;
+    record.lastCalculated =
+      data.lastCalculated instanceof Date
+        ? data.lastCalculated.toISOString()
+        : data.lastCalculated;
     return record;
   }
 
@@ -66,7 +69,10 @@ export class InMemoryDiseasesRepository implements DiseasesRepository {
       riskLevel: data.riskLevel,
       confidence: data.confidence,
       factors: data.factors,
-      lastCalculated: data.lastCalculated instanceof Date ? data.lastCalculated.toISOString() : data.lastCalculated,
+      lastCalculated:
+        data.lastCalculated instanceof Date
+          ? data.lastCalculated.toISOString()
+          : data.lastCalculated,
     };
     this.diseaseRisks.push(record);
     return record;

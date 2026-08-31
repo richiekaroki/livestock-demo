@@ -82,7 +82,11 @@ export class EmailService {
         'utf-8',
       );
     } catch {
-      html = this.getInvitationFallbackTemplate(name, inviteLink, expiresInHours);
+      html = this.getInvitationFallbackTemplate(
+        name,
+        inviteLink,
+        expiresInHours,
+      );
     }
 
     html = html

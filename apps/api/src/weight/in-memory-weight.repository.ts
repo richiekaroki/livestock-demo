@@ -29,15 +29,21 @@ export class InMemoryWeightRepository implements WeightRepository {
     return r;
   }
 
-  async findMany(filters: {
-    animalId?: number;
-    county?: string;
-    fromDate?: string;
-    toDate?: string;
-  }, skip: number, take: number): Promise<WeightRecord[]> {
+  async findMany(
+    filters: {
+      animalId?: number;
+      county?: string;
+      fromDate?: string;
+      toDate?: string;
+    },
+    skip: number,
+    take: number,
+  ): Promise<WeightRecord[]> {
     let filtered = this.records;
-    if (filters.animalId) filtered = filtered.filter((r) => r.animalId === filters.animalId);
-    if (filters.county) filtered = filtered.filter((r) => r.county === filters.county);
+    if (filters.animalId)
+      filtered = filtered.filter((r) => r.animalId === filters.animalId);
+    if (filters.county)
+      filtered = filtered.filter((r) => r.county === filters.county);
     return filtered.slice(skip, skip + take);
   }
 

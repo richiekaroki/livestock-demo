@@ -33,8 +33,10 @@ export class AuthService {
     this.otpMaxRequests = parseInt(process.env.OTP_MAX_REQUESTS || '5', 10);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async requestOtp(email: string, _ip?: string): Promise<{ message: string; otp?: string }> {
+  async requestOtp(
+    email: string,
+    _ip?: string,
+  ): Promise<{ message: string; otp?: string }> {
     const user = await this.userRepo.findByEmail(email);
 
     if (user && !user.isActive) {
@@ -169,7 +171,12 @@ export class AuthService {
   ): Promise<AuthResponse> {
     // In dev auto-verify mode, skip OTP check entirely
     if (process.env.DEV_AUTO_VERIFY !== 'true') {
-      const result = await this.otpService.verifyOtp(email, otp, 'register', ip);
+      const result = await this.otpService.verifyOtp(
+        email,
+        otp,
+        'register',
+        ip,
+      );
       if (!result.valid) {
         throw new UnauthorizedException('Invalid email or OTP code');
       }

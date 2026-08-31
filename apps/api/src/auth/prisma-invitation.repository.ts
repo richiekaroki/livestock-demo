@@ -1,5 +1,8 @@
 import { PrismaService } from '../common/prisma.service';
-import type { InvitationRepository, PendingInvitationData } from './invitation.repository';
+import type {
+  InvitationRepository,
+  PendingInvitationData,
+} from './invitation.repository';
 
 export class PrismaInvitationRepository implements InvitationRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -67,10 +70,7 @@ export class PrismaInvitationRepository implements InvitationRepository {
   async deleteExpired(): Promise<void> {
     await this.prisma.pendingInvitation.deleteMany({
       where: {
-        OR: [
-          { expiresAt: { lt: new Date() } },
-          { used: true },
-        ],
+        OR: [{ expiresAt: { lt: new Date() } }, { used: true }],
       },
     });
   }

@@ -29,10 +29,7 @@ export interface VaccinationsRepository {
     nextDueDate: Date | null;
     animalId: number;
   }): Promise<VaccinationRecord>;
-  update(
-    id: number,
-    data: Record<string, unknown>,
-  ): Promise<VaccinationRecord>;
+  update(id: number, data: Record<string, unknown>): Promise<VaccinationRecord>;
   remove(id: number): Promise<boolean>;
   findDueReminders(now: Date, deadline: Date): Promise<VaccinationRecord[]>;
 }

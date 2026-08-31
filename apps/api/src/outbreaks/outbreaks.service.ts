@@ -1,6 +1,13 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import type { OutbreakQueryDto, ReportOutbreakDto, UpdateOutbreakDto } from './dto/report-outbreak.dto';
-import { OUTBREAKS_REPOSITORY, OutbreaksRepository } from './outbreaks.repository';
+import type {
+  OutbreakQueryDto,
+  ReportOutbreakDto,
+  UpdateOutbreakDto,
+} from './dto/report-outbreak.dto';
+import {
+  OUTBREAKS_REPOSITORY,
+  OutbreaksRepository,
+} from './outbreaks.repository';
 import { parsePagination } from '../common/pagination';
 
 export interface OutbreakRecord {
@@ -40,7 +47,11 @@ export class OutbreaksService {
   async list(query: OutbreakQueryDto): Promise<OutbreakRecord[]> {
     const { skip, take } = parsePagination(query);
     return this.repo.findMany(
-      { status: query.status, county: query.county, diseaseType: query.diseaseType },
+      {
+        status: query.status,
+        county: query.county,
+        diseaseType: query.diseaseType,
+      },
       skip,
       take,
     );
@@ -50,7 +61,8 @@ export class OutbreaksService {
     const data: Record<string, unknown> = {};
     if (dto.status) data.status = dto.status;
     if (dto.diseaseType) data.diseaseType = dto.diseaseType;
-    if (dto.affectedAnimals !== undefined) data.affectedAnimals = dto.affectedAnimals;
+    if (dto.affectedAnimals !== undefined)
+      data.affectedAnimals = dto.affectedAnimals;
     if (dto.symptoms) data.symptoms = dto.symptoms;
     if (dto.actions) data.actions = dto.actions;
     return this.repo.update(id, data);

@@ -170,7 +170,9 @@ export class AnimalsController {
   @Post('import')
   @UseGuards(RolesGuard)
   @Roles('admin', 'field_agent')
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } })) // 5MB max
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }),
+  ) // 5MB max
   async importCsv(
     @UploadedFile() file: Express.Multer.File,
   ): Promise<ApiResponse<{ imported: number; errors: string[] }>> {
@@ -249,8 +251,16 @@ export class AnimalsController {
   async bulkUpdateHealth(
     @Body() body: { ids: number[]; health: string },
   ): Promise<ApiResponse<{ updated: number }>> {
-    if (!Array.isArray(body.ids) || body.ids.length === 0 || body.ids.length > 200) {
-      return { success: false, error: 'ids must be an array of 1-200 numbers', data: { updated: 0 } };
+    if (
+      !Array.isArray(body.ids) ||
+      body.ids.length === 0 ||
+      body.ids.length > 200
+    ) {
+      return {
+        success: false,
+        error: 'ids must be an array of 1-200 numbers',
+        data: { updated: 0 },
+      };
     }
     const result = await this.animals.bulkUpdateHealth(
       body.ids,
@@ -265,8 +275,16 @@ export class AnimalsController {
   async bulkDelete(
     @Body() body: { ids: number[] },
   ): Promise<ApiResponse<{ deleted: number }>> {
-    if (!Array.isArray(body.ids) || body.ids.length === 0 || body.ids.length > 200) {
-      return { success: false, error: 'ids must be an array of 1-200 numbers', data: { deleted: 0 } };
+    if (
+      !Array.isArray(body.ids) ||
+      body.ids.length === 0 ||
+      body.ids.length > 200
+    ) {
+      return {
+        success: false,
+        error: 'ids must be an array of 1-200 numbers',
+        data: { deleted: 0 },
+      };
     }
     const result = await this.animals.bulkDelete(body.ids);
     return { success: true, data: result };

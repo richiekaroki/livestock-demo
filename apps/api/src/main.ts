@@ -20,7 +20,10 @@ function validateSecrets() {
         'Example: JWT_SECRET=$(openssl rand -hex 32)',
     );
   }
-  if (process.env.DEV_AUTO_VERIFY === 'true' && process.env.NODE_ENV === 'production') {
+  if (
+    process.env.DEV_AUTO_VERIFY === 'true' &&
+    process.env.NODE_ENV === 'production'
+  ) {
     throw new Error(
       'FATAL: DEV_AUTO_VERIFY=true is not allowed in production. ' +
         'This bypasses OTP verification entirely.',

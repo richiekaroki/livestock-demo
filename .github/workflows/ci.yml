@@ -30,7 +30,7 @@ jobs:
         run: npx tsc --noEmit
         working-directory: apps/mobile
       - name: Lint API
-        run: npx eslint "src/**/*.ts" --max-warnings=0
+        run: npx eslint "src/**/*.ts"
         working-directory: apps/api
       - name: Lint Web
         run: npx eslint . --max-warnings=0

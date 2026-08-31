@@ -1,7 +1,15 @@
-import { Inject, Injectable, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import * as crypto from 'crypto';
 import type { AuthResponse, UserRole } from '@wam-mfugo/shared';
-import { INVITATION_REPOSITORY, type InvitationRepository } from './invitation.repository';
+import {
+  INVITATION_REPOSITORY,
+  type InvitationRepository,
+} from './invitation.repository';
 import { USER_REPOSITORY, type UserRepository } from './user.repository';
 import { EmailService } from './email.service';
 import { AuditService } from './audit.service';
@@ -15,7 +23,8 @@ const WEB_BASE_URL = process.env.WEB_BASE_URL || 'http://localhost:5173';
 @Injectable()
 export class InvitationService {
   constructor(
-    @Inject(INVITATION_REPOSITORY) private readonly invitationRepo: InvitationRepository,
+    @Inject(INVITATION_REPOSITORY)
+    private readonly invitationRepo: InvitationRepository,
     @Inject(USER_REPOSITORY) private readonly userRepo: UserRepository,
     private readonly emailService: EmailService,
     private readonly auditService: AuditService,
@@ -76,7 +85,9 @@ export class InvitationService {
     }
 
     if (invitation.used) {
-      throw new BadRequestException('This registration link has already been used');
+      throw new BadRequestException(
+        'This registration link has already been used',
+      );
     }
 
     if (new Date(invitation.expiresAt) < new Date()) {
@@ -92,7 +103,7 @@ export class InvitationService {
       email: invitation.email,
       name: invitation.name,
       phone: invitation.phone || '',
-      role: 'farmer' as UserRole,
+      role: 'farmer',
       county: invitation.county,
       subCounty: invitation.subCounty || undefined,
     });
@@ -122,7 +133,8 @@ export class InvitationService {
     const refreshToken = this.jwtService.sign(
       { sub: userId, type: 'refresh' },
       {
-        expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '7d') as unknown as number,
+        expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ||
+          '7d') as unknown as number,
       },
     );
 

@@ -10,12 +10,16 @@ export interface MortalityRepository {
     reportedBy: string;
     notes: string | null;
   }): Promise<MortalityRecord>;
-  findMany(filters: {
-    cause?: string;
-    county?: string;
-    fromDate?: string;
-    toDate?: string;
-  }, skip: number, take: number): Promise<MortalityRecord[]>;
+  findMany(
+    filters: {
+      cause?: string;
+      county?: string;
+      fromDate?: string;
+      toDate?: string;
+    },
+    skip: number,
+    take: number,
+  ): Promise<MortalityRecord[]>;
   count(where?: Record<string, unknown>): Promise<number>;
   countRecent(days: number): Promise<number>;
   groupByCause(): Promise<{ cause: string; count: number }[]>;

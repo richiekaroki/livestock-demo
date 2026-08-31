@@ -11,13 +11,20 @@ export interface WeightRepository {
     notes: string | null;
     recordedAt?: Date;
   }): Promise<WeightRecord>;
-  findMany(filters: {
-    animalId?: number;
-    county?: string;
-    fromDate?: string;
-    toDate?: string;
-  }, skip: number, take: number): Promise<WeightRecord[]>;
+  findMany(
+    filters: {
+      animalId?: number;
+      county?: string;
+      fromDate?: string;
+      toDate?: string;
+    },
+    skip: number,
+    take: number,
+  ): Promise<WeightRecord[]>;
   findByAnimalId(animalId: number): Promise<WeightRecord[]>;
-  getGainStats(query?: { county?: string; animalId?: number }): Promise<WeightGainStats[]>;
+  getGainStats(query?: {
+    county?: string;
+    animalId?: number;
+  }): Promise<WeightGainStats[]>;
   remove(id: number): Promise<boolean>;
 }

@@ -37,18 +37,24 @@ export class PrismaMortalityRepository implements MortalityRepository {
         notes: data.notes,
       },
       include: {
-        animal: { select: { name: true, type: true, county: true, owner: true } },
+        animal: {
+          select: { name: true, type: true, county: true, owner: true },
+        },
       },
     });
     return this.toRecord(record);
   }
 
-  async findMany(filters: {
-    cause?: string;
-    county?: string;
-    fromDate?: string;
-    toDate?: string;
-  }, skip: number, take: number): Promise<MortalityRecord[]> {
+  async findMany(
+    filters: {
+      cause?: string;
+      county?: string;
+      fromDate?: string;
+      toDate?: string;
+    },
+    skip: number,
+    take: number,
+  ): Promise<MortalityRecord[]> {
     const where: Record<string, unknown> = {};
     if (filters.cause) where.cause = filters.cause;
     if (filters.county) where.animal = { county: filters.county };
@@ -60,9 +66,14 @@ export class PrismaMortalityRepository implements MortalityRepository {
     }
     const records = await this.prisma.mortality.findMany({
       where,
-      include: { animal: { select: { name: true, type: true, county: true, owner: true } } },
+      include: {
+        animal: {
+          select: { name: true, type: true, county: true, owner: true },
+        },
+      },
       orderBy: { reportedAt: 'desc' },
-      skip, take,
+      skip,
+      take,
     });
     return records.map((r) => this.toRecord(r));
   }
@@ -74,12 +85,16 @@ export class PrismaMortalityRepository implements MortalityRepository {
   async countRecent(days: number): Promise<number> {
     const since = new Date();
     since.setDate(since.getDate() - days);
-    return this.prisma.mortality.count({ where: { reportedAt: { gte: since } } });
+    return this.prisma.mortality.count({
+      where: { reportedAt: { gte: since } },
+    });
   }
 
   async groupByCause(): Promise<{ cause: string; count: number }[]> {
     const groups = await this.prisma.mortality.groupBy({
-      by: ['cause'], _count: true, orderBy: { _count: { cause: 'desc' } },
+      by: ['cause'],
+      _count: true,
+      orderBy: { _count: { cause: 'desc' } },
     });
     return groups.map((g) => ({ cause: g.cause, count: g._count }));
   }
@@ -101,6 +116,8 @@ export class PrismaMortalityRepository implements MortalityRepository {
     try {
       await this.prisma.mortality.delete({ where: { id } });
       return true;
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   }
 }

@@ -14,7 +14,9 @@ export function toCsv(rows: Record<string, unknown>[]): string {
   const headers = Object.keys(rows[0]);
   const lines = [headers.join(',')];
   for (const row of rows) {
-    lines.push(headers.map((h) => sanitizeCell(String(row[h] ?? ''))).join(','));
+    lines.push(
+      headers.map((h) => sanitizeCell(String(row[h] ?? ''))).join(','),
+    );
   }
   return lines.join('\n');
 }

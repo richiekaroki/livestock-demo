@@ -15,7 +15,7 @@ export class PrismaDiseasesRepository implements DiseasesRepository {
       diseaseType: row.diseaseType,
       riskLevel: row.riskLevel,
       confidence: row.confidence,
-      factors: row.factors as unknown as RiskFactor[],
+      factors: row.factors,
       lastCalculated: row.lastCalculated,
     };
   }

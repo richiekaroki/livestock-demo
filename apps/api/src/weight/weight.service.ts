@@ -51,7 +51,12 @@ export class WeightService {
   async list(query: WeightQueryDto): Promise<WeightRecord[]> {
     const { skip, take } = parsePagination(query);
     return this.repo.findMany(
-      { animalId: query.animalId, county: query.county, fromDate: query.fromDate, toDate: query.toDate },
+      {
+        animalId: query.animalId,
+        county: query.county,
+        fromDate: query.fromDate,
+        toDate: query.toDate,
+      },
       skip,
       take,
     );
@@ -61,7 +66,10 @@ export class WeightService {
     return this.repo.findByAnimalId(animalId);
   }
 
-  async getWeightGainStats(query?: { county?: string; animalId?: number }): Promise<WeightGainStats[]> {
+  async getWeightGainStats(query?: {
+    county?: string;
+    animalId?: number;
+  }): Promise<WeightGainStats[]> {
     return this.repo.getGainStats(query);
   }
 

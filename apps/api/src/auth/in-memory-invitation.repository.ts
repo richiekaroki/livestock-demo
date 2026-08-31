@@ -1,4 +1,7 @@
-import type { InvitationRepository, PendingInvitationData } from './invitation.repository';
+import type {
+  InvitationRepository,
+  PendingInvitationData,
+} from './invitation.repository';
 
 export class InMemoryInvitationRepository implements InvitationRepository {
   private invitations: PendingInvitationData[] = [];

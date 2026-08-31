@@ -1,6 +1,9 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ReportMortalityDto, MortalityQueryDto } from './dto/mortality.dto';
-import { MORTALITY_REPOSITORY, MortalityRepository } from './mortality.repository';
+import {
+  MORTALITY_REPOSITORY,
+  MortalityRepository,
+} from './mortality.repository';
 import { parsePagination } from '../common/pagination';
 
 export interface MortalityRecord {
@@ -36,7 +39,12 @@ export class MortalityService {
   async list(query: MortalityQueryDto): Promise<MortalityRecord[]> {
     const { skip, take } = parsePagination(query);
     return this.repo.findMany(
-      { cause: query.cause, county: query.county, fromDate: query.fromDate, toDate: query.toDate },
+      {
+        cause: query.cause,
+        county: query.county,
+        fromDate: query.fromDate,
+        toDate: query.toDate,
+      },
       skip,
       take,
     );

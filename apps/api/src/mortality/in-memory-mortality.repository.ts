@@ -29,19 +29,27 @@ export class InMemoryMortalityRepository implements MortalityRepository {
     return record;
   }
 
-  async findMany(filters: {
-    cause?: string;
-    county?: string;
-    fromDate?: string;
-    toDate?: string;
-  }, skip: number, take: number): Promise<MortalityRecord[]> {
+  async findMany(
+    filters: {
+      cause?: string;
+      county?: string;
+      fromDate?: string;
+      toDate?: string;
+    },
+    skip: number,
+    take: number,
+  ): Promise<MortalityRecord[]> {
     let filtered = this.records;
-    if (filters.cause) filtered = filtered.filter((r) => r.cause === filters.cause);
-    if (filters.county) filtered = filtered.filter((r) => r.county === filters.county);
+    if (filters.cause)
+      filtered = filtered.filter((r) => r.cause === filters.cause);
+    if (filters.county)
+      filtered = filtered.filter((r) => r.county === filters.county);
     return filtered.slice(skip, skip + take);
   }
 
-  async count(): Promise<number> { return this.records.length; }
+  async count(): Promise<number> {
+    return this.records.length;
+  }
 
   async countRecent(days: number): Promise<number> {
     const since = new Date();
@@ -52,13 +60,20 @@ export class InMemoryMortalityRepository implements MortalityRepository {
   async groupByCause(): Promise<{ cause: string; count: number }[]> {
     const map = new Map<string, number>();
     for (const r of this.records) map.set(r.cause, (map.get(r.cause) ?? 0) + 1);
-    return Array.from(map.entries()).map(([cause, count]) => ({ cause, count }));
+    return Array.from(map.entries()).map(([cause, count]) => ({
+      cause,
+      count,
+    }));
   }
 
   async groupByCounty(): Promise<{ county: string; count: number }[]> {
     const map = new Map<string, number>();
-    for (const r of this.records) map.set(r.county, (map.get(r.county) ?? 0) + 1);
-    return Array.from(map.entries()).map(([county, count]) => ({ county, count }));
+    for (const r of this.records)
+      map.set(r.county, (map.get(r.county) ?? 0) + 1);
+    return Array.from(map.entries()).map(([county, count]) => ({
+      county,
+      count,
+    }));
   }
 
   async remove(id: number): Promise<boolean> {
