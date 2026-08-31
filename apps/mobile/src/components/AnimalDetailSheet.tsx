@@ -1,7 +1,5 @@
-import { forwardRef, useMemo, useCallback, useState, useEffect } from 'react';
-import { StyleSheet, View as RNView, Image, Pressable, Alert, TextInput, ActivityIndicator } from 'react-native';
-import BottomSheet from '@gorhom/bottom-sheet';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { forwardRef, useCallback, useState, useEffect, useImperativeHandle } from 'react';
+import { StyleSheet, View as RNView, Image, Pressable, Alert, TextInput, ActivityIndicator, Modal, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View, useColors } from '@/components/Themed';
 import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
@@ -10,23 +8,23 @@ import { impactMedium } from '@/src/services/haptics';
 import type { Livestock } from '@wam-mfugo/shared';
 import { KENYA_COUNTIES, LIVESTOCK_TYPES } from '@wam-mfugo/shared';
 import type { AnimalType, HealthStatus } from '@wam-mfugo/shared';
-
-// Suppress TS type incompatibility with Expo SDK 54
 import React from 'react';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const BottomSheetAny = BottomSheet as unknown as React.ComponentType<any>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const BottomSheetScrollViewAny = BottomSheetScrollView as unknown as React.ComponentType<any>;
+
+export interface AnimalDetailSheetHandle {
+  present: () => void;
+  close: () => void;
+}
+
 interface AnimalDetailSheetProps {
   animal: Livestock | null;
   onClose: () => void;
   onSaved?: () => void;
 }
 
-const AnimalDetailSheet = forwardRef<BottomSheet, AnimalDetailSheetProps>(
+const AnimalDetailSheet = forwardRef<AnimalDetailSheetHandle, AnimalDetailSheetProps>(
   ({ animal, onClose, onSaved }, ref) => {
     const colors = useColors();
-    const snapPoints = useMemo(() => ['40%', '75%'], []);
+    const [visible, setVisible] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [editName, setEditName] = useState('');
     const [editType, setEditType] = useState<AnimalType>('Cattle');
@@ -41,6 +39,11 @@ const AnimalDetailSheet = forwardRef<BottomSheet, AnimalDetailSheetProps>(
       qrCode: string;
     } | null>(null);
 
+    useImperativeHandle(ref, () => ({
+      present: () => setVisible(true),
+      close: () => setVisible(false),
+    }));
+
     useEffect(() => {
       if (animal) {
         setEditName(animal.name);
@@ -50,8 +53,15 @@ const AnimalDetailSheet = forwardRef<BottomSheet, AnimalDetailSheetProps>(
         setEditOwner(animal.owner);
         setEditHealth(animal.health);
         setEditMode(false);
+        setKiamisResult(null);
       }
     }, [animal]);
+
+    const handleClose = useCallback(() => {
+      setVisible(false);
+      setEditMode(false);
+      onClose();
+    }, [onClose]);
 
     const handleSave = useCallback(async () => {
       if (!animal) return;
@@ -112,10 +122,6 @@ const AnimalDetailSheet = forwardRef<BottomSheet, AnimalDetailSheetProps>(
       }
     }, [animal]);
 
-    const handleSheetChanges = useCallback((index: number) => {
-      if (index === -1) onClose();
-    }, [onClose]);
-
     if (!animal) return null;
 
     const healthColor =
@@ -139,171 +145,175 @@ const AnimalDetailSheet = forwardRef<BottomSheet, AnimalDetailSheetProps>(
       colors.typeChicken;
 
     return (
-      <BottomSheetAny
-        ref={ref}
-        index={-1}
-        snapPoints={snapPoints}
-        onChange={handleSheetChanges}
-        enablePanDownToClose
-        backgroundStyle={[sheetStyles.bg, { backgroundColor: colors.surface }]}
-        handleIndicatorStyle={[sheetStyles.handle, { backgroundColor: colors.textSecondary }]}
-        handleStyle={sheetStyles.handleBar}
+      <Modal
+        visible={visible}
+        animationType="slide"
+        transparent
+        onRequestClose={handleClose}
       >
-        <BottomSheetScrollViewAny contentContainerStyle={sheetStyles.content}>
-          <View style={sheetStyles.header}>
-            <View style={[sheetStyles.iconWrap, { backgroundColor: colors.tintLight }]}>
-              <Ionicons name="paw-outline" size={28} color={typeColor} />
-            </View>
-            <View style={sheetStyles.headerText}>
-              <Text style={[sheetStyles.name, { color: colors.text }]}>{animal.name}</Text>
-              <Text style={[sheetStyles.type, { color: colors.textSecondary }]}>
-                {animal.type} · {animal.county}
-              </Text>
-            </View>
-            <Pressable
-              onPress={() => {
-                impactMedium();
-                setEditMode(!editMode);
-              }}
-              style={({ pressed }) => [
-                sheetStyles.editBtn,
-                { backgroundColor: editMode ? colors.destructive : colors.tintLight, opacity: pressed ? 0.7 : 1 },
-              ]}
-            >
-              <Ionicons
-                name={editMode ? 'close-outline' : 'create-outline'}
-                size={18}
-                color={editMode ? '#fff' : colors.tint}
-              />
-              <Text style={[sheetStyles.editBtnText, { color: editMode ? '#fff' : colors.tint }]}>
-                {editMode ? 'Cancel' : 'Edit'}
-              </Text>
-            </Pressable>
-          </View>
+        <Pressable style={sheetStyles.overlay} onPress={handleClose}>
+          <Pressable style={[sheetStyles.container, { backgroundColor: colors.surface }]} onPress={(e) => e.stopPropagation()}>
+            <ScrollView contentContainerStyle={sheetStyles.content} showsVerticalScrollIndicator={false}>
+              <View style={sheetStyles.handleBar}>
+                <View style={[sheetStyles.handle, { backgroundColor: colors.textSecondary }]} />
+              </View>
 
-          <View style={[sheetStyles.badgeRow, { gap: spacing.sm }]}>
-            <View style={[sheetStyles.badge, { backgroundColor: healthBg }]}>
-              <Ionicons
-                name={
-                  animal.health === 'Healthy' ? 'heart-outline' :
-                  animal.health === 'Sick' ? 'medkit-outline' :
-                  animal.health === 'Under Treatment' ? 'pulse-outline' :
-                  'checkmark-circle-outline'
-                }
-                size={14}
-                color={healthColor}
-              />
-              <Text style={[sheetStyles.badgeText, { color: healthColor }]}>{animal.health}</Text>
-            </View>
-            <View style={[sheetStyles.badge, { backgroundColor: typeColor + '15' }]}>
-              <Ionicons name="pricetag-outline" size={14} color={typeColor} />
-              <Text style={[sheetStyles.badgeText, { color: typeColor }]}>{animal.type}</Text>
-            </View>
-          </View>
-
-          <View style={[sheetStyles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-            {editMode ? (
-              <>
-                <SheetField label="Name" value={editName} onChangeText={setEditName} colors={colors} />
-                <SheetSelect label="Type" value={editType} options={LIVESTOCK_TYPES as AnimalType[]} onValueChange={(v) => setEditType(v as AnimalType)} colors={colors} />
-                <SheetField label="Breed" value={editBreed} onChangeText={setEditBreed} placeholder="Optional" colors={colors} />
-                <SheetSelect label="County" value={editCounty} options={KENYA_COUNTIES.map((c) => c.name)} onValueChange={setEditCounty} colors={colors} />
-                <SheetField label="Owner" value={editOwner} onChangeText={setEditOwner} colors={colors} />
-                <SheetSelect
-                  label="Health"
-                  value={editHealth}
-                  options={['Healthy', 'Sick', 'Under Treatment', 'Recovered'] as HealthStatus[]}
-                  onValueChange={(v) => setEditHealth(v as HealthStatus)}
-                  colors={colors}
-                />
+              <View style={sheetStyles.header}>
+                <View style={[sheetStyles.iconWrap, { backgroundColor: colors.tintLight }]}>
+                  <Ionicons name="paw-outline" size={28} color={typeColor} />
+                </View>
+                <View style={sheetStyles.headerText}>
+                  <Text style={[sheetStyles.name, { color: colors.text }]}>{animal.name}</Text>
+                  <Text style={[sheetStyles.type, { color: colors.textSecondary }]}>
+                    {animal.type} · {animal.county}
+                  </Text>
+                </View>
                 <Pressable
-                  onPress={handleSave}
-                  disabled={isSaving}
+                  onPress={() => {
+                    impactMedium();
+                    setEditMode(!editMode);
+                  }}
                   style={({ pressed }) => [
-                    sheetStyles.saveBtn,
-                    { backgroundColor: colors.tint, opacity: isSaving || pressed ? 0.7 : 1 },
+                    sheetStyles.editBtn,
+                    { backgroundColor: editMode ? colors.destructive : colors.tintLight, opacity: pressed ? 0.7 : 1 },
                   ]}
                 >
-                  <Ionicons name="checkmark-outline" size={16} color="#fff" />
-                  <Text style={sheetStyles.saveBtnText}>{isSaving ? 'Saving...' : 'Save Changes'}</Text>
+                  <Ionicons
+                    name={editMode ? 'close-outline' : 'create-outline'}
+                    size={18}
+                    color={editMode ? '#fff' : colors.tint}
+                  />
+                  <Text style={[sheetStyles.editBtnText, { color: editMode ? '#fff' : colors.tint }]}>
+                    {editMode ? 'Cancel' : 'Edit'}
+                  </Text>
                 </Pressable>
-              </>
-            ) : (
-              <>
-                <DetailRow icon="person-outline" label="Owner" value={animal.owner} colors={colors} />
-                <DetailRow icon="location-outline" label="County" value={animal.county} colors={colors} />
-                {animal.breed && <DetailRow icon="information-circle-outline" label="Breed" value={animal.breed} colors={colors} />}
-                <DetailRow icon="finger-print-outline" label="ID" value={`#${animal.id}`} colors={colors} mono />
-              </>
-            )}
-          </View>
+              </View>
 
-          {animal.biometricData && (
-            <View style={[sheetStyles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-              <Text style={[sheetStyles.sectionTitle, { color: colors.text }]}>Biometric Data</Text>
-              <DetailRow icon="camera-outline" label="Nose Print" value={animal.biometricData?.nosePrintHash ? 'Captured' : 'Not captured'} colors={colors} />
-              <DetailRow icon="location-outline" label="Location" value={`${animal.biometricData?.captureLocation.lat.toFixed(4)}, ${animal.biometricData?.captureLocation.lng.toFixed(4)}`} colors={colors} />
-            </View>
-          )}
+              <View style={[sheetStyles.badgeRow, { gap: spacing.sm }]}>
+                <View style={[sheetStyles.badge, { backgroundColor: healthBg }]}>
+                  <Ionicons
+                    name={
+                      animal.health === 'Healthy' ? 'heart-outline' :
+                      animal.health === 'Sick' ? 'medkit-outline' :
+                      animal.health === 'Under Treatment' ? 'pulse-outline' :
+                      'checkmark-circle-outline'
+                    }
+                    size={14}
+                    color={healthColor}
+                  />
+                  <Text style={[sheetStyles.badgeText, { color: healthColor }]}>{animal.health}</Text>
+                </View>
+                <View style={[sheetStyles.badge, { backgroundColor: typeColor + '15' }]}>
+                  <Ionicons name="pricetag-outline" size={14} color={typeColor} />
+                  <Text style={[sheetStyles.badgeText, { color: typeColor }]}>{animal.type}</Text>
+                </View>
+              </View>
 
-          {(animal.biometricData?.animalPhoto || animal.biometricData?.earTagPhoto) && (
-            <View style={[sheetStyles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-              <Text style={[sheetStyles.sectionTitle, { color: colors.text }]}>Photos</Text>
-              <View style={sheetStyles.photoRow}>
-                {animal.biometricData?.animalPhoto && (
-                  <Image
-                    source={{ uri: animal.biometricData.animalPhoto }}
-                    style={sheetStyles.photo}
-                    resizeMode="cover"
-                  />
-                )}
-                {animal.biometricData?.earTagPhoto && (
-                  <Image
-                    source={{ uri: animal.biometricData.earTagPhoto }}
-                    style={sheetStyles.photo}
-                    resizeMode="cover"
-                  />
+              <View style={[sheetStyles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                {editMode ? (
+                  <>
+                    <SheetField label="Name" value={editName} onChangeText={setEditName} colors={colors} />
+                    <SheetSelect label="Type" value={editType} options={LIVESTOCK_TYPES as AnimalType[]} onValueChange={(v) => setEditType(v as AnimalType)} colors={colors} />
+                    <SheetField label="Breed" value={editBreed} onChangeText={setEditBreed} placeholder="Optional" colors={colors} />
+                    <SheetSelect label="County" value={editCounty} options={KENYA_COUNTIES.map((c) => c.name)} onValueChange={setEditCounty} colors={colors} />
+                    <SheetField label="Owner" value={editOwner} onChangeText={setEditOwner} colors={colors} />
+                    <SheetSelect
+                      label="Health"
+                      value={editHealth}
+                      options={['Healthy', 'Sick', 'Under Treatment', 'Recovered'] as HealthStatus[]}
+                      onValueChange={(v) => setEditHealth(v as HealthStatus)}
+                      colors={colors}
+                    />
+                    <Pressable
+                      onPress={handleSave}
+                      disabled={isSaving}
+                      style={({ pressed }) => [
+                        sheetStyles.saveBtn,
+                        { backgroundColor: colors.tint, opacity: isSaving || pressed ? 0.7 : 1 },
+                      ]}
+                    >
+                      <Ionicons name="checkmark-outline" size={16} color="#fff" />
+                      <Text style={sheetStyles.saveBtnText}>{isSaving ? 'Saving...' : 'Save Changes'}</Text>
+                    </Pressable>
+                  </>
+                ) : (
+                  <>
+                    <DetailRow icon="person-outline" label="Owner" value={animal.owner} colors={colors} />
+                    <DetailRow icon="location-outline" label="County" value={animal.county} colors={colors} />
+                    {animal.breed && <DetailRow icon="information-circle-outline" label="Breed" value={animal.breed} colors={colors} />}
+                    <DetailRow icon="finger-print-outline" label="ID" value={`#${animal.id}`} colors={colors} mono />
+                  </>
                 )}
               </View>
-            </View>
-          )}
 
-          {kiamisResult ? (
-            <View style={[sheetStyles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-              <View style={sheetStyles.kiamisSuccessHeader}>
-                <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-                <Text style={[sheetStyles.sectionTitle, { color: colors.success }]}>KIAMIS Registered</Text>
-              </View>
-              <DetailRow icon="finger-print-outline" label="Reg #" value={kiamisResult.registrationNumber} colors={colors} mono />
-              {kiamisResult.qrCode && (
-                <Image
-                  source={{ uri: kiamisResult.qrCode }}
-                  style={sheetStyles.qrCode}
-                  resizeMode="contain"
-                />
+              {animal.biometricData && (
+                <View style={[sheetStyles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                  <Text style={[sheetStyles.sectionTitle, { color: colors.text }]}>Biometric Data</Text>
+                  <DetailRow icon="camera-outline" label="Nose Print" value={animal.biometricData?.nosePrintHash ? 'Captured' : 'Not captured'} colors={colors} />
+                  <DetailRow icon="location-outline" label="Location" value={`${animal.biometricData?.captureLocation.lat.toFixed(4)}, ${animal.biometricData?.captureLocation.lng.toFixed(4)}`} colors={colors} />
+                </View>
               )}
-            </View>
-          ) : (
-            <Pressable
-              onPress={handleKiamisRegister}
-              disabled={kiamisLoading}
-              style={({ pressed }) => [
-                sheetStyles.kiamisBtn,
-                { backgroundColor: colors.tint, opacity: kiamisLoading || pressed ? 0.7 : 1 },
-              ]}
-            >
-              {kiamisLoading ? (
-                <ActivityIndicator size="small" color="#fff" />
+
+              {(animal.biometricData?.animalPhoto || animal.biometricData?.earTagPhoto) && (
+                <View style={[sheetStyles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                  <Text style={[sheetStyles.sectionTitle, { color: colors.text }]}>Photos</Text>
+                  <View style={sheetStyles.photoRow}>
+                    {animal.biometricData?.animalPhoto && (
+                      <Image
+                        source={{ uri: animal.biometricData.animalPhoto }}
+                        style={[sheetStyles.photo, { backgroundColor: colors.border }]}
+                        resizeMode="cover"
+                      />
+                    )}
+                    {animal.biometricData?.earTagPhoto && (
+                      <Image
+                        source={{ uri: animal.biometricData.earTagPhoto }}
+                        style={[sheetStyles.photo, { backgroundColor: colors.border }]}
+                        resizeMode="cover"
+                      />
+                    )}
+                  </View>
+                </View>
+              )}
+
+              {kiamisResult ? (
+                <View style={[sheetStyles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                  <View style={sheetStyles.kiamisSuccessHeader}>
+                    <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+                    <Text style={[sheetStyles.sectionTitle, { color: colors.success }]}>KIAMIS Registered</Text>
+                  </View>
+                  <DetailRow icon="finger-print-outline" label="Reg #" value={kiamisResult.registrationNumber} colors={colors} mono />
+                  {kiamisResult.qrCode && (
+                    <Image
+                      source={{ uri: kiamisResult.qrCode }}
+                      style={sheetStyles.qrCode}
+                      resizeMode="contain"
+                    />
+                  )}
+                </View>
               ) : (
-                <Ionicons name="shield-checkmark-outline" size={16} color="#fff" />
+                <Pressable
+                  onPress={handleKiamisRegister}
+                  disabled={kiamisLoading}
+                  style={({ pressed }) => [
+                    sheetStyles.kiamisBtn,
+                    { backgroundColor: colors.tint, opacity: kiamisLoading || pressed ? 0.7 : 1 },
+                  ]}
+                >
+                  {kiamisLoading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Ionicons name="shield-checkmark-outline" size={16} color="#fff" />
+                  )}
+                  <Text style={sheetStyles.kiamisBtnText}>
+                    {kiamisLoading ? 'Registering...' : 'Register with KIAMIS'}
+                  </Text>
+                </Pressable>
               )}
-              <Text style={sheetStyles.kiamisBtnText}>
-                {kiamisLoading ? 'Registering...' : 'Register with KIAMIS'}
-              </Text>
-            </Pressable>
-          )}
-        </BottomSheetScrollViewAny>
-      </BottomSheetAny>
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     );
   }
 );
@@ -388,17 +398,25 @@ AnimalDetailSheet.displayName = 'AnimalDetailSheet';
 export default AnimalDetailSheet;
 
 const sheetStyles = StyleSheet.create({
-  bg: {
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  container: {
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
+    maxHeight: '85%',
+  },
+  handleBar: {
+    alignItems: 'center',
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
   },
   handle: {
     width: 40,
     height: 4,
     borderRadius: 2,
-  },
-  handleBar: {
-    paddingTop: spacing.sm,
   },
   content: {
     padding: spacing.lg,

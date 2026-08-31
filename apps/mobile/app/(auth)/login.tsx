@@ -8,7 +8,7 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import { Link, useRouter } from "expo-router";
+import { Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View, useColors } from "@/components/Themed";
 import { useAuth } from "@/src/contexts/AuthContext";
@@ -16,23 +16,26 @@ import { spacing, radius, fontSize, fontWeight } from "@/constants/Tokens";
 import { impactMedium, notificationSuccess, notificationError } from "@/src/services/haptics";
 import { useToast } from "@/src/components/Toast";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useI18n } from "@/src/i18n";
 
 export default function LoginScreen() {
   const { requestOtp, verifyOtp, isLoading } = useAuth();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const { showToast } = useToast();
+  const { t } = useI18n();
   const [step, setStep] = useState<"email" | "otp">("email");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
+  const [demoOtp, setDemoOtp] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   const handleRequestOtp = async () => {
     setError("");
     impactMedium();
     try {
-      await requestOtp(email);
+      const res = await requestOtp(email);
+      setDemoOtp(res.otp || null);
       notificationSuccess();
       showToast('success', 'OTP sent successfully');
       setStep("otp");
@@ -48,10 +51,9 @@ export default function LoginScreen() {
     try {
       await verifyOtp(email, otp);
       notificationSuccess();
-      router.replace("/(tabs)");
     } catch (err) {
       notificationError();
-      showToast('error', err instanceof Error ? err.message : 'Invalid OTP');
+      showToast('error', err instanceof Error ? err.message : t('invalidOtp'));
     }
   };
 
@@ -76,7 +78,7 @@ export default function LoginScreen() {
           </View>
           <Text style={[styles.title, { color: colors.text }]}>Wam Mfugo</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Sign in to your account
+            {t('signIn')}
           </Text>
         </View>
 
@@ -89,12 +91,12 @@ export default function LoginScreen() {
 
         {step === "email" ? (
           <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-            <Text style={[styles.label, { color: colors.text }]}>Email</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('email')}</Text>
             <TextInput
               style={inputStyle}
               value={email}
               onChangeText={setEmail}
-              placeholder="you@example.com"
+              placeholder={t('emailPlaceholder')}
               placeholderTextColor={colors.placeholder}
               autoCapitalize="none"
               keyboardType="email-address"
@@ -115,21 +117,30 @@ export default function LoginScreen() {
               ) : (
                 <>
                   <Ionicons name="mail-outline" size={18} color="#fff" />
-                  <Text style={styles.buttonText}>Send OTP</Text>
+                  <Text style={styles.buttonText}>{t('sendOtp')}</Text>
                 </>
               )}
             </Pressable>
             <Link href="/(auth)/register" style={[styles.link, { color: colors.tint }]}>
-              Don't have an account? Register
+              {t('noAccount')} {t('register')}
             </Link>
           </View>
         ) : (
           <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-            <Text style={[styles.label, { color: colors.text }]}>Verification Code</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('verificationCode')}</Text>
+            {__DEV__ && demoOtp && (
+              <Pressable
+                onPress={() => setOtp(demoOtp)}
+                style={[styles.demoOtpWrap, { backgroundColor: colors.tintLight, borderColor: colors.tint }]}
+              >
+                <Text style={[styles.demoOtpLabel, { color: colors.textSecondary }]}>Demo mode — tap to auto-fill:</Text>
+                <Text style={[styles.demoOtpCode, { color: colors.tint }]}>{demoOtp}</Text>
+              </Pressable>
+            )}
             <TextInput
               style={inputStyle}
               value={otp}
-              onChangeText={(t) => setOtp(t.replace(/\D/g, "").slice(0, 6))}
+              onChangeText={(text) => setOtp(text.replace(/\D/g, "").slice(0, 6))}
               placeholder="000000"
               placeholderTextColor={colors.placeholder}
               keyboardType="number-pad"
@@ -137,7 +148,7 @@ export default function LoginScreen() {
               autoFocus
             />
             <Text style={[styles.hint, { color: colors.textSecondary }]}>
-              Enter the 6-digit code sent to {email}
+              {t('enterOtpSentTo')} {email}
             </Text>
             <Pressable
               style={({ pressed }) => [
@@ -154,7 +165,7 @@ export default function LoginScreen() {
               ) : (
                 <>
                   <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
-                  <Text style={styles.buttonText}>Verify</Text>
+                  <Text style={styles.buttonText}>{t('verify')}</Text>
                 </>
               )}
             </Pressable>
@@ -163,11 +174,12 @@ export default function LoginScreen() {
                 setStep("email");
                 setOtp("");
                 setError("");
+                setDemoOtp(null);
               }}
               style={styles.backButton}
             >
               <Text style={[styles.backText, { color: colors.textSecondary }]}>
-                Use a different email
+                {t('useDifferentEmail')}
               </Text>
             </Pressable>
           </View>
@@ -228,4 +240,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   error: { fontSize: fontSize.sm, flex: 1 },
+  demoOtpWrap: {
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    alignItems: "center",
+  },
+  demoOtpLabel: { fontSize: fontSize.xs, marginBottom: spacing.xs },
+  demoOtpCode: { fontSize: 28, fontWeight: fontWeight.bold, letterSpacing: 4, fontVariant: ["tabular-nums"] },
 });

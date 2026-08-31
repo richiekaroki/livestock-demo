@@ -1,7 +1,6 @@
 import { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { FlatList, Pressable, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import BottomSheet from '@gorhom/bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View, useColors } from '@/components/Themed';
 import { useAnimals } from '@/src/hooks/useAnimals';
@@ -10,7 +9,7 @@ import { selectionChanged, impactLight } from '@/src/services/haptics';
 import { SearchBar } from '@/src/components/SearchBar';
 import { SwipeableRow } from '@/src/components/SwipeableRow';
 import { StaggeredItem } from '@/src/components/StaggeredItem';
-import AnimalDetailSheet from '@/src/components/AnimalDetailSheet';
+import AnimalDetailSheet, { type AnimalDetailSheetHandle } from '@/src/components/AnimalDetailSheet';
 import { exportCSV } from '@/src/services/export';
 import { apiCall } from '@/src/services/api';
 import type { AnimalType, HealthStatus, Livestock } from '@wam-mfugo/shared';
@@ -32,7 +31,7 @@ export default function AnimalsScreen() {
   const [county, setCounty] = useState<string>('All');
   const [search, setSearch] = useState('');
   const [selectedAnimal, setSelectedAnimal] = useState<Livestock | null>(null);
-  const sheetRef = useRef<BottomSheet>(null);
+  const sheetRef = useRef<AnimalDetailSheetHandle>(null);
   const refreshRef = useRef(refresh);
   refreshRef.current = refresh;
 
@@ -83,7 +82,7 @@ export default function AnimalsScreen() {
   const handleAnimalPress = useCallback((animal: Livestock) => {
     impactLight();
     setSelectedAnimal(animal);
-    sheetRef.current?.snapToIndex(1);
+    sheetRef.current?.present();
   }, []);
 
   const handleDelete = useCallback((animal: Livestock) => {
@@ -261,7 +260,7 @@ export default function AnimalsScreen() {
                         item.health === 'Healthy'
                           ? colors.tintLight
                           : item.health === 'Sick'
-                          ? '#FEF2F2'
+                          ? colors.destructive + '15'
                           : colors.accentLight,
                     },
                   ]}

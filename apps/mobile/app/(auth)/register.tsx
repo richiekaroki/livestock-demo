@@ -8,7 +8,7 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import { Link, useRouter } from "expo-router";
+import { Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View, useColors } from "@/components/Themed";
 import { useAuth } from "@/src/contexts/AuthContext";
@@ -16,29 +16,32 @@ import { spacing, radius, fontSize, fontWeight } from "@/constants/Tokens";
 import { impactMedium, notificationSuccess, notificationError } from "@/src/services/haptics";
 import { useToast } from "@/src/components/Toast";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useI18n } from "@/src/i18n";
 
 export default function RegisterScreen() {
   const { register, verifyRegistration, isLoading } = useAuth();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const { showToast } = useToast();
+  const { t } = useI18n();
   const [step, setStep] = useState<"form" | "otp">("form");
   const [error, setError] = useState("");
   const [form, setForm] = useState({ name: "", email: "", phone: "", county: "" });
   const [otp, setOtp] = useState("");
+  const [demoOtp, setDemoOtp] = useState<string | null>(null);
 
   const handleRegister = async () => {
     setError("");
     impactMedium();
     try {
-      await register(form);
+      const res = await register(form);
+      setDemoOtp(res.otp || null);
       notificationSuccess();
       showToast('success', 'Account created successfully');
       setStep("otp");
     } catch (err) {
       notificationError();
-      showToast('error', err instanceof Error ? err.message : 'Registration failed');
+      showToast('error', err instanceof Error ? err.message : t('registerFailed'));
     }
   };
 
@@ -48,14 +51,13 @@ export default function RegisterScreen() {
     try {
       await verifyRegistration(form.email, otp);
       notificationSuccess();
-      router.replace("/(tabs)");
     } catch (err) {
       notificationError();
-      showToast('error', err instanceof Error ? err.message : 'Verification failed');
+      showToast('error', err instanceof Error ? err.message : t('verifyFailed'));
     }
   };
 
-  const canSubmit = form.name.length > 1 && form.email.includes("@") && form.phone.length > 0 && form.county !== "";
+  const canSubmit = form.name.length > 1 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) && form.phone.length >= 10 && form.county !== "";
 
   const inputStyle = [
     styles.input,
@@ -76,9 +78,9 @@ export default function RegisterScreen() {
           <View style={[styles.logoWrap, { backgroundColor: colors.tintLight }]}>
             <Ionicons name="person-add-outline" size={32} color={colors.tint} />
           </View>
-          <Text style={[styles.title, { color: colors.text }]}>Create Account</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('createAccount')}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Join Wam Mfugo today
+            {t('joinWamMfugo')}
           </Text>
         </View>
 
@@ -91,42 +93,42 @@ export default function RegisterScreen() {
 
         {step === "form" ? (
           <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-            <Text style={[styles.label, { color: colors.text }]}>Full Name</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('fullName')}</Text>
             <TextInput
               style={inputStyle}
               value={form.name}
-              onChangeText={(t) => setForm({ ...form, name: t })}
+              onChangeText={(text) => setForm({ ...form, name: text })}
               placeholder="Richard Karoki"
               placeholderTextColor={colors.placeholder}
             />
 
-            <Text style={[styles.label, { color: colors.text }]}>Email</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('email')}</Text>
             <TextInput
               style={inputStyle}
               value={form.email}
-              onChangeText={(t) => setForm({ ...form, email: t })}
-              placeholder="you@example.com"
+              onChangeText={(text) => setForm({ ...form, email: text })}
+              placeholder={t('emailPlaceholder')}
               placeholderTextColor={colors.placeholder}
               autoCapitalize="none"
               keyboardType="email-address"
               autoCorrect={false}
             />
 
-            <Text style={[styles.label, { color: colors.text }]}>Phone</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('phone')}</Text>
             <TextInput
               style={inputStyle}
               value={form.phone}
-              onChangeText={(t) => setForm({ ...form, phone: t })}
-              placeholder="+254700000000"
+              onChangeText={(text) => setForm({ ...form, phone: text })}
+              placeholder={t('phonePlaceholder')}
               placeholderTextColor={colors.placeholder}
               keyboardType="phone-pad"
             />
 
-            <Text style={[styles.label, { color: colors.text }]}>County</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('county')}</Text>
             <TextInput
               style={inputStyle}
               value={form.county}
-              onChangeText={(t) => setForm({ ...form, county: t })}
+              onChangeText={(text) => setForm({ ...form, county: text })}
               placeholder="Nairobi"
               placeholderTextColor={colors.placeholder}
             />
@@ -146,21 +148,30 @@ export default function RegisterScreen() {
               ) : (
                 <>
                   <Ionicons name="person-add-outline" size={18} color="#fff" />
-                  <Text style={styles.buttonText}>Create Account</Text>
+                  <Text style={styles.buttonText}>{t('createAccount')}</Text>
                 </>
               )}
             </Pressable>
             <Link href="/(auth)/login" style={[styles.link, { color: colors.tint }]}>
-              Already have an account? Sign in
+              {t('alreadyHaveAccount')} {t('signIn')}
             </Link>
           </View>
         ) : (
           <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-            <Text style={[styles.label, { color: colors.text }]}>Verification Code</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('verificationCode')}</Text>
+            {__DEV__ && demoOtp && (
+              <Pressable
+                onPress={() => setOtp(demoOtp)}
+                style={[styles.demoOtpWrap, { backgroundColor: colors.tintLight, borderColor: colors.tint }]}
+              >
+                <Text style={[styles.demoOtpLabel, { color: colors.textSecondary }]}>Demo mode — tap to auto-fill:</Text>
+                <Text style={[styles.demoOtpCode, { color: colors.tint }]}>{demoOtp}</Text>
+              </Pressable>
+            )}
             <TextInput
               style={inputStyle}
               value={otp}
-              onChangeText={(t) => setOtp(t.replace(/\D/g, "").slice(0, 6))}
+              onChangeText={(text) => setOtp(text.replace(/\D/g, "").slice(0, 6))}
               placeholder="000000"
               placeholderTextColor={colors.placeholder}
               keyboardType="number-pad"
@@ -168,7 +179,7 @@ export default function RegisterScreen() {
               autoFocus
             />
             <Text style={[styles.hint, { color: colors.textSecondary }]}>
-              Enter the 6-digit code sent to {form.email}
+              {t('enterOtpSentTo')} {form.email}
             </Text>
             <Pressable
               style={({ pressed }) => [
@@ -185,7 +196,7 @@ export default function RegisterScreen() {
               ) : (
                 <>
                   <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
-                  <Text style={styles.buttonText}>Verify & Sign In</Text>
+                  <Text style={styles.buttonText}>{t('verify')}</Text>
                 </>
               )}
             </Pressable>
@@ -194,10 +205,11 @@ export default function RegisterScreen() {
                 setStep("form");
                 setOtp("");
                 setError("");
+                setDemoOtp(null);
               }}
               style={styles.backButton}
             >
-              <Text style={[styles.backText, { color: colors.textSecondary }]}>Back to form</Text>
+              <Text style={[styles.backText, { color: colors.textSecondary }]}>{t('backToForm')}</Text>
             </Pressable>
           </View>
         )}
@@ -257,4 +269,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   error: { fontSize: fontSize.sm, flex: 1 },
+  demoOtpWrap: {
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    alignItems: "center",
+  },
+  demoOtpLabel: { fontSize: fontSize.xs, marginBottom: spacing.xs },
+  demoOtpCode: { fontSize: 28, fontWeight: fontWeight.bold, letterSpacing: 4, fontVariant: ["tabular-nums"] },
 });

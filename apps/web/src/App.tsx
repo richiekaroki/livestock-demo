@@ -1,5 +1,5 @@
 // src/App.tsx
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState, Component, type ReactNode } from "react";
 import { Route, BrowserRouter as Router, Routes, useLocation } from "react-router-dom";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import i18n from "./i18n";
@@ -14,6 +14,25 @@ import RoleRoute from "./components/layout/RoleRoute";
 import { useLiveData } from "./hooks/useLiveData";
 import { useLivestockStore } from "./store/livestockStore";
 import "./styles/css/main.css";
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
+  state = { hasError: false, error: null };
+  static getDerivedStateFromError(error: Error) { return { hasError: true, error }; }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 40, textAlign: 'center' }}>
+          <h2>Something went wrong</h2>
+          <p style={{ color: '#666' }}>{this.state.error?.message || 'An unexpected error occurred.'}</p>
+          <button onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload(); }} style={{ marginTop: 16, padding: '8px 24px', cursor: 'pointer' }}>
+            Reload page
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Lazy load pages
 const Home = lazy(() => import("./pages/Home"));
@@ -78,6 +97,7 @@ function AnimatedRoutes({
         isTransitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
       }`}
     >
+      <ErrorBoundary>
       <Suspense fallback={<LoadingSpinner text={t("loading.default")} />}>
         <Routes location={displayLocation}>
           <Route
@@ -135,6 +155,7 @@ function AnimatedRoutes({
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
     </div>
   );
 }

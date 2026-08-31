@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   TextInput,
   StyleSheet,
@@ -34,20 +34,18 @@ export default function ProfileScreen() {
     subCounty: user?.subCounty || "",
   });
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
 
   if (!user) return null;
 
   const handleSave = async () => {
     impactMedium();
     setSaving(true);
-    setMessage("");
     try {
       await updateProfile(form);
       notificationSuccess();
-      showToast('success', 'Profile updated successfully');
+      showToast('success', t('profileUpdated'));
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Update failed');
+      showToast('error', err instanceof Error ? err.message : t('profileFailed'));
     } finally {
       setSaving(false);
     }
@@ -55,14 +53,13 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     impactLight();
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t('signOut'), "Are you sure you want to sign out?", [
+      { text: t('cancel'), style: "cancel" },
       {
-        text: "Sign Out",
+        text: t('signOut'),
         style: "destructive",
         onPress: async () => {
           await logout();
-          router.replace("/(auth)/login");
         },
       },
     ]);
@@ -100,76 +97,65 @@ export default function ProfileScreen() {
           <Ionicons name="person-outline" size={28} color={colors.tint} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.title, { color: colors.text }]}>My Profile</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('myProfile')}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Manage your account
+            {t('manageAccount')}
           </Text>
         </View>
         <DarkModeToggle />
       </View>
 
-      {message ? (
-        <View style={[styles.messageWrap, { backgroundColor: colors.tintLight }]}>
-          <Ionicons
-            name={message.includes("failed") || message.includes("Update") ? "alert-circle-outline" : "checkmark-circle-outline"}
-            size={18}
-            color={message.includes("failed") || message.includes("Update") ? colors.destructive : colors.tint}
-          />
-          <Text style={[styles.message, { color: colors.tint }]}>{message}</Text>
-        </View>
-      ) : null}
-
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        <Text style={[styles.label, { color: colors.text }]}>Email</Text>
+        <Text style={[styles.label, { color: colors.text }]}>{t('email')}</Text>
         <TextInput
           style={disabledInputStyle}
           value={user.email}
           editable={false}
         />
-        <Text style={[styles.hint, { color: colors.textSecondary }]}>Email cannot be changed</Text>
+        <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('emailReadonly')}</Text>
 
-        <Text style={[styles.label, { color: colors.text }]}>Role</Text>
+        <Text style={[styles.label, { color: colors.text }]}>{t('role')}</Text>
         <TextInput
           style={disabledInputStyle}
           value={roleLabel}
           editable={false}
         />
-        <Text style={[styles.hint, { color: colors.textSecondary }]}>Role can only be changed by an admin</Text>
+        <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('roleReadonly')}</Text>
 
-        <Text style={[styles.label, { color: colors.text }]}>Full Name</Text>
+        <Text style={[styles.label, { color: colors.text }]}>{t('fullName')}</Text>
         <TextInput
           style={inputStyle}
           value={form.name}
-          onChangeText={(t) => setForm({ ...form, name: t })}
+          onChangeText={(val) => setForm({ ...form, name: val })}
           placeholder="Richard Karoki"
           placeholderTextColor={colors.placeholder}
         />
 
-        <Text style={[styles.label, { color: colors.text }]}>Phone</Text>
+        <Text style={[styles.label, { color: colors.text }]}>{t('phone')}</Text>
         <TextInput
           style={inputStyle}
           value={form.phone}
-          onChangeText={(t) => setForm({ ...form, phone: t })}
-          placeholder="+254700000000"
+          onChangeText={(val) => setForm({ ...form, phone: val })}
+          placeholder={t('phonePlaceholder')}
           placeholderTextColor={colors.placeholder}
           keyboardType="phone-pad"
         />
 
-        <Text style={[styles.label, { color: colors.text }]}>County</Text>
+        <Text style={[styles.label, { color: colors.text }]}>{t('county')}</Text>
         <TextInput
           style={inputStyle}
           value={form.county}
-          onChangeText={(t) => setForm({ ...form, county: t })}
+          onChangeText={(val) => setForm({ ...form, county: val })}
           placeholder="Nairobi"
           placeholderTextColor={colors.placeholder}
         />
 
-        <Text style={[styles.label, { color: colors.text }]}>Sub-County</Text>
+        <Text style={[styles.label, { color: colors.text }]}>{t('subCounty')}</Text>
         <TextInput
           style={inputStyle}
           value={form.subCounty}
-          onChangeText={(t) => setForm({ ...form, subCounty: t })}
-          placeholder="Optional"
+          onChangeText={(val) => setForm({ ...form, subCounty: val })}
+          placeholder={t('subCountyOptional')}
           placeholderTextColor={colors.placeholder}
         />
 
@@ -186,7 +172,7 @@ export default function ProfileScreen() {
         >
           <Ionicons name="save-outline" size={18} color="#fff" />
           <Text style={styles.buttonText}>
-            {saving ? "Saving..." : "Save Changes"}
+            {saving ? t('saving') : t('saveChanges')}
           </Text>
         </Pressable>
       </View>
@@ -206,7 +192,7 @@ export default function ProfileScreen() {
 
       {/* Language Toggle */}
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, marginTop: spacing.lg }]}>
-        <Text style={[styles.label, { color: colors.text }]}>Language</Text>
+        <Text style={[styles.label, { color: colors.text }]}>{t('language')}</Text>
         <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
           <Pressable
             onPress={() => { impactLight(); setLang('en'); }}
@@ -241,14 +227,14 @@ export default function ProfileScreen() {
       {/* Admin Section */}
       {user.role === 'admin' && (
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, marginTop: spacing.lg }]}>
-          <Text style={[styles.label, { color: colors.text }]}>Admin</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('admin')}</Text>
           <Pressable
             onPress={() => { impactLight(); router.push('/admin/users' as Href); }}
             style={({ pressed }) => [styles.adminRow, { opacity: pressed ? 0.7 : 1, borderBottomColor: colors.border }]}
             accessibilityLabel="Open user management"
           >
             <Ionicons name="people-outline" size={18} color={colors.tint} />
-            <Text style={[styles.adminText, { color: colors.text }]}>User Management</Text>
+            <Text style={[styles.adminText, { color: colors.text }]}>{t('userManagement')}</Text>
             <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
           </Pressable>
           <Pressable
@@ -257,7 +243,7 @@ export default function ProfileScreen() {
             accessibilityLabel="Open audit log"
           >
             <Ionicons name="document-text-outline" size={18} color={colors.tint} />
-            <Text style={[styles.adminText, { color: colors.text }]}>Audit Log</Text>
+            <Text style={[styles.adminText, { color: colors.text }]}>{t('auditLog')}</Text>
             <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
           </Pressable>
         </View>
@@ -322,15 +308,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
   },
   logoutText: { fontWeight: fontWeight.semibold, fontSize: fontSize.base },
-  messageWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    marginBottom: spacing.lg,
-  },
-  message: { fontSize: fontSize.sm, flex: 1 },
   langBtn: {
     flex: 1,
     paddingVertical: spacing.md,

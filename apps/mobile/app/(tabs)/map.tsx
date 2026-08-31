@@ -41,7 +41,7 @@ export default function MapScreen() {
     return (
       <View style={[styles.center, { backgroundColor: colors.background }]}>
         <Ionicons name="location-outline" size={40} color={colors.textSecondary} />
-        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No animal locations available yet.</Text>
+        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('noLocations')}</Text>
       </View>
     );
   }
@@ -61,7 +61,7 @@ export default function MapScreen() {
         >
           <Ionicons name="flame-outline" size={16} color={showHeatmap ? '#fff' : colors.text} />
           <Text style={[styles.toggleText, { color: showHeatmap ? '#fff' : colors.text }]}>
-            Heatmap
+            {t('heatmap')}
           </Text>
         </Pressable>
 
@@ -88,7 +88,7 @@ export default function MapScreen() {
 
       <View style={[styles.statsStrip, { bottom: insets.bottom + 8, backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <Text style={[styles.statsText, { color: colors.text }]}>
-          {heatmapData.length} of {markers.length} animals
+          {t('animalsCount', { count: heatmapData.length, total: markers.length })}
         </Text>
       </View>
     </View>
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     borderRadius: radius.md,
     borderWidth: 1,
   },
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: 'hidden',
   },
-  metricChip: { paddingHorizontal: spacing.md, paddingVertical: spacing.md },
+  metricChip: { paddingHorizontal: spacing.md, paddingVertical: spacing.lg },
   metricText: { fontSize: fontSize.xs, fontWeight: fontWeight.medium },
   statsStrip: {
     position: 'absolute',

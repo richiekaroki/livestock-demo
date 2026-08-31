@@ -1,12 +1,19 @@
-import { Stack } from 'expo-router';
+import { Stack, Redirect } from 'expo-router';
 import { Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '@/components/Themed';
+import { useAuth } from '@/src/contexts/AuthContext';
 
 export default function AdminLayout() {
   const router = useRouter();
   const colors = useColors();
+  const { user } = useAuth();
+
+  if (user?.role !== 'admin') {
+    return <Redirect href="/(tabs)" />;
+  }
+
   return (
     <Stack
       screenOptions={{

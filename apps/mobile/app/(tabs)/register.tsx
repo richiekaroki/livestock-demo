@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
+import { File, Paths } from 'expo-file-system';
 
 import { Text, View, useColors } from '@/components/Themed';
 import { captureAnimalPhoto } from '@/src/services/camera';
@@ -17,6 +18,7 @@ import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
 import { impactMedium, notificationSuccess, notificationError, selectionChanged } from '@/src/services/haptics';
 import { useToast } from '@/src/components/Toast';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useI18n } from '@/src/i18n';
 import { KENYA_COUNTIES, LIVESTOCK_TYPES } from '@wam-mfugo/shared';
 import type { AnimalType, BiometricData, Farmer, Livestock } from '@wam-mfugo/shared';
 
@@ -28,6 +30,7 @@ export default function RegisterScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
+  const { t } = useI18n();
 
   const [name, setName] = useState('');
   const [type, setType] = useState<AnimalType>('Cattle');
@@ -42,7 +45,9 @@ export default function RegisterScreen() {
       if (res.success && Array.isArray(res.data)) {
         setFarmers(res.data);
       }
-    }).catch(() => {});
+    }).catch(() => {
+      // Farmers list is non-critical, fail silently
+    });
   }, []);
 
   const handleFarmerChange = (farmerIdStr: string) => {
@@ -70,7 +75,7 @@ export default function RegisterScreen() {
   const submit = async () => {
     if (!name.trim() || !county.trim() || !owner.trim()) {
       notificationError();
-      showToast('error', 'Name, county and owner are required.');
+      showToast('error', t('name') + ', ' + t('county') + ' ' + t('owner') + ' are required.');
       return;
     }
 
@@ -91,8 +96,26 @@ export default function RegisterScreen() {
       const result = await api.apiCall<api.ApiResponse<Livestock>>('POST', '/animals', payload);
       if (result && 'queued' in result && result.queued) {
         notificationSuccess();
-        showToast('warning', 'Registration queued — will sync when online');
+        showToast('warning', t('registrationQueued'));
       } else {
+        // Upload biometric photo if available
+        if (biometric?.animalPhoto && result && 'data' in result && result.data?.id) {
+          try {
+            const photoFile = new File(Paths.cache, `animal_${result.data.id}.jpg`);
+            // Strip data URL prefix and write base64 to temp file
+            const base64Data = biometric.animalPhoto.replace(/^data:image\/\w+;base64,/, '');
+            // Convert base64 to binary and write
+            const binaryStr = atob(base64Data);
+            const bytes = new Uint8Array(binaryStr.length);
+            for (let i = 0; i < binaryStr.length; i++) {
+              bytes[i] = binaryStr.charCodeAt(i);
+            }
+            photoFile.write(bytes);
+            await api.uploadAnimalPhoto(photoFile.uri, `animal_${result.data.id}.jpg`);
+          } catch {
+            // Photo upload failure is non-critical — animal is already registered
+          }
+        }
         notificationSuccess();
         showToast('success', `${payload.name} was registered.`);
       }
@@ -103,7 +126,7 @@ export default function RegisterScreen() {
       setBiometric(null);
     } catch {
       notificationError();
-      showToast('error', 'Registration failed. Please try again.');
+      showToast('error', t('registrationFailed'));
     }
   };
 
@@ -112,7 +135,7 @@ export default function RegisterScreen() {
       return (
         <View style={[styles.center, { backgroundColor: colors.background }]}>
           <Ionicons name="hourglass-outline" size={24} color={colors.textSecondary} />
-          <Text style={{ color: colors.textSecondary }}>Loading camera…</Text>
+          <Text style={{ color: colors.textSecondary }}>{t('loadingCamera')}</Text>
         </View>
       );
     }
@@ -121,7 +144,7 @@ export default function RegisterScreen() {
         <View style={[styles.center, { backgroundColor: colors.background }]}>
           <Ionicons name="camera-outline" size={48} color={colors.textSecondary} />
           <Text style={[styles.centerText, { color: colors.text }]}>
-            We need camera permission to capture biometrics.
+            {t('captureBiometrics')}
           </Text>
           <Pressable
             style={({ pressed }) => [
@@ -131,7 +154,7 @@ export default function RegisterScreen() {
             onPress={requestPermission}
           >
             <Ionicons name="lock-open-outline" size={18} color="#fff" />
-            <Text style={styles.primaryBtnText}>Grant permission</Text>
+            <Text style={styles.primaryBtnText}>{t('grantPermission')}</Text>
           </Pressable>
         </View>
       );
@@ -152,7 +175,7 @@ export default function RegisterScreen() {
           onPress={() => void capture()}
         >
            <Ionicons name="camera-outline" size={24} color="#fff" />
-          <Text style={styles.captureBtnText}>Capture</Text>
+          <Text style={styles.captureBtnText}>{t('capture')}</Text>
         </Pressable>
       </View>
     );
@@ -178,18 +201,18 @@ export default function RegisterScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-      <Text style={[styles.title, { color: colors.text }]}>Register Animal</Text>
+      <Text style={[styles.title, { color: colors.text }]}>{t('registerAnimal')}</Text>
 
-      <Text style={[styles.label, { color: colors.text }]}>Name</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('name')}</Text>
       <TextInput
         style={inputStyle}
         value={name}
         onChangeText={setName}
-        placeholder="e.g. Shujaa"
+        placeholder={t('namePlaceholder')}
         placeholderTextColor={colors.placeholder}
       />
 
-      <Text style={[styles.label, { color: colors.text }]}>Type</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('type')}</Text>
       <View style={styles.chipRow}>
         {LIVESTOCK_TYPES.map((t) => (
           <Pressable
@@ -215,9 +238,9 @@ export default function RegisterScreen() {
         ))}
       </View>
 
-      <Text style={[styles.label, { color: colors.text }]}>County</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('county')}</Text>
       <View style={styles.chipRow}>
-        {KENYA_COUNTIES.slice(0, 12).map((c) => (
+        {KENYA_COUNTIES.map((c) => (
           <Pressable
             key={c.code}
             onPress={() => {
@@ -243,7 +266,7 @@ export default function RegisterScreen() {
 
       {farmers.length > 0 && (
         <>
-          <Text style={[styles.label, { color: colors.text }]}>Farmer (optional)</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('farmerOptional')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
             <Pressable
               onPress={() => {
@@ -290,7 +313,7 @@ export default function RegisterScreen() {
         </>
       )}
 
-      <Text style={[styles.label, { color: colors.text }]}>Owner</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('owner')}</Text>
       <TextInput
         style={inputStyle}
         value={owner}
@@ -298,7 +321,7 @@ export default function RegisterScreen() {
           setOwner(text);
           setSelectedFarmerId(undefined);
         }}
-        placeholder="Owner name"
+        placeholder={t('ownerPlaceholder')}
         placeholderTextColor={colors.placeholder}
       />
 
@@ -315,7 +338,7 @@ export default function RegisterScreen() {
           color={colors.tint}
         />
         <Text style={[styles.secondaryBtnText, { color: colors.tint }]}>
-          {biometric ? 'Biometric captured — recapture?' : 'Capture biometrics'}
+          {biometric ? t('biometricCaptured') + ' — ' + t('recapture') : t('captureBiometrics')}
         </Text>
       </Pressable>
 
@@ -327,7 +350,7 @@ export default function RegisterScreen() {
         onPress={() => void submit()}
       >
         <Ionicons name="add-circle-outline" size={20} color="#fff" />
-        <Text style={styles.primaryBtnText}>Register animal</Text>
+        <Text style={styles.primaryBtnText}>{t('registerBtn')}</Text>
       </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>

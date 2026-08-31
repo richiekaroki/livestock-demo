@@ -29,7 +29,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
           ? res
           : ((res as Record<string, unknown>).message as string) || message;
     } else if (exception instanceof Error) {
-      message = exception.message;
+      // Don't leak internal error messages to clients
+      message = 'Internal server error';
     }
 
     this.logger.error(

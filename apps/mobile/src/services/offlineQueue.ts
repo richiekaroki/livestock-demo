@@ -1,6 +1,6 @@
 // src/offlineQueue.ts — persistent mutation queue for offline-first field use
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_BASE_URL } from "./api";
+import { AUTH_TOKEN_KEY, AUTH_REFRESH_KEY, API_BASE_URL, secureStorage } from "./storage";
 
 const QUEUE_KEY = "wam_offline_queue";
 const MAX_RETRIES = 3;
@@ -34,7 +34,18 @@ export function onQueueChange(fn: () => void): () => void {
 async function readQueue(): Promise<QueueItem[]> {
   try {
     const raw = await AsyncStorage.getItem(QUEUE_KEY);
-    return raw ? (JSON.parse(raw) as QueueItem[]) : [];
+    if (!raw) return [];
+    const items = JSON.parse(raw) as QueueItem[];
+    // Reset stuck "processing" items to "pending" (app crashed mid-replay)
+    let changed = false;
+    for (const item of items) {
+      if (item.status === "processing") {
+        item.status = "pending";
+        changed = true;
+      }
+    }
+    if (changed) await AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(items));
+    return items;
   } catch {
     return [];
   }
@@ -128,18 +139,59 @@ export async function retryAllFailed(): Promise<void> {
   await writeQueue(queue);
 }
 
+async function tryRefreshToken(): Promise<string | null> {
+  const refreshToken = await secureStorage.getItem(AUTH_REFRESH_KEY);
+  if (!refreshToken) return null;
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const newToken = data?.data?.accessToken;
+    if (newToken) {
+      await secureStorage.setItem(AUTH_TOKEN_KEY, newToken);
+      if (data.data.refreshToken) {
+        await secureStorage.setItem(AUTH_REFRESH_KEY, data.data.refreshToken);
+      }
+      return newToken;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 async function executeItem(item: QueueItem): Promise<void> {
-  const token = await AsyncStorage.getItem("wam_auth_token");
+  let token = await secureStorage.getItem(AUTH_TOKEN_KEY);
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
-  const res = await fetch(`${API_BASE_URL}${item.path}`, {
+  let res = await fetch(`${API_BASE_URL}${item.path}`, {
     method: item.method,
     headers,
     body: item.body ? JSON.stringify(item.body) : undefined,
   });
+
+  // If 401, try refreshing token and retry once
+  if (res.status === 401) {
+    const newToken = await tryRefreshToken();
+    if (newToken) {
+      const retryHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${newToken}`,
+      };
+      res = await fetch(`${API_BASE_URL}${item.path}`, {
+        method: item.method,
+        headers: retryHeaders,
+        body: item.body ? JSON.stringify(item.body) : undefined,
+      });
+    }
+  }
 
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}`);

@@ -5,36 +5,32 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, View, useColors } from '@/components/Themed';
 import { useAnimals } from '@/src/hooks/useAnimals';
 import { getVaccinationCoverage, type VaccinationCoverageRecord } from '@/src/services/api';
+import { useI18n } from '@/src/i18n';
 import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
+import palette, { healthColors } from '@/constants/Colors';
 import type { AnimalType, HealthStatus } from '@wam-mfugo/shared';
 
-// Chart colors — designed for card surfaces, work in both light and dark modes
+// Chart colors — reference palette for consistency
 const ANIMAL_COLORS: Record<AnimalType, string> = {
-  Cattle: '#B45309',
-  Goat: '#7C3AED',
-  Sheep: '#4F46E5',
-  Camel: '#D97706',
-  Pig: '#DB2777',
-  Chicken: '#DC2626',
-};
-
-const HEALTH_COLORS: Record<HealthStatus, string> = {
-  Healthy: '#15803D',
-  Sick: '#DC2626',
-  'Under Treatment': '#D97706',
-  Recovered: '#0284C7',
+  Cattle: palette.light.typeCattle,
+  Goat: palette.light.typeGoat,
+  Sheep: palette.light.typeSheep,
+  Camel: palette.light.typeCamel,
+  Pig: palette.light.typePig,
+  Chicken: palette.light.typeChicken,
 };
 
 export default function AnalyticsScreen() {
   const { animals, stats } = useAnimals();
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { t } = useI18n();
   const [coverage, setCoverage] = useState<VaccinationCoverageRecord[]>([]);
 
   useEffect(() => {
     getVaccinationCoverage().then((res) => {
       if (res.success && res.data) setCoverage(res.data);
-    });
+    }).catch(() => {});
   }, []);
 
   const typeDistribution = useMemo(() => {
@@ -62,9 +58,9 @@ export default function AnalyticsScreen() {
     return (
       <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
         <Ionicons name="bar-chart-outline" size={48} color={colors.textSecondary} />
-        <Text style={[styles.emptyTitle, { color: colors.text }]}>No data available yet</Text>
+        <Text style={[styles.emptyTitle, { color: colors.text }]}>{t('noAnimals')}</Text>
         <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-          Register animals to see analytics here.
+          {t('registerHint')}
         </Text>
       </View>
     );
@@ -76,29 +72,29 @@ export default function AnalyticsScreen() {
       contentContainerStyle={[styles.content, { paddingTop: insets.top }]}
       showsVerticalScrollIndicator={false}
     >
-      <Text style={[styles.title, { color: colors.text }]}>Analytics</Text>
+      <Text style={[styles.title, { color: colors.text }]}>{t('analytics')}</Text>
 
       {/* Summary cards */}
       <View style={styles.summaryRow}>
-        <SummaryCard icon="heart" label="Healthy Rate" value={`${healthyRate}%`} color={colors.success} colors={colors} />
-        <SummaryCard icon="location" label="Counties" value={String(stats?.counties || 0)} color={colors.info} colors={colors} />
-        <SummaryCard icon="paw" label="Types" value={String(typeDistribution.length)} color={colors.accent} colors={colors} />
-        <SummaryCard icon="layers" label="Total" value={String(animals.length)} color={colors.tint} colors={colors} />
+        <SummaryCard icon="heart" label={t('healthyRate')} value={`${healthyRate}%`} color={colors.success} colors={colors} />
+        <SummaryCard icon="location" label={t('counties')} value={String(stats?.counties || 0)} color={colors.info} colors={colors} />
+        <SummaryCard icon="paw" label={t('type')} value={String(typeDistribution.length)} color={colors.accent} colors={colors} />
+        <SummaryCard icon="layers" label={t('total')} value={String(animals.length)} color={colors.tint} colors={colors} />
       </View>
 
       {/* Health Distribution */}
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        <Text style={[styles.cardTitle, { color: colors.text }]}>Health Status</Text>
+        <Text style={[styles.cardTitle, { color: colors.text }]}>{t('healthStatus')}</Text>
         {healthDistribution.map(([status, count]) => {
           const pct = Math.round((count / total) * 100);
           return (
             <View key={status} style={styles.barRow}>
               <View style={styles.barLabel}>
-                <View style={[styles.barDot, { backgroundColor: HEALTH_COLORS[status] }]} />
+                <View style={[styles.barDot, { backgroundColor: healthColors[status] }]} />
                 <Text style={[styles.barText, { color: colors.text }]}>{status}</Text>
               </View>
-              <View style={styles.barTrack}>
-                <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: HEALTH_COLORS[status] }]} />
+              <View style={[styles.barTrack, { backgroundColor: colors.border }]}>
+                <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: healthColors[status] }]} />
               </View>
               <Text style={[styles.barCount, { color: colors.textSecondary }]}>{count}</Text>
             </View>
@@ -108,7 +104,7 @@ export default function AnalyticsScreen() {
 
       {/* Type Distribution */}
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        <Text style={[styles.cardTitle, { color: colors.text }]}>By Animal Type</Text>
+        <Text style={[styles.cardTitle, { color: colors.text }]}>{t('byAnimalType')}</Text>
         {typeDistribution.map(([type, count]) => {
           const pct = Math.round((count / total) * 100);
           return (
@@ -117,7 +113,7 @@ export default function AnalyticsScreen() {
                 <View style={[styles.barDot, { backgroundColor: ANIMAL_COLORS[type] }]} />
                 <Text style={[styles.barText, { color: colors.text }]}>{type}</Text>
               </View>
-              <View style={styles.barTrack}>
+              <View style={[styles.barTrack, { backgroundColor: colors.border }]}>
                 <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: ANIMAL_COLORS[type] }]} />
               </View>
               <Text style={[styles.barCount, { color: colors.textSecondary }]}>{count}</Text>
@@ -128,14 +124,14 @@ export default function AnalyticsScreen() {
 
       {/* County Distribution */}
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        <Text style={[styles.cardTitle, { color: colors.text }]}>By County (Top 10)</Text>
+        <Text style={[styles.cardTitle, { color: colors.text }]}>{t('byCounty')}</Text>
         {countyDistribution.map(([county, count]) => {
           const maxCount = countyDistribution[0]?.[1] || 1;
           const pct = Math.round((count / maxCount) * 100);
           return (
             <View key={county} style={styles.barRow}>
               <Text style={[styles.countyName, { color: colors.text }]} numberOfLines={1}>{county}</Text>
-              <View style={styles.barTrack}>
+              <View style={[styles.barTrack, { backgroundColor: colors.border }]}>
                 <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: colors.tint }]} />
               </View>
               <Text style={[styles.barCount, { color: colors.textSecondary }]}>{count}</Text>
@@ -147,13 +143,13 @@ export default function AnalyticsScreen() {
       {/* Vaccination Coverage */}
       {coverage.length > 0 && (
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>Vaccination Coverage</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>{t('vaccinationCoverage')}</Text>
           {coverage.slice(0, 10).map((c) => {
-            const covColor = c.coveragePercent >= 80 ? '#16a34a' : c.coveragePercent >= 50 ? '#ca8a04' : '#dc2626';
+            const covColor = c.coveragePercent >= 80 ? colors.success : c.coveragePercent >= 50 ? colors.warning : colors.destructive;
             return (
               <View key={c.county} style={styles.barRow}>
                 <Text style={[styles.countyName, { color: colors.text }]} numberOfLines={1}>{c.county}</Text>
-                <View style={styles.barTrack}>
+                <View style={[styles.barTrack, { backgroundColor: colors.border }]}>
                   <View style={[styles.barFill, { width: `${c.coveragePercent}%`, backgroundColor: covColor }]} />
                 </View>
                 <Text style={[styles.barCount, { color: colors.textSecondary }]}>{c.coveragePercent}%</Text>
@@ -209,7 +205,7 @@ const styles = StyleSheet.create({
   barLabel: { flexDirection: 'row', alignItems: 'center', width: 100, gap: spacing.xs },
   barDot: { width: 8, height: 8, borderRadius: 4 },
   barText: { fontSize: fontSize.sm, flex: 1 },
-  barTrack: { flex: 1, height: 8, borderRadius: 4, backgroundColor: '#E5E7EB', overflow: 'hidden' },
+  barTrack: { flex: 1, height: 8, borderRadius: 4, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 4 },
   barCount: { fontSize: fontSize.sm, fontWeight: fontWeight.medium, width: 30, textAlign: 'right' },
   countyName: { fontSize: fontSize.sm, width: 100 },

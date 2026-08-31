@@ -176,12 +176,24 @@ export const remoteApi = {
     apiPost<ApiResponse<{ updated: number }>>("/animals/bulk/health", { ids, health }),
   bulkDelete: (ids: number[]) =>
     apiPost<ApiResponse<{ deleted: number }>>("/animals/bulk/delete", { ids }),
-  bulkExport: (ids: number[]) => {
+  bulkExport: async (ids: number[]) => {
     const token = localStorage.getItem(TOKEN_KEY) || "";
-    window.open(
-      `${API_BASE}/animals/bulk/export?ids=${ids.join(",")}&token=${token}`,
-      "_blank"
-    );
+    const res = await fetch(`${API_BASE}/animals/bulk/export`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ ids }),
+    });
+    if (!res.ok) throw new Error("Export failed");
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `animals-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   },
 
   // County comparison
@@ -189,12 +201,19 @@ export const remoteApi = {
     apiGet<ApiResponse<unknown[]>>("/stats/county-comparison"),
 
   // Report export
-  downloadReport: () => {
+  downloadReport: async () => {
     const token = localStorage.getItem(TOKEN_KEY) || "";
-    window.open(
-      `${API_BASE}/stats/report?token=${token}`,
-      "_blank"
-    );
+    const res = await fetch(`${API_BASE}/stats/report`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Report download failed");
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `kalro-report-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   },
 
   // Mortality tracking

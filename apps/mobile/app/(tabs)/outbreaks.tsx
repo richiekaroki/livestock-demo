@@ -8,7 +8,11 @@ import { Text, View, useColors } from '@/components/Themed';
 import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
 import { impactLight, impactMedium, notificationSuccess } from '@/src/services/haptics';
 import { useToast } from '@/src/components/Toast';
+import { useI18n } from '@/src/i18n';
 import * as api from '@/src/services/api';
+import { logger } from '@/src/utils/logger';
+import { statusColors } from '@/constants/Colors';
+import * as Location from 'expo-location';
 
 interface Outbreak {
   id: number;
@@ -23,17 +27,11 @@ interface Outbreak {
   status: string;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  reported: '#EAB308',
-  investigating: '#3B82F6',
-  contained: '#F97316',
-  resolved: '#22C55E',
-};
-
 export default function OutbreaksScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
+  const { t } = useI18n();
   const [outbreaks, setOutbreaks] = useState<Outbreak[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -44,6 +42,7 @@ export default function OutbreaksScreen() {
   const [symptoms, setSymptoms] = useState('');
   const [actionsTaken, setActionsTaken] = useState('');
   const [reportedBy, setReportedBy] = useState('');
+  const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -52,15 +51,34 @@ export default function OutbreaksScreen() {
       if (res.success && Array.isArray(res.data)) {
         setOutbreaks(res.data);
       }
-    } catch { /* ignored */ }
+    } catch (err) {
+      logger.warn('[Outbreaks] Failed to fetch:', err);
+    }
     setLoading(false);
   };
 
   useEffect(() => { fetchData(); }, []);
 
+  // Auto-capture GPS when form opens
+  useEffect(() => {
+    if (showForm && !gpsCoords) {
+      (async () => {
+        try {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status === 'granted') {
+            const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+            setGpsCoords({ lat: loc.coords.latitude, lng: loc.coords.longitude });
+          }
+        } catch {
+          // GPS unavailable — submit with 0,0
+        }
+      })();
+    }
+  }, [showForm]);
+
   const handleSubmit = async () => {
     if (!diseaseType.trim() || !affectedAnimals || !county.trim() || !reportedBy.trim()) {
-      showToast('error', 'Disease type, affected animals, county and reporter are required');
+      showToast('error', t('diseaseType') + ', ' + t('affectedAnimals') + ', ' + t('county') + ' ' + t('reportedBy') + ' are required');
       return;
     }
     impactMedium();
@@ -69,8 +87,8 @@ export default function OutbreaksScreen() {
         diseaseType: diseaseType.trim(),
         affectedAnimals: Number(affectedAnimals),
         county: county.trim(),
-        lat: 0,
-        lng: 0,
+        lat: gpsCoords?.lat ?? 0,
+        lng: gpsCoords?.lng ?? 0,
         reportedBy: reportedBy.trim(),
         symptoms: symptoms.split(',').map((s) => s.trim()).filter(Boolean),
         actions: actionsTaken.split(',').map((a) => a.trim()).filter(Boolean),
@@ -108,37 +126,37 @@ export default function OutbreaksScreen() {
       refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} tintColor={colors.tint} />}
     >
       <View style={styles.headerRow}>
-        <Text style={[styles.title, { color: colors.text }]}>Outbreaks</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('outbreaks')}</Text>
         <Pressable
           onPress={() => { impactLight(); setShowForm(!showForm); }}
           style={({ pressed }) => [styles.addBtn, { backgroundColor: colors.tint, opacity: pressed ? 0.85 : 1 }]}
           accessibilityLabel={showForm ? 'Cancel' : 'Report outbreak'}
         >
           <Ionicons name={showForm ? 'close' : 'add'} size={20} color="#fff" />
-          <Text style={styles.addBtnText}>{showForm ? 'Cancel' : 'Report'}</Text>
+          <Text style={styles.addBtnText}>{showForm ? t('cancel') : t('reportOutbreak')}</Text>
         </Pressable>
       </View>
 
       {showForm && (
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>Report Outbreak</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>{t('reportOutbreak')}</Text>
 
-          <Text style={[styles.label, { color: colors.text }]}>Disease Type *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('diseaseType')} *</Text>
           <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={diseaseType} onChangeText={setDiseaseType} placeholder="e.g. Foot and Mouth Disease" placeholderTextColor={colors.placeholder} />
 
-          <Text style={[styles.label, { color: colors.text }]}>Affected Animals *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('affectedAnimals')} *</Text>
           <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={affectedAnimals} onChangeText={setAffectedAnimals} placeholder="Number of animals" keyboardType="numeric" placeholderTextColor={colors.placeholder} />
 
-          <Text style={[styles.label, { color: colors.text }]}>County *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('county')} *</Text>
           <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={county} onChangeText={setCounty} placeholder="e.g. Nakuru" placeholderTextColor={colors.placeholder} />
 
-          <Text style={[styles.label, { color: colors.text }]}>Reported By *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('reportedBy')} *</Text>
           <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={reportedBy} onChangeText={setReportedBy} placeholder="Veterinarian name" placeholderTextColor={colors.placeholder} />
 
-          <Text style={[styles.label, { color: colors.text }]}>Symptoms</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('symptoms')}</Text>
           <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={symptoms} onChangeText={setSymptoms} placeholder="Comma-separated" placeholderTextColor={colors.placeholder} />
 
-          <Text style={[styles.label, { color: colors.text }]}>Actions Taken</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('actionsTaken')}</Text>
           <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={actionsTaken} onChangeText={setActionsTaken} placeholder="Comma-separated" placeholderTextColor={colors.placeholder} />
 
           <Pressable
@@ -147,7 +165,7 @@ export default function OutbreaksScreen() {
             accessibilityLabel="Submit outbreak report"
           >
             <Ionicons name="alert-circle-outline" size={18} color="#fff" />
-            <Text style={styles.submitBtnText}>Submit Report</Text>
+            <Text style={styles.submitBtnText}>{t('submitReport')}</Text>
           </Pressable>
         </View>
       )}
@@ -155,16 +173,16 @@ export default function OutbreaksScreen() {
       {loading && outbreaks.length === 0 && !showForm ? (
         <View style={styles.emptyWrap}>
           <Ionicons name="hourglass-outline" size={40} color={colors.textSecondary} />
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Loading outbreaks...</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('loadingOutbreaks')}</Text>
         </View>
       ) : outbreaks.length === 0 && !showForm ? (
         <View style={styles.emptyWrap}>
           <Ionicons name="shield-checkmark-outline" size={40} color={colors.textSecondary} />
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No outbreaks reported</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('noOutbreaks')}</Text>
         </View>
       ) : (
         outbreaks.map((o) => {
-          const statusColor = STATUS_COLORS[o.status] || colors.textSecondary;
+          const statusColor = statusColors[o.status] || colors.textSecondary;
           return (
             <View key={o.id} style={[styles.outbreakRow, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
               <View style={styles.outbreakHeader}>
@@ -179,7 +197,7 @@ export default function OutbreaksScreen() {
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
                   <Text style={[styles.statusText, { color: statusColor }]}>
-                    {o.status.charAt(0).toUpperCase() + o.status.slice(1)}
+                    {t(o.status as 'reported' | 'investigating' | 'contained' | 'resolved')}
                   </Text>
                 </View>
               </View>
@@ -206,14 +224,14 @@ export default function OutbreaksScreen() {
                     style={({ pressed }) => [
                       styles.statusBtn,
                       {
-                        backgroundColor: o.status === s ? (STATUS_COLORS[s] || colors.textSecondary) : 'transparent',
-                        borderColor: STATUS_COLORS[s] || colors.textSecondary,
+                        backgroundColor: o.status === s ? (statusColors[s] || colors.textSecondary) : 'transparent',
+                        borderColor: statusColors[s] || colors.textSecondary,
                         opacity: pressed ? 0.7 : 1,
                       },
                     ]}
                   >
                     <Text style={[styles.statusBtnText, { color: o.status === s ? '#fff' : colors.text }]}>
-                      {s.charAt(0).toUpperCase() + s.slice(1)}
+                      {t(s as 'reported' | 'investigating' | 'contained' | 'resolved')}
                     </Text>
                   </Pressable>
                 ))}
@@ -251,6 +269,6 @@ const styles = StyleSheet.create({
   outbreakDetail: { fontSize: fontSize.xs },
   outbreakDate: { fontSize: fontSize.xs, marginTop: spacing.xs },
   statusRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
-  statusBtn: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.pill, borderWidth: 1 },
+  statusBtn: { paddingHorizontal: spacing.md, paddingVertical: spacing.md, borderRadius: radius.pill, borderWidth: 1 },
   statusBtnText: { fontSize: fontSize.xs, fontWeight: fontWeight.medium },
 });

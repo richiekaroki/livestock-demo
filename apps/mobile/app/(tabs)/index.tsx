@@ -1,19 +1,22 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ScrollView, StyleSheet, Pressable, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View, useColors } from '@/components/Themed';
 import { useAnimals } from '@/src/hooks/useAnimals';
 import { spacing, radius, fontSize, fontWeight, shadows } from '@/constants/Tokens';
-import { impactLight, selectionChanged } from '@/src/services/haptics';
+import { impactLight, impactMedium, selectionChanged } from '@/src/services/haptics';
 import { StatCardSkeleton, RowSkeleton } from '@/src/components/Skeleton';
-import { StaggeredItem } from '@/src/components/StaggeredItem';
 import { OfflineBanner } from '@/src/components/OfflineBanner';
 import { HealthAlerts } from '@/src/components/HealthAlerts';
 import { LiveIndicator } from '@/src/components/LiveIndicator';
 import { exportCSV, exportJSON, exportPDF } from '@/src/services/export';
 import { useI18n } from '@/src/i18n';
 import { connectSocket, getSocket } from '@/src/services/socket';
+import palette from '@/constants/Colors';
+import { Badge } from '@/src/components/ui/Badge';
+import { EmptyState } from '@/src/components/ui/EmptyState';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 const STAT_CONFIG = [
   { key: 'totalAnimals', label: 'Total', icon: 'layers-outline' as const },
@@ -25,9 +28,9 @@ const STAT_CONFIG = [
 ] as const;
 
 const EXPORT_OPTIONS = [
-  { key: 'csv', label: 'CSV', icon: 'document-text-outline' as const, color: '#15803D' },
-  { key: 'pdf', label: 'PDF', icon: 'document-outline' as const, color: '#DC2626' },
-  { key: 'json', label: 'KALRO', extension: 'json', icon: 'cloud-upload-outline' as const, color: '#0284C7' },
+  { key: 'csv', label: 'CSV', icon: 'document-text-outline' as const, color: palette.light.tint },
+  { key: 'pdf', label: 'PDF', icon: 'document-outline' as const, color: palette.light.destructive },
+  { key: 'json', label: 'KALRO', extension: 'json', icon: 'cloud-upload-outline' as const, color: palette.light.info },
 ] as const;
 
 export default function HomeScreen() {
@@ -38,6 +41,11 @@ export default function HomeScreen() {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const refreshRef = useRef(refresh);
   refreshRef.current = refresh;
+
+  const handleRefresh = useCallback(() => {
+    impactMedium();
+    void refresh();
+  }, [refresh]);
 
   useEffect(() => {
     let mounted = true;
@@ -88,7 +96,7 @@ export default function HomeScreen() {
       refreshControl={
         <RefreshControl
           refreshing={loading}
-          onRefresh={() => void refresh()}
+          onRefresh={handleRefresh}
           tintColor={colors.tint}
           colors={[colors.tint]}
         />
@@ -96,7 +104,7 @@ export default function HomeScreen() {
     >
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.title, { color: colors.text }]}>Wam Mfugo</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('home')}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             {t('herdOverview')}
           </Text>
@@ -150,9 +158,15 @@ export default function HomeScreen() {
           {STAT_CONFIG.map(({ key, label, icon }, index) => {
             const value = stats ? (stats as unknown as Record<string, number>)[key] ?? 0 : 0;
             return (
-              <StaggeredItem key={key} index={index} delay={40}>
+              <Animated.View
+                key={key}
+                entering={FadeInDown.delay(index * 50).springify()}
+              >
                 <Pressable
-                  onPress={() => selectionChanged()}
+                  onPress={() => {
+                    impactLight();
+                    selectionChanged();
+                  }}
                   style={({ pressed }) => [
                     styles.card,
                     {
@@ -169,10 +183,10 @@ export default function HomeScreen() {
                   </View>
                   <Text style={[styles.cardValue, { color: colors.text }]}>{value}</Text>
                   <Text style={[styles.cardLabel, { color: colors.textSecondary }]}>
-                    {label}
+                    {t(key as 'totalAnimals' | 'healthy' | 'sick' | 'underTreatment' | 'recovered' | 'counties')}
                   </Text>
                 </Pressable>
-              </StaggeredItem>
+              </Animated.View>
             );
           })}
         </View>
@@ -180,10 +194,10 @@ export default function HomeScreen() {
 
       <View style={styles.sectionHeader}>
         <Text style={[styles.listTitle, { color: colors.text }]}>
-          Recent animals
+          {t('recentAnimals')}
         </Text>
         <Text style={[styles.listCount, { color: colors.textSecondary }]}>
-          {animals.length} total
+          {animals.length} {t('total')}
         </Text>
       </View>
 
@@ -193,8 +207,17 @@ export default function HomeScreen() {
             <RowSkeleton key={i} colors={colors} />
           ))}
         </View>
+      ) : animals.length === 0 ? (
+        <EmptyState
+          icon="paw-outline"
+          title={t('noAnimals')}
+          description={t('addFirstAnimal')}
+        />
       ) : animals.slice(0, 5).map((animal, index) => (
-        <StaggeredItem key={animal.id} index={index + 6} delay={40}>
+        <Animated.View
+          key={animal.id}
+          entering={FadeInDown.delay((index + 6) * 40).springify()}
+        >
           <Pressable
             onPress={() => impactLight()}
             style={({ pressed }) => [
@@ -216,9 +239,13 @@ export default function HomeScreen() {
                 {animal.type} · {animal.health} · {animal.county}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+            <Badge
+              label={animal.health}
+              variant={animal.health === 'Healthy' ? 'success' : animal.health === 'Sick' ? 'destructive' : 'warning'}
+              size="sm"
+            />
           </Pressable>
-        </StaggeredItem>
+        </Animated.View>
       ))}
     </ScrollView>
   );
@@ -226,10 +253,10 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxxl },
+  content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxxl },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
-  title: { fontSize: fontSize.hero, fontWeight: fontWeight.bold },
-  subtitle: { fontSize: fontSize.md, marginTop: spacing.xs },
+  title: { fontSize: fontSize.hero, fontWeight: fontWeight.bold, letterSpacing: -0.5 },
+  subtitle: { fontSize: fontSize.md, marginTop: spacing.xs, lineHeight: 22 },
   langBtn: {
     width: 44, height: 44, borderRadius: 22, borderWidth: 1,
     alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm,
@@ -243,23 +270,23 @@ const styles = StyleSheet.create({
   },
   exportOption: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    padding: spacing.md, borderRadius: radius.md,
+    padding: spacing.lg, borderRadius: radius.md,
   },
   exportLabel: { fontSize: fontSize.sm, fontWeight: fontWeight.medium },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.sm },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.xs },
   card: {
     flexGrow: 1, flexBasis: '30%', padding: spacing.lg,
     borderRadius: radius.lg, borderWidth: 1, alignItems: 'center', gap: spacing.xs,
   },
   iconWrap: {
-    width: 40, height: 40, borderRadius: radius.md,
+    width: 44, height: 44, borderRadius: radius.md,
     alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs,
   },
   cardValue: { fontSize: fontSize.xl, fontWeight: fontWeight.bold },
-  cardLabel: { fontSize: fontSize.xs },
+  cardLabel: { fontSize: fontSize.xs, fontWeight: fontWeight.medium },
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',
-    marginTop: spacing.lg, marginBottom: spacing.sm,
+    marginTop: spacing.xl, marginBottom: spacing.md,
   },
   listTitle: { fontSize: fontSize.lg, fontWeight: fontWeight.semibold },
   listCount: { fontSize: fontSize.sm },
@@ -269,10 +296,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.md, borderWidth: 1, gap: spacing.md,
   },
   rowIcon: {
-    width: 36, height: 36, borderRadius: radius.sm,
+    width: 40, height: 40, borderRadius: radius.sm,
     alignItems: 'center', justifyContent: 'center',
   },
   rowContent: { flex: 1 },
   rowName: { fontSize: fontSize.base, fontWeight: fontWeight.semibold },
-  rowMeta: { fontSize: fontSize.xs, marginTop: 2 },
+  rowMeta: { fontSize: fontSize.xs, marginTop: 2, lineHeight: 18 },
 });

@@ -20,6 +20,12 @@ function validateSecrets() {
         'Example: JWT_SECRET=$(openssl rand -hex 32)',
     );
   }
+  if (process.env.DEV_AUTO_VERIFY === 'true' && process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'FATAL: DEV_AUTO_VERIFY=true is not allowed in production. ' +
+        'This bypasses OTP verification entirely.',
+    );
+  }
 }
 
 async function bootstrap() {
@@ -31,7 +37,8 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
   app.useGlobalFilters(new AllExceptionsFilter());
-  app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
+  const uploadDir = process.env.UPLOAD_DIR || join(process.cwd(), 'uploads');
+  app.useStaticAssets(uploadDir, { prefix: '/uploads' });
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -79,22 +86,25 @@ async function bootstrap() {
     }),
   );
 
-  const config = new DocumentBuilder()
-    .setTitle('Wam Mfugo API')
-    .setDescription(
-      'Offline-first livestock tracking platform for Kenya. Passwordless email-OTP auth with role-based access.',
-    )
-    .setVersion('1.0.0')
-    .addBearerAuth(
-      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-      'access-token',
-    )
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document, {
-    useGlobalPrefix: true,
-    swaggerOptions: { persistAuthorization: true },
-  });
+  // Only enable Swagger docs in development
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Wam Mfugo API')
+      .setDescription(
+        'Offline-first livestock tracking platform for Kenya. Passwordless email-OTP auth with role-based access.',
+      )
+      .setVersion('1.0.0')
+      .addBearerAuth(
+        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+        'access-token',
+      )
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('docs', app, document, {
+      useGlobalPrefix: true,
+      swaggerOptions: { persistAuthorization: true },
+    });
+  }
 
   const port = process.env.PORT ?? 4000;
   await app.listen(port);

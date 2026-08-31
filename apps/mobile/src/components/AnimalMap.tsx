@@ -6,6 +6,7 @@ import type { Livestock } from '@wam-mfugo/shared';
 type Props = { animals: Livestock[] };
 
 export default function AnimalMap({ animals }: Props) {
+  if (animals.length === 0) return null;
   const center = { latitude: animals[0].lat, longitude: animals[0].lng };
 
   return (

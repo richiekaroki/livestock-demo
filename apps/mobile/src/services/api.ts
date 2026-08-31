@@ -1,26 +1,22 @@
 // src/api.ts — tiny fetch client for the Wam Mfugo API (same contract as web remoteApi)
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 import type {
   AnimalStats,
   ApiResponse,
   Filters,
   Farmer,
-  HealthStatus,
   KIAMISRegistrationResponse,
   Livestock,
 } from "@wam-mfugo/shared";
 
-export type { ApiResponse } from "@wam-mfugo/shared";
-import { AUTH_TOKEN_KEY, AUTH_REFRESH_KEY } from "./storage";
+export type { ApiResponse, Livestock } from "@wam-mfugo/shared";
+import { AUTH_TOKEN_KEY, AUTH_REFRESH_KEY, API_BASE_URL, secureStorage } from "./storage";
 import { enqueue } from "./offlineQueue";
-
-export const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:4000/api";
+import { refreshSocketToken } from "./socket";
 
 async function getToken(): Promise<string | null> {
   try {
-    return await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+    return await secureStorage.getItem(AUTH_TOKEN_KEY);
   } catch {
     return null;
   }
@@ -28,7 +24,7 @@ async function getToken(): Promise<string | null> {
 
 async function tryRefresh(): Promise<boolean> {
   try {
-    const refreshToken = await AsyncStorage.getItem(AUTH_REFRESH_KEY);
+    const refreshToken = await secureStorage.getItem(AUTH_REFRESH_KEY);
     if (!refreshToken) return false;
 
     const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
@@ -44,15 +40,17 @@ async function tryRefresh(): Promise<boolean> {
     };
     if (!data.success || !data.data) return false;
 
-    await AsyncStorage.setItem(AUTH_TOKEN_KEY, data.data.accessToken);
-    await AsyncStorage.setItem(AUTH_REFRESH_KEY, data.data.refreshToken);
+    await secureStorage.setItem(AUTH_TOKEN_KEY, data.data.accessToken);
+    await secureStorage.setItem(AUTH_REFRESH_KEY, data.data.refreshToken);
+    // Update socket with new token
+    refreshSocketToken().catch(() => {});
     return true;
   } catch {
     return false;
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, _retryCount = 0): Promise<T> {
   const token = await getToken();
   const res = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
@@ -62,26 +60,32 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   });
 
-  if (res.status === 401 && token) {
+  if (res.status === 401 && token && _retryCount < 1) {
     const refreshed = await tryRefresh();
     if (refreshed) {
-      return request<T>(path, init);
+      return request<T>(path, init, _retryCount + 1);
     }
-    await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, AUTH_REFRESH_KEY]);
+    await secureStorage.deleteItem(AUTH_TOKEN_KEY);
+    await secureStorage.deleteItem(AUTH_REFRESH_KEY);
     throw new Error("Session expired. Please sign in again.");
   }
 
   if (!res.ok) {
-    throw new Error(`Request failed with status ${res.status}`);
+    if (res.status >= 500) throw new Error("Server error. Please try again later.");
+    if (res.status === 403) throw new Error("You don't have permission for this action.");
+    if (res.status === 404) throw new Error("Resource not found.");
+    if (res.status === 429) throw new Error("Too many requests. Please wait a moment and try again.");
+    throw new Error("Something went wrong. Please try again.");
   }
   return (await res.json()) as T;
 }
 
-export function getAnimals(filters?: Filters): Promise<ApiResponse<Livestock[]>> {
+export function getAnimals(filters?: Filters & { limit?: number }): Promise<ApiResponse<Livestock[]>> {
   const params = new URLSearchParams();
   if (filters?.type) params.set("type", filters.type);
   if (filters?.health) params.set("health", filters.health);
   if (filters?.county) params.set("county", filters.county);
+  if (filters?.limit) params.set("limit", String(filters.limit));
   const qs = params.toString();
 
   return request(`/animals${qs ? `?${qs}` : ""}`);
@@ -100,22 +104,6 @@ export function updateAnimal(
   return request(`/animals/${id}`, {
     method: "PATCH",
     body: JSON.stringify(data),
-  });
-}
-
-export function deleteAnimal(
-  id: number
-): Promise<ApiResponse<{ message: string }>> {
-  return request(`/animals/${id}`, { method: "DELETE" });
-}
-
-export function updateAnimalHealth(
-  id: number,
-  health: HealthStatus
-): Promise<ApiResponse<Livestock | null>> {
-  return request(`/animals/${id}/health`, {
-    method: "PATCH",
-    body: JSON.stringify({ health }),
   });
 }
 
@@ -227,6 +215,7 @@ export function deactivateAdminUser(
 export interface VaccinationRecord {
   id: number;
   type: string;
+  vaccine: string;
   date: string;
   batchNumber: string;
   veterinarian: string;
@@ -240,16 +229,6 @@ export interface VaccinationRecord {
 
 export function getVaccinations(): Promise<ApiResponse<VaccinationRecord[]>> {
   return request("/vaccinations");
-}
-
-export function updateVaccination(
-  id: number,
-  data: { type?: string; date?: string; batchNumber?: string; veterinarian?: string; nextDueDate?: string | null }
-): Promise<ApiResponse<VaccinationRecord>> {
-  return request(`/vaccinations/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
 }
 
 // ── Outbreaks API ─────────────────────────────────────────────────
@@ -312,26 +291,6 @@ export function getAdminAuditLogs(params?: {
   return request(`/admin/audit-logs${qs ? `?${qs}` : ""}`);
 }
 
-// ── Notifications API ─────────────────────────────────────────────
-
-export function registerPushToken(
-  token: string
-): Promise<ApiResponse<{ success: boolean }>> {
-  return request("/notifications/register", {
-    method: "POST",
-    body: JSON.stringify({ token }),
-  });
-}
-
-export function unregisterPushToken(
-  token: string
-): Promise<ApiResponse<{ success: boolean }>> {
-  return request("/notifications/register", {
-    method: "DELETE",
-    body: JSON.stringify({ token }),
-  });
-}
-
 // ── Disease Prediction API ──────────────────────────────────────────
 
 export interface DiseaseRiskRecord {
@@ -353,19 +312,6 @@ export function predictDiseaseRisk(data: {
     method: "POST",
     body: JSON.stringify(data),
   });
-}
-
-export function getDiseaseRisks(params?: {
-  county?: string;
-  diseaseType?: string;
-  riskLevel?: string;
-}): Promise<ApiResponse<DiseaseRiskRecord[]>> {
-  const searchParams = new URLSearchParams();
-  if (params?.county) searchParams.set("county", params.county);
-  if (params?.diseaseType) searchParams.set("diseaseType", params.diseaseType);
-  if (params?.riskLevel) searchParams.set("riskLevel", params.riskLevel);
-  const qs = searchParams.toString();
-  return request(`/diseases/risk${qs ? `?${qs}` : ""}`);
 }
 
 export function getCountyRiskSummary(
@@ -412,6 +358,13 @@ export interface MortalityRecord {
   owner: string;
 }
 
+export interface MortalityStats {
+  total: number;
+  recentCount: number;
+  byCause: { cause: string; count: number }[];
+  byCounty: { county: string; count: number }[];
+}
+
 export function getMortalities(params?: {
   county?: string;
   cause?: string;
@@ -440,14 +393,7 @@ export function reportMortality(data: {
   });
 }
 
-export function getMortalityStats(): Promise<
-  ApiResponse<{
-    total: number;
-    recentCount: number;
-    byCause: { cause: string; count: number }[];
-    byCounty: { county: string; count: number }[];
-  }>
-> {
+export function getMortalityStats(): Promise<ApiResponse<MortalityStats>> {
   return request("/mortality/stats");
 }
 
@@ -479,21 +425,6 @@ export interface WeightGainStat {
   firstRecorded: string;
   lastRecorded: string;
   unit: string;
-}
-
-export function getWeightRecords(params?: {
-  animalId?: number;
-  county?: string;
-  page?: number;
-  limit?: number;
-}): Promise<ApiResponse<WeightRecord[]>> {
-  const searchParams = new URLSearchParams();
-  if (params?.animalId) searchParams.set("animalId", String(params.animalId));
-  if (params?.county) searchParams.set("county", params.county);
-  if (params?.page) searchParams.set("page", String(params.page));
-  if (params?.limit) searchParams.set("limit", String(params.limit));
-  const qs = searchParams.toString();
-  return request(`/weight${qs ? `?${qs}` : ""}`);
 }
 
 export function getAnimalWeightHistory(animalId: number): Promise<ApiResponse<WeightRecord[]>> {
@@ -542,6 +473,177 @@ export interface VaccinationReminder {
 export function getVaccinationReminders(daysAhead?: number): Promise<ApiResponse<VaccinationReminder[]>> {
   const qs = daysAhead ? `?daysAhead=${daysAhead}` : "";
   return request(`/vaccinations/reminders${qs}`);
+}
+
+// ── County Comparison API ────────────────────────────────────────
+
+export interface CountyData {
+  county: string;
+  totalAnimals: number;
+  healthy: number;
+  sick: number;
+  underTreatment: number;
+  recovered: number;
+  healthyRate: number;
+  animalTypes: Record<string, number>;
+  vaccinatedCount: number;
+  vaccinationRate: number;
+  mortalityCount: number;
+  mortalityRate: number;
+  outbreakCount: number;
+  outbreakDiseases: string[];
+}
+
+export function getCountyComparison(): Promise<ApiResponse<CountyData[]>> {
+  return request("/stats/county-comparison");
+}
+
+// ── What-If Simulator API ────────────────────────────────────────
+
+export interface SimulationResult {
+  county: string;
+  scenario: {
+    vaccinationIncrease: number;
+    livestockReduction: number;
+    season: string;
+  };
+  results: {
+    diseaseType: string;
+    currentRiskLevel: string;
+    projectedRiskLevel: string;
+    change: string;
+    factors: { name: string; weight: number; description: string }[];
+  }[];
+}
+
+export function simulateWhatIf(data: {
+  county: string;
+  vaccinationIncrease?: number;
+  livestockReduction?: number;
+}): Promise<ApiResponse<SimulationResult>> {
+  return request("/diseases/simulate", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function getCounties(): Promise<ApiResponse<{ name: string; code: string }[]>> {
+  return request("/counties");
+}
+
+// ── Health Assessment API ────────────────────────────────────────
+
+export interface HealthAssessmentResult {
+  overallStatus: string;
+  confidence: number;
+  findings: { category: string; status: string; description: string; confidence: number }[];
+  recommendations: string[];
+}
+
+export function assessHealth(data: {
+  imageBase64: string;
+  animalType: string;
+  animalName?: string;
+  notes?: string;
+}): Promise<ApiResponse<HealthAssessmentResult>> {
+  return request("/health-assessment", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// ── CSV Import API ───────────────────────────────────────────────
+
+export async function importAnimalsCsv(fileUri: string, fileName: string): Promise<ApiResponse<{ imported: number; errors: string[] }>> {
+  const token = await getToken();
+  const form = new FormData();
+  form.append("file", { uri: fileUri, name: fileName, type: "text/csv" } as any);
+  const res = await fetch(`${API_BASE_URL}/animals/import`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  return res.json();
+}
+
+// ── Animal Photo Upload API ────────────────────────────────────
+
+/**
+ * Upload an animal photo to the server.
+ * @param fileUri - local file URI from camera/expo-image-picker
+ * @param fileName - filename (e.g. "photo.jpg")
+ * @returns the public URL of the uploaded image
+ */
+export async function uploadAnimalPhoto(
+  fileUri: string,
+  fileName: string
+): Promise<ApiResponse<{ url: string }>> {
+  const token = await getToken();
+  const form = new FormData();
+  form.append("file", {
+    uri: fileUri,
+    name: fileName,
+    type: "image/jpeg",
+  } as any);
+  const res = await fetch(`${API_BASE_URL}/upload/animal-photo`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  return res.json();
+}
+
+// ── Bulk Operations API ──────────────────────────────────────────
+
+export async function bulkHealthUpdate(ids: number[], health: string): Promise<ApiResponse<{ updated: number }>> {
+  return request("/animals/bulk/health", {
+    method: "POST",
+    body: JSON.stringify({ ids, health }),
+  });
+}
+
+export async function bulkDelete(ids: number[]): Promise<ApiResponse<{ deleted: number }>> {
+  return request("/animals/bulk/delete", {
+    method: "POST",
+    body: JSON.stringify({ ids }),
+  });
+}
+
+// ── Session Management API ───────────────────────────────────────
+
+export interface Session {
+  id: string;
+  deviceInfo: string;
+  ipAddress: string;
+  lastActive: string;
+  createdAt: string;
+}
+
+export function getSessions(): Promise<ApiResponse<Session[]>> {
+  return request("/auth/sessions");
+}
+
+export function revokeSession(id: string): Promise<ApiResponse<{ success: boolean }>> {
+  return request(`/auth/sessions/${id}`, { method: "DELETE" });
+}
+
+export function revokeAllSessions(): Promise<ApiResponse<{ success: boolean }>> {
+  return request("/auth/sessions", { method: "DELETE" });
+}
+
+// ── KALRO Report API ────────────────────────────────────────────
+
+export function getKalroReport(filters?: {
+  type?: string;
+  health?: string;
+  county?: string;
+}): Promise<ApiResponse<any[]>> {
+  const params = new URLSearchParams();
+  if (filters?.type) params.set("type", filters.type);
+  if (filters?.health) params.set("health", filters.health);
+  if (filters?.county) params.set("county", filters.county);
+  const qs = params.toString();
+  return request(`/animals?limit=1000${qs ? `&${qs}` : ""}`);
 }
 
 // ── Offline-aware API wrapper ─────────────────────────────────────

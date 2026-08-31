@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { TextInput, StyleSheet, Pressable } from 'react-native';
+import { View, TextInput, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '@/components/Themed';
 import { spacing, radius, fontSize } from '@/constants/Tokens';
@@ -67,8 +67,6 @@ function SearchBarContainer({ colors, children }: { colors: ReturnType<typeof im
     </View>
   );
 }
-
-import { View } from 'react-native';
 
 const searchStyles = StyleSheet.create({
   container: {

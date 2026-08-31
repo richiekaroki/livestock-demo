@@ -2,6 +2,7 @@
 import * as TaskManager from 'expo-task-manager';
 import * as BackgroundFetch from 'expo-background-fetch';
 import { processQueue } from './offlineQueue';
+import { logger } from '../utils/logger';
 
 const BACKGROUND_SYNC_TASK = 'background-sync-task';
 
@@ -20,10 +21,10 @@ export async function registerBackgroundSync() {
     stopOnTerminate: false,
     startOnBoot: true,
   });
-  console.log('[BackgroundSync] Registered:', status);
+  logger.info('[BackgroundSync] Registered:', { status });
 }
 
 export async function unregisterBackgroundSync() {
   await BackgroundFetch.unregisterTaskAsync(BACKGROUND_SYNC_TASK);
-  console.log('[BackgroundSync] Unregistered');
+  logger.info('[BackgroundSync] Unregistered');
 }

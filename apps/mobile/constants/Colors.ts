@@ -116,3 +116,25 @@ export default {
 };
 
 export { palette };
+
+// Semantic color maps used across the app
+export const riskColors: Record<string, string> = {
+  critical: palette.red600,
+  high: '#EA580C',
+  medium: palette.gold600,
+  low: palette.green600,
+};
+
+export const statusColors: Record<string, string> = {
+  reported: palette.gold400,
+  investigating: '#3B82F6',
+  contained: '#F97316',
+  resolved: palette.green500,
+};
+
+export const healthColors: Record<string, string> = {
+  Healthy: palette.green700,
+  Sick: palette.red600,
+  'Under Treatment': palette.gold600,
+  Recovered: palette.blue500,
+};

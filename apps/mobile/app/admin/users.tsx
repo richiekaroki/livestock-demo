@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, FlatList, Pressable, TextInput, Alert } from 'react-native';
+import { StyleSheet, FlatList, Pressable, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from '@/components/Themed';
 import { useColors } from '@/components/Themed';
@@ -13,11 +13,12 @@ import {
   deactivateAdminUser,
   type AdminUser,
 } from '@/src/services/api';
+import { useI18n } from '@/src/i18n';
 
 const ROLE_LABELS: Record<string, string> = {
-  admin: 'Admin',
-  field_agent: 'Field Agent',
-  farmer: 'Farmer',
+  admin: 'adminRole',
+  field_agent: 'fieldAgentRole',
+  farmer: 'farmerRole',
 };
 
 const ROLE_CYCLE: Record<string, string> = {
@@ -30,6 +31,7 @@ export default function UserManagementScreen() {
   const insets = useSafeAreaInsets();
   const colors = useColors();
   const { showToast } = useToast();
+  const { t } = useI18n();
   const [search, setSearch] = useState('');
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,11 +44,11 @@ export default function UserManagementScreen() {
       const data = await getAdminUsers({ search: search || undefined });
       setUsers(data.users);
     } catch {
-      setError('Failed to load users');
+      setError(t('failedToLoadUsers'));
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [search, t]);
 
   useEffect(() => {
     loadUsers();
@@ -62,17 +64,17 @@ export default function UserManagementScreen() {
     const user = users.find((u) => u.id === userId);
     if (!user) return;
     const next = ROLE_CYCLE[user.role] ?? 'farmer';
-    Alert.alert('Change Role', `Change ${user.name} to ${ROLE_LABELS[next]}?`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('changeRole'), t('changeRoleConfirm', { name: user.name, role: t(ROLE_LABELS[next] as any) }), [
+      { text: t('cancel'), style: 'cancel' },
       {
-        text: 'Confirm',
+        text: t('confirm'),
         onPress: async () => {
           try {
             await updateAdminUser(userId, { role: next });
             setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: next } : u)));
-            showToast('success', `${user.name} is now ${ROLE_LABELS[next]}`);
+            showToast('success', `${user.name} → ${t(ROLE_LABELS[next] as any)}`);
           } catch {
-            showToast('error', 'Failed to update role');
+            showToast('error', t('failedToUpdateRole'));
           }
         },
       },
@@ -82,18 +84,18 @@ export default function UserManagementScreen() {
   const handleDeactivate = (userId: number) => {
     const user = users.find((u) => u.id === userId);
     if (!user) return;
-    Alert.alert('Deactivate User', `Deactivate ${user.name}? They will no longer be able to sign in.`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('deactivateUser'), t('deactivateUserConfirm', { name: user.name }), [
+      { text: t('cancel'), style: 'cancel' },
       {
-        text: 'Deactivate',
+        text: t('deactivate'),
         style: 'destructive',
         onPress: async () => {
           try {
             await deactivateAdminUser(userId);
             setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, isActive: false } : u)));
-            showToast('success', `${user.name} deactivated`);
+            showToast('success', `${user.name} ${t('deactivated')}`);
           } catch {
-            showToast('error', 'Failed to deactivate user');
+            showToast('error', t('failedToDeactivateUser'));
           }
         },
       },
@@ -113,7 +115,7 @@ export default function UserManagementScreen() {
           <Text style={[styles.cardEmail, { color: colors.textTertiary }]}>{item.email}</Text>
         </View>
         <Pressable onPress={() => handleRoleChange(item.id)} style={[styles.roleBadge, { backgroundColor: (ROLE_COLORS[item.role] ?? colors.textTertiary) + '15' }]}>
-          <Text style={[styles.roleText, { color: ROLE_COLORS[item.role] ?? colors.textTertiary }]}>{ROLE_LABELS[item.role] ?? item.role}</Text>
+          <Text style={[styles.roleText, { color: ROLE_COLORS[item.role] ?? colors.textTertiary }]}>{ROLE_LABELS[item.role] ? t(ROLE_LABELS[item.role] as any) : item.role}</Text>
         </Pressable>
       </View>
       <View style={styles.cardFooter}>
@@ -123,10 +125,10 @@ export default function UserManagementScreen() {
         </View>
         <View style={styles.footerItem}>
           <Ionicons name={item.isActive ? 'checkmark-circle-outline' : 'close-circle-outline'} size={13} color={item.isActive ? colors.tint : colors.destructive} />
-          <Text style={[styles.footerText, { color: item.isActive ? colors.tint : colors.destructive }]}>{item.isActive ? 'Active' : 'Inactive'}</Text>
+          <Text style={[styles.footerText, { color: item.isActive ? colors.tint : colors.destructive }]}>{item.isActive ? t('active') : t('inactive')}</Text>
         </View>
         {item.isActive && (
-          <Pressable onPress={() => handleDeactivate(item.id)} hitSlop={8}>
+          <Pressable onPress={() => handleDeactivate(item.id)} hitSlop={14}>
             <Ionicons name="person-remove-outline" size={16} color={colors.destructive} />
           </Pressable>
         )}
@@ -135,11 +137,14 @@ export default function UserManagementScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <View style={styles.header}>
         <View>
-          <Text style={[styles.title, { color: colors.text }]}>User Management</Text>
-          <Text style={[styles.subtitle, { color: colors.textTertiary }]}>{loading ? 'Loading...' : `${users.length} users`}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('userManagement')}</Text>
+          <Text style={[styles.subtitle, { color: colors.textTertiary }]}>{loading ? t('loading') : t('userCount', { count: users.length })}</Text>
         </View>
       </View>
 
@@ -147,13 +152,13 @@ export default function UserManagementScreen() {
         <Ionicons name="search-outline" size={16} color={colors.textTertiary} style={styles.searchIcon} />
         <TextInput
           style={[styles.searchInput, { color: colors.text }]}
-          placeholder="Search by name, email, or county..."
+          placeholder={t('searchPlaceholder')}
           placeholderTextColor={colors.placeholder}
           value={search}
           onChangeText={setSearch}
         />
         {search.length > 0 && (
-          <Pressable onPress={() => setSearch('')} hitSlop={6}>
+          <Pressable onPress={() => setSearch('')} hitSlop={14}>
             <Ionicons name="close-circle" size={16} color={colors.placeholder} />
           </Pressable>
         )}
@@ -172,7 +177,7 @@ export default function UserManagementScreen() {
           <Ionicons name="alert-circle-outline" size={40} color={colors.destructive} />
           <Text style={[styles.emptyText, { color: colors.destructive }]}>{error}</Text>
           <Pressable onPress={loadUsers} style={[styles.retryBtn, { backgroundColor: colors.tint }]}>
-            <Text style={styles.retryText}>Retry</Text>
+            <Text style={styles.retryText}>{t('retry')}</Text>
           </Pressable>
         </View>
       )}
@@ -187,12 +192,12 @@ export default function UserManagementScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons name="people-outline" size={40} color={colors.border} />
-              <Text style={[styles.emptyText, { color: colors.placeholder }]}>No users found</Text>
+              <Text style={[styles.emptyText, { color: colors.placeholder }]}>{t('noUsersFound')}</Text>
             </View>
           }
         />
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

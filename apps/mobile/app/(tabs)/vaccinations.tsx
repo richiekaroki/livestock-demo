@@ -8,7 +8,9 @@ import { Text, View, useColors } from '@/components/Themed';
 import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
 import { impactLight, impactMedium, notificationSuccess, selectionChanged } from '@/src/services/haptics';
 import { useToast } from '@/src/components/Toast';
+import { useI18n } from '@/src/i18n';
 import * as api from '@/src/services/api';
+import { logger } from '@/src/utils/logger';
 import type { Livestock } from '@wam-mfugo/shared';
 
 interface Vaccination {
@@ -28,6 +30,7 @@ export default function VaccinationsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
+  const { t } = useI18n();
   const [vaccinations, setVaccinations] = useState<Vaccination[]>([]);
   const [animals, setAnimals] = useState<Livestock[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,11 +50,32 @@ export default function VaccinationsScreen() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const animalsRes = await api.getAnimals();
+      const [animalsRes, vaccRes] = await Promise.all([
+        api.getAnimals(),
+        api.getVaccinations(),
+      ]);
       if (animalsRes.success && Array.isArray(animalsRes.data)) {
         setAnimals(animalsRes.data);
       }
-    } catch { /* ignored */ }
+      if (vaccRes.success && Array.isArray(vaccRes.data)) {
+        setVaccinations(
+          vaccRes.data.map((v) => ({
+            id: v.id,
+            animalId: v.animalId,
+            animalName: v.animalName,
+            type: v.type,
+            vaccine: v.vaccine,
+            date: v.date,
+            batchNumber: v.batchNumber,
+            veterinarian: v.veterinarian,
+            nextDueDate: v.nextDueDate,
+            county: v.county,
+          }))
+        );
+      }
+    } catch (err) {
+      logger.warn('[Vaccinations] Failed to fetch:', err);
+    }
     setLoading(false);
   };
 
@@ -74,7 +98,7 @@ export default function VaccinationsScreen() {
 
   const handleSubmit = async () => {
     if (!form.animalId || !form.vaccine || !form.veterinarian) {
-      showToast('error', 'Animal, vaccine and veterinarian are required');
+      showToast('error', t('animal') + ', ' + t('vaccine') + ' ' + t('veterinarian') + ' are required');
       return;
     }
     impactMedium();
@@ -89,21 +113,21 @@ export default function VaccinationsScreen() {
           veterinarian: form.veterinarian,
           nextDueDate: form.nextDueDate || null,
         });
+        setVaccinations((prev) =>
+          prev.map((v) =>
+            v.id === editingVaccination.id
+              ? { ...v, type: form.type, vaccine: form.vaccine, date: form.date, batchNumber: form.batchNumber, veterinarian: form.veterinarian, nextDueDate: form.nextDueDate || undefined }
+              : v
+          )
+        );
+        setEditingVaccination(null);
+        setShowForm(false);
+        setForm({ animalId: '', type: 'routine', vaccine: '', date: new Date().toISOString().split('T')[0], batchNumber: '', veterinarian: '', nextDueDate: '' });
+        notificationSuccess();
+        showToast('success', 'Vaccination updated');
       } catch {
-        // If offline, queue the update
+        showToast('warning', 'Update queued for sync');
       }
-      setVaccinations((prev) =>
-        prev.map((v) =>
-          v.id === editingVaccination.id
-            ? { ...v, type: form.type, vaccine: form.vaccine, date: form.date, batchNumber: form.batchNumber, veterinarian: form.veterinarian, nextDueDate: form.nextDueDate || undefined }
-            : v
-        )
-      );
-      setEditingVaccination(null);
-      setShowForm(false);
-      setForm({ animalId: '', type: 'routine', vaccine: '', date: new Date().toISOString().split('T')[0], batchNumber: '', veterinarian: '', nextDueDate: '' });
-      notificationSuccess();
-      showToast('success', 'Vaccination updated');
     } else {
       const animal = animals.find((a) => String(a.id) === form.animalId);
       const payload = {
@@ -119,16 +143,16 @@ export default function VaccinationsScreen() {
       try {
         const result = await api.apiCall<api.ApiResponse<api.VaccinationRecord>>('POST', '/vaccinations', payload);
         if (result && 'queued' in result && result.queued) {
-          showToast('warning', 'Vaccination queued — will sync when online');
+          showToast('warning', t('vaccinationQueued'));
         } else {
           showToast('success', 'Vaccination recorded');
         }
       } catch {
-        showToast('warning', 'Vaccination queued — will sync when online');
+        showToast('warning', t('vaccinationQueued'));
       }
 
       const newVacc: Vaccination = {
-        id: Date.now(),
+        id: -Date.now(),
         animalId: Number(form.animalId),
         animalName: animal?.name || 'Unknown',
         type: form.type,
@@ -148,11 +172,16 @@ export default function VaccinationsScreen() {
 
   const handleDelete = (id: number) => {
     impactLight();
-    Alert.alert('Delete Record', 'Remove this vaccination record?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('delete'), t('vaccinationRecords'), [
+      { text: t('cancel'), style: 'cancel' },
       {
-        text: 'Delete', style: 'destructive',
-        onPress: () => {
+        text: t('delete'), style: 'destructive',
+        onPress: async () => {
+          try {
+            await api.apiCall('DELETE', `/vaccinations/${id}`);
+          } catch {
+            // queued offline or failed — still remove locally
+          }
           setVaccinations((prev) => prev.filter((v) => v.id !== id));
           showToast('success', 'Record deleted');
         },
@@ -168,22 +197,22 @@ export default function VaccinationsScreen() {
       refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} tintColor={colors.tint} />}
     >
       <View style={styles.headerRow}>
-        <Text style={[styles.title, { color: colors.text }]}>Vaccinations</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('vaccinations')}</Text>
         <Pressable
           onPress={() => { impactLight(); setShowForm(!showForm); setEditingVaccination(null); }}
           style={({ pressed }) => [styles.addBtn, { backgroundColor: colors.tint, opacity: pressed ? 0.85 : 1 }]}
           accessibilityLabel={showForm ? 'Cancel' : 'Add vaccination'}
         >
           <Ionicons name={showForm ? 'close' : 'add'} size={20} color="#fff" />
-          <Text style={styles.addBtnText}>{showForm ? 'Cancel' : 'Add'}</Text>
+          <Text style={styles.addBtnText}>{showForm ? t('cancel') : t('addVaccination')}</Text>
         </Pressable>
       </View>
 
       {showForm && (
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>{editingVaccination ? 'Edit Vaccination' : 'New Vaccination'}</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>{editingVaccination ? t('editVaccination') : t('addVaccination')}</Text>
 
-          <Text style={[styles.label, { color: colors.text }]}>Animal *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('animal')} *</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
             {animals.map((a) => (
               <Pressable
@@ -204,41 +233,41 @@ export default function VaccinationsScreen() {
             ))}
           </ScrollView>
 
-          <Text style={[styles.label, { color: colors.text }]}>Type</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('type')}</Text>
           <View style={styles.chipRow}>
-            {['routine', 'mandatory', 'emergency'].map((t) => (
+            {['routine', 'mandatory', 'emergency'].map((vaccType) => (
               <Pressable
-                key={t}
-                onPress={() => { selectionChanged(); setForm({ ...form, type: t }); }}
+                key={vaccType}
+                onPress={() => { selectionChanged(); setForm({ ...form, type: vaccType }); }}
                 style={({ pressed }) => [
                   styles.chip,
                   {
-                    backgroundColor: form.type === t ? colors.tint : colors.card,
-                    borderColor: form.type === t ? colors.tint : colors.borderLight,
+                    backgroundColor: form.type === vaccType ? colors.tint : colors.card,
+                    borderColor: form.type === vaccType ? colors.tint : colors.borderLight,
                     opacity: pressed ? 0.85 : 1,
                   },
                 ]}
-                accessibilityLabel={`Select ${t}`}
+                accessibilityLabel={`Select ${vaccType}`}
               >
-                <Text style={[styles.chipText, { color: form.type === t ? '#fff' : colors.text }]}>{t.charAt(0).toUpperCase() + t.slice(1)}</Text>
+                <Text style={[styles.chipText, { color: form.type === vaccType ? '#fff' : colors.text }]}>{vaccType.charAt(0).toUpperCase() + vaccType.slice(1)}</Text>
               </Pressable>
             ))}
           </View>
 
-          <Text style={[styles.label, { color: colors.text }]}>Vaccine *</Text>
-          <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={form.vaccine} onChangeText={(t) => setForm({ ...form, vaccine: t })} placeholder="e.g. FMD Vaccine" placeholderTextColor={colors.placeholder} />
+          <Text style={[styles.label, { color: colors.text }]}>{t('vaccine')} *</Text>
+          <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={form.vaccine} onChangeText={(text) => setForm({ ...form, vaccine: text })} placeholder="e.g. FMD Vaccine" placeholderTextColor={colors.placeholder} />
 
-          <Text style={[styles.label, { color: colors.text }]}>Date</Text>
-          <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={form.date} onChangeText={(t) => setForm({ ...form, date: t })} placeholder="YYYY-MM-DD" placeholderTextColor={colors.placeholder} />
+          <Text style={[styles.label, { color: colors.text }]}>{t('date')}</Text>
+          <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={form.date} onChangeText={(text) => setForm({ ...form, date: text })} placeholder="YYYY-MM-DD" placeholderTextColor={colors.placeholder} />
 
-          <Text style={[styles.label, { color: colors.text }]}>Batch Number</Text>
-          <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={form.batchNumber} onChangeText={(t) => setForm({ ...form, batchNumber: t })} placeholder="Optional" placeholderTextColor={colors.placeholder} />
+          <Text style={[styles.label, { color: colors.text }]}>{t('batchNumber')}</Text>
+          <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={form.batchNumber} onChangeText={(text) => setForm({ ...form, batchNumber: text })} placeholder="Optional" placeholderTextColor={colors.placeholder} />
 
-          <Text style={[styles.label, { color: colors.text }]}>Veterinarian *</Text>
-          <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={form.veterinarian} onChangeText={(t) => setForm({ ...form, veterinarian: t })} placeholder="Dr. name" placeholderTextColor={colors.placeholder} />
+          <Text style={[styles.label, { color: colors.text }]}>{t('veterinarian')} *</Text>
+          <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={form.veterinarian} onChangeText={(text) => setForm({ ...form, veterinarian: text })} placeholder="Dr. name" placeholderTextColor={colors.placeholder} />
 
-          <Text style={[styles.label, { color: colors.text }]}>Next Due Date</Text>
-          <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={form.nextDueDate} onChangeText={(t) => setForm({ ...form, nextDueDate: t })} placeholder="Optional YYYY-MM-DD" placeholderTextColor={colors.placeholder} />
+          <Text style={[styles.label, { color: colors.text }]}>{t('nextDueDate')}</Text>
+          <TextInput style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }]} value={form.nextDueDate} onChangeText={(text) => setForm({ ...form, nextDueDate: text })} placeholder="Optional YYYY-MM-DD" placeholderTextColor={colors.placeholder} />
 
           <Pressable
             onPress={handleSubmit}
@@ -246,7 +275,7 @@ export default function VaccinationsScreen() {
             accessibilityLabel={editingVaccination ? 'Update vaccination record' : 'Save vaccination record'}
           >
             <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
-            <Text style={styles.submitBtnText}>{editingVaccination ? 'Update Record' : 'Save Record'}</Text>
+            <Text style={styles.submitBtnText}>{editingVaccination ? t('updateRecord') : t('saveRecord')}</Text>
           </Pressable>
         </View>
       )}
@@ -254,12 +283,12 @@ export default function VaccinationsScreen() {
       {loading && vaccinations.length === 0 && !showForm ? (
         <View style={styles.emptyWrap}>
           <Ionicons name="hourglass-outline" size={40} color={colors.textSecondary} />
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Loading vaccinations...</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('loadingVaccinations')}</Text>
         </View>
       ) : vaccinations.length === 0 && !showForm ? (
         <View style={styles.emptyWrap}>
           <Ionicons name="medkit-outline" size={40} color={colors.textSecondary} />
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No vaccination records yet</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('noRecords')}</Text>
         </View>
       ) : (
         vaccinations.map((v) => {
@@ -322,8 +351,8 @@ const styles = StyleSheet.create({
   vaccIcon: { width: 32, height: 32, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   vaccName: { fontSize: fontSize.base, fontWeight: fontWeight.semibold },
   vaccMeta: { fontSize: fontSize.xs },
-  deleteBtn: { padding: spacing.sm },
-  editBtn: { padding: spacing.sm },
+  deleteBtn: { padding: spacing.md },
+  editBtn: { padding: spacing.md },
   vaccDetails: { gap: 2, marginTop: spacing.xs },
   vaccDetail: { fontSize: fontSize.xs },
 });

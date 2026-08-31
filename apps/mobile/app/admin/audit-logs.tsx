@@ -6,24 +6,25 @@ import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RowSkeleton } from '@/src/components/Skeleton';
 import { getAdminAuditLogs, type AdminAuditLog } from '@/src/services/api';
+import { useI18n } from '@/src/i18n';
 
 const EVENT_FILTERS = [
-  { key: null, label: 'All' },
-  { key: 'otp_requested', label: 'OTP Sent' },
-  { key: 'otp_verified', label: 'OTP Verified' },
-  { key: 'otp_failed', label: 'OTP Failed' },
-  { key: 'login_success', label: 'Login' },
-  { key: 'logout', label: 'Logout' },
-  { key: 'account_created', label: 'Created' },
-  { key: 'account_updated', label: 'Updated' },
-  { key: 'account_deactivated', label: 'Deactivated' },
-  { key: 'sessions_revoked', label: 'Revoked' },
-  { key: 'token_refreshed', label: 'Refreshed' },
+  { key: null, labelKey: 'allEvents' },
+  { key: 'otp_requested', labelKey: 'otpSent' },
+  { key: 'otp_verified', labelKey: 'otpVerified' },
+  { key: 'otp_failed', labelKey: 'otpFailed' },
+  { key: 'login_success', labelKey: 'loginSuccess' },
+  { key: 'logout', labelKey: 'logout' },
+  { key: 'account_created', labelKey: 'created' },
+  { key: 'account_updated', labelKey: 'updated' },
+  { key: 'account_deactivated', labelKey: 'deactivated' },
+  { key: 'sessions_revoked', labelKey: 'sessionsRevoked' },
+  { key: 'token_refreshed', labelKey: 'tokenRefreshed' },
 ];
 
 function getEventConfig(event: string, colors: ReturnType<typeof useColors>) {
   const map: Record<string, { icon: keyof typeof Ionicons.glyphMap; color: string; bg: string }> = {
-    otp_requested: { icon: 'mail-outline', color: colors.info, bg: '#F0F9FF' },
+    otp_requested: { icon: 'mail-outline', color: colors.info, bg: colors.info + '15' },
     otp_verified: { icon: 'checkmark-circle-outline', color: colors.tint, bg: colors.tintLight },
     otp_failed: { icon: 'alert-circle-outline', color: colors.destructive, bg: colors.destructiveLight },
     login_success: { icon: 'log-in-outline', color: colors.tint, bg: colors.tintLight },
@@ -31,26 +32,27 @@ function getEventConfig(event: string, colors: ReturnType<typeof useColors>) {
     account_created: { icon: 'person-add-outline', color: colors.tint, bg: colors.tintLight },
     account_updated: { icon: 'pencil-outline', color: colors.warning, bg: colors.accentLight },
     account_deactivated: { icon: 'person-remove-outline', color: colors.destructive, bg: colors.destructiveLight },
-    sessions_revoked: { icon: 'shield-outline', color: '#7C3AED', bg: '#F5F3FF' },
-    token_refreshed: { icon: 'refresh-outline', color: colors.info, bg: '#F0F9FF' },
+    sessions_revoked: { icon: 'shield-outline', color: colors.accent, bg: colors.accent + '15' },
+    token_refreshed: { icon: 'refresh-outline', color: colors.info, bg: colors.info + '15' },
   };
   return map[event] ?? { icon: 'document-text-outline' as const, color: colors.textTertiary, bg: colors.border + '30' };
 }
 
-function formatTime(iso: string): string {
+function formatTime(iso: string, t: (key: any) => string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return t('justNow');
+  if (mins < 60) return `${mins}${t('minutesAgo')}`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) return `${hrs}${t('hoursAgo')}`;
   const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
+  return `${days}${t('daysAgo')}`;
 }
 
 export default function AuditLogScreen() {
   const insets = useSafeAreaInsets();
   const colors = useColors();
+  const { t } = useI18n();
   const [filter, setFilter] = useState<string | null>(null);
   const [logs, setLogs] = useState<AdminAuditLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,11 +68,11 @@ export default function AuditLogScreen() {
       });
       setLogs(data.data);
     } catch {
-      setError('Failed to load audit logs');
+      setError(t('failedToLoadAuditLogs'));
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, t]);
 
   useEffect(() => {
     loadLogs();
@@ -85,8 +87,8 @@ export default function AuditLogScreen() {
         </View>
         <View style={styles.entryContent}>
           <View style={styles.entryTop}>
-            <Text style={[styles.entryUser, { color: colors.text }]}>{item.email ?? 'System'}</Text>
-            <Text style={[styles.entryTime, { color: colors.placeholder }]}>{formatTime(item.createdAt)}</Text>
+            <Text style={[styles.entryUser, { color: colors.text }]}>{item.email ?? t('system')}</Text>
+            <Text style={[styles.entryTime, { color: colors.placeholder }]}>{formatTime(item.createdAt, t)}</Text>
           </View>
           <Text style={[styles.entryTarget, { color: colors.textSecondary }]}>{item.event}</Text>
           {item.ip && (
@@ -105,8 +107,8 @@ export default function AuditLogScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>Audit Log</Text>
-        <Text style={[styles.subtitle, { color: colors.textTertiary }]}>{loading ? 'Loading...' : `${logs.length} events`}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('auditLog')}</Text>
+        <Text style={[styles.subtitle, { color: colors.textTertiary }]}>{loading ? t('loading') : t('eventCount', { count: logs.length })}</Text>
       </View>
 
       <FlatList
@@ -127,7 +129,7 @@ export default function AuditLogScreen() {
               { color: colors.textSecondary },
               filter === item.key && { color: '#fff' },
             ]}>
-              {item.label}
+              {t(item.labelKey as any)}
             </Text>
           </Pressable>
         )}
@@ -148,7 +150,7 @@ export default function AuditLogScreen() {
           <Ionicons name="alert-circle-outline" size={40} color={colors.destructive} />
           <Text style={[styles.emptyText, { color: colors.destructive }]}>{error}</Text>
           <Pressable onPress={loadLogs} style={[styles.retryBtn, { backgroundColor: colors.tint }]}>
-            <Text style={styles.retryText}>Retry</Text>
+            <Text style={styles.retryText}>{t('retry')}</Text>
           </Pressable>
         </View>
       )}
@@ -163,7 +165,7 @@ export default function AuditLogScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons name="document-text-outline" size={40} color={colors.border} />
-              <Text style={[styles.emptyText, { color: colors.placeholder }]}>No events match filter</Text>
+              <Text style={[styles.emptyText, { color: colors.placeholder }]}>{t('noEventsMatchFilter')}</Text>
             </View>
           }
         />
@@ -181,9 +183,10 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: fontSize.sm, marginTop: 2 },
   filters: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md, gap: spacing.sm },
   filterChip: {
-    paddingHorizontal: spacing.md, paddingVertical: 6,
+    paddingHorizontal: spacing.md, paddingVertical: 10,
     borderRadius: radius.pill,
     borderWidth: 1,
+    minWidth: 44,
   },
   filterText: { fontSize: fontSize.sm, fontWeight: fontWeight.medium },
   list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxxl, gap: spacing.md },

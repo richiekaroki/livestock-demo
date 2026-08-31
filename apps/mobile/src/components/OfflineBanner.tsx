@@ -5,9 +5,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, useColors } from '@/components/Themed';
 import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
 import { useSyncState } from '@/src/services/syncService';
+import { useI18n } from '@/src/i18n';
 
 export function OfflineBanner() {
   const colors = useColors();
+  const { t } = useI18n();
   const { isOnline, isSyncing, pendingCount, failedCount, lastSyncResult, retryFailed } = useSyncState();
   const opacity = useRef(new Animated.Value(0)).current;
   const [syncComplete, setSyncComplete] = useState(false);
@@ -45,29 +47,29 @@ export function OfflineBanner() {
   if (!isOnline) {
     icon = 'cloud-offline-outline';
     message = pendingCount > 0
-      ? `${pendingCount} change${pendingCount === 1 ? '' : 's'} pending sync`
-      : "You're offline";
+      ? `${pendingCount} ${t('changesPending')}`
+      : t('offline');
     bgColor = colors.warning + '15';
     textColor = colors.warning;
   } else if (isSyncing) {
     icon = 'sync-outline';
-    message = 'Syncing...';
+    message = t('syncing');
     bgColor = colors.tint + '15';
     textColor = colors.tint;
   } else if (syncComplete) {
     icon = 'checkmark-circle-outline';
-    message = 'Sync complete';
+    message = t('syncComplete');
     bgColor = colors.success + '15';
     textColor = colors.success;
   } else if (failedCount > 0) {
     icon = 'alert-circle-outline';
-    message = `${failedCount} change${failedCount === 1 ? '' : 's'} failed to sync`;
+    message = `${failedCount} ${t('changesFailed')}`;
     bgColor = colors.destructive + '15';
     textColor = colors.destructive;
     onRetry = retryFailed;
   } else if (pendingCount > 0) {
     icon = 'time-outline';
-    message = `${pendingCount} change${pendingCount === 1 ? '' : 's'} pending sync`;
+    message = `${pendingCount} ${t('changesPending')}`;
     bgColor = colors.warning + '15';
     textColor = colors.warning;
   } else {
@@ -92,7 +94,7 @@ export function OfflineBanner() {
           style={({ pressed }) => [offStyles.retryBtn, { opacity: pressed ? 0.6 : 1 }]}
           accessibilityLabel="Retry failed syncs"
         >
-          <Text style={[offStyles.retryText, { color: textColor }]}>Retry</Text>
+          <Text style={[offStyles.retryText, { color: textColor }]}>{t('retry')}</Text>
         </Pressable>
       )}
     </Animated.View>

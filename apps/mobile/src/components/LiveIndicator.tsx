@@ -3,11 +3,13 @@ import { StyleSheet, Animated, View } from 'react-native';
 import { Text, useColors } from '@/components/Themed';
 import { spacing, fontSize, fontWeight } from '@/constants/Tokens';
 import { connectSocket, getSocket } from '@/src/services/socket';
+import { useI18n } from '@/src/i18n';
 
 export function LiveIndicator() {
   const [isOnline, setIsOnline] = useState(false);
   const pulseAnim = useState(new Animated.Value(1))[0];
   const colors = useColors();
+  const { t } = useI18n();
 
   useEffect(() => {
     let mounted = true;
@@ -53,7 +55,7 @@ export function LiveIndicator() {
     <Animated.View style={[styles.container, { opacity: pulseAnim }]}>
       <View style={[styles.dot, { backgroundColor: statusColor }]} />
       <Text style={[styles.label, { color: statusColor }]}>
-        {isOnline ? 'Live' : 'Offline'}
+        {isOnline ? t('live') : t('offline')}
       </Text>
     </Animated.View>
   );

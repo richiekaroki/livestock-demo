@@ -5,6 +5,7 @@ import { Text, View, useColors } from '@/components/Themed';
 import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
 import { impactLight, impactMedium, notificationSuccess } from '@/src/services/haptics';
 import type { Livestock } from '@wam-mfugo/shared';
+import { useI18n } from '@/src/i18n';
 
 interface AlertItem {
   id: string;
@@ -23,6 +24,7 @@ interface HealthAlertsProps {
 
 export function HealthAlerts({ animals, onDismiss, onRestore, onReport }: HealthAlertsProps) {
   const colors = useColors();
+  const { t } = useI18n();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
   const alerts = useMemo(() => {
@@ -38,7 +40,7 @@ export function HealthAlerts({ animals, onDismiss, onRestore, onReport }: Health
 
     if (sick.length > 0) {
       result.push({
-        id: 'sick', type: 'critical', title: 'Sick Animals',
+        id: 'sick', type: 'critical', title: t('sickAnimals'),
         message: `${sick.length} animal${sick.length > 1 ? 's' : ''} need attention`,
         count: sick.length,
       });
@@ -46,7 +48,7 @@ export function HealthAlerts({ animals, onDismiss, onRestore, onReport }: Health
 
     if (outbreaks.length > 0) {
       result.push({
-        id: 'outbreak', type: 'critical', title: 'Disease Outbreak',
+        id: 'outbreak', type: 'critical', title: t('diseaseOutbreak'),
         message: outbreaks.map(([county, count]) => `${county} (${count})`).join(', '),
         count: outbreaks.reduce((sum, [, c]) => sum + c, 0),
       });
@@ -54,7 +56,7 @@ export function HealthAlerts({ animals, onDismiss, onRestore, onReport }: Health
 
     if (treatment.length > 0) {
       result.push({
-        id: 'treatment', type: 'warning', title: 'Under Treatment',
+        id: 'treatment', type: 'warning', title: t('underTreatment'),
         message: `${treatment.length} animal${treatment.length > 1 ? 's' : ''} recovering`,
         count: treatment.length,
       });
@@ -90,12 +92,12 @@ export function HealthAlerts({ animals, onDismiss, onRestore, onReport }: Health
   const handleReport = useCallback((alert: AlertItem) => {
     impactMedium();
     Alert.alert(
-      'Report to KALRO',
+      t('reportToKalro'),
       `Send "${alert.title}" report (${alert.count} animals) to Kenya Agricultural and Livestock Research Organization?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Send Report',
+          text: t('sendReport'),
           onPress: () => {
             notificationSuccess();
             onReport?.(alert.id);
@@ -123,9 +125,9 @@ export function HealthAlerts({ animals, onDismiss, onRestore, onReport }: Health
   };
 
   const bgMap = {
-    critical: '#FEF2F2',
-    warning: '#FEF3C7',
-    info: '#F0F9FF',
+    critical: colors.destructive + '15',
+    warning: colors.warning + '15',
+    info: colors.info + '15',
   };
 
   return (
@@ -154,7 +156,7 @@ export function HealthAlerts({ animals, onDismiss, onRestore, onReport }: Health
             <Pressable
               onPress={() => handleDismiss(alert.id)}
               style={({ pressed }) => [styles.dismissBtn, { opacity: pressed ? 0.6 : 1 }]}
-              hitSlop={10}
+              hitSlop={14}
               accessibilityLabel="Dismiss alert"
             >
               <Ionicons name="close" size={14} color={colors.textSecondary} />
@@ -174,7 +176,7 @@ export function HealthAlerts({ animals, onDismiss, onRestore, onReport }: Health
         >
           <Ionicons name="refresh-outline" size={14} color={colors.textSecondary} />
           <Text style={[styles.restoreText, { color: colors.textSecondary }]}>
-            Restore {dismissedCount} dismissed
+            {t('restoreCount', { count: dismissedCount })}
           </Text>
         </Pressable>
       )}
@@ -197,7 +199,7 @@ const styles = StyleSheet.create({
   alertMessage: { fontSize: fontSize.xs },
   alertActions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   reportBtn: {
-    width: 36, height: 36, borderRadius: 18,
+    width: 44, height: 44, borderRadius: 22,
     alignItems: 'center', justifyContent: 'center',
   },
   dismissBtn: { padding: spacing.xs },

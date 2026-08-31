@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const UPLOAD_DIR = path.resolve(process.cwd(), 'uploads');
+const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads'));
 
 @Injectable()
 export class UploadService {
