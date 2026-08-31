@@ -21,7 +21,7 @@ interface CountyData {
 
 type SortKey = "totalAnimals" | "healthyRate" | "vaccinationRate" | "mortalityRate" | "outbreakCount";
 
-const SORT_OPTIONS: { key: SortKey; labelKey: string; icon: JSX.Element }[] = [
+const SORT_OPTIONS: { key: SortKey; labelKey: string; icon: React.ReactNode }[] = [
   { key: "totalAnimals", labelKey: "comparison.total", icon: (
     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" />

@@ -8,7 +8,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   isOffline: boolean;
-  requestOtp: (email: string) => Promise<{ message: string; otp?: string }>;
+  requestOtp: (email: string) => Promise<{ message: string; otp?: string; autoVerified?: boolean }>;
   verifyOtp: (email: string, otp: string) => Promise<void>;
   register: (data: {
     email: string;

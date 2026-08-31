@@ -22,7 +22,7 @@ const sections = [
   },
 ];
 
-const iconMap: Record<string, JSX.Element> = {
+const iconMap: Record<string, React.ReactNode> = {
   "/vaccinations": (
     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M7 21h10" /><rect x="2" y="6" width="20" height="12" rx="2" /><path d="M12 12h4" /><path d="M12 9v6" />

@@ -90,7 +90,7 @@ export const remoteApi = {
 
   // Auth endpoints
   requestOtp: (email: string) =>
-    apiPost<ApiResponse<{ message: string }>>("/auth/request-otp", { email }),
+    apiPost<ApiResponse<{ message: string; otp?: string; autoVerified?: boolean }>>("/auth/request-otp", { email }),
 
   verifyOtp: (email: string, otp: string) =>
     apiPost<ApiResponse<AuthResponse>>("/auth/verify-otp", { email, otp }),

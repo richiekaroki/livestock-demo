@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
-import { config } from "../config";
+import { API_BASE } from "../config";
 
 interface StatsUpdate {
   totalAnimals: number;
@@ -29,7 +29,7 @@ export function useWebSocket() {
     let cancelled = false;
 
     // Strip /api suffix for Socket.io (expects server root URL)
-    const socketUrl = config.api.baseUrl.replace(/\/api\/?$/, '') || window.location.origin;
+    const socketUrl = API_BASE.replace(/\/api\/?$/, '') || window.location.origin;
     const socket = io(socketUrl, {
       transports: ["websocket", "polling"],
       reconnection: true,
