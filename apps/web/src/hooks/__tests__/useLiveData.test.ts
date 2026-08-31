@@ -22,8 +22,6 @@ vi.mock("../../services/mockApi", () => ({
   },
 }));
 
-import { mockAPI } from "../../services/mockApi";
-
 const createMockLivestock = (
   overrides: Partial<Livestock> = {}
 ): Livestock => ({

@@ -1,6 +1,6 @@
 // src/pages/Register.tsx
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCounties } from "../hooks/useCounties";
 import { API_BASE } from "../config";
@@ -16,7 +16,6 @@ export default function Register() {
   const [demoLink, setDemoLink] = useState<string | null>(null);
   const { counties } = useCounties();
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,5 +1,5 @@
 // src/components/alerts/__tests__/HealthAlerts.test.tsx
-import { fireEvent, render, screen, act, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Livestock } from "@wam-mfugo/shared";
 

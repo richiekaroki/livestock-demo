@@ -293,12 +293,6 @@ interface KALROSyncPayload {
   timestamp: string;
 }
 
-interface SyncResult {
-  synced: number;
-  failed: number;
-  errors: string[];
-}
-
 class GovernmentAPIService {
   private _useRemoteBackend =
     Boolean(import.meta.env.VITE_API_BASE_URL) &&

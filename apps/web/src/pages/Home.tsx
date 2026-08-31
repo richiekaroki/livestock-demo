@@ -1,7 +1,6 @@
 // src/pages/Home.tsx
 
 import { Link, Navigate } from "react-router-dom";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
 import type { Livestock } from "@wam-mfugo/shared";
@@ -13,28 +12,9 @@ interface HomePageProps {
   refetch: () => Promise<void>;
 }
 
-export default function HomePage({ data, loading, error, refetch }: HomePageProps) {
+export default function HomePage({ data: _data, loading: _loading, error: _error, refetch: _refetch }: HomePageProps) {
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
-
-  const stats = useMemo(() => {
-    if (!data.length) return null;
-    const counties = new Set<string>();
-    let sick = 0;
-    let healthy = 0;
-    for (const a of data) {
-      counties.add(a.county);
-      if (a.health === "Sick") sick++;
-      else if (a.health === "Healthy") healthy++;
-    }
-    return {
-      total: data.length,
-      counties: counties.size,
-      sick,
-      healthy,
-      healthyPercent: Math.round((healthy / data.length) * 100),
-    };
-  }, [data]);
 
   // Authenticated users: redirect straight to dashboard
   if (isAuthenticated) {
