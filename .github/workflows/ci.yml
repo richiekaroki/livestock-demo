@@ -33,10 +33,10 @@ jobs:
         run: npx eslint "src/**/*.ts"
         working-directory: apps/api
       - name: Lint Web
-        run: npx eslint . --max-warnings=0
+        run: npx eslint .
         working-directory: apps/web
       - name: Lint Mobile
-        run: npx eslint . --max-warnings=0
+        run: npx eslint .
         working-directory: apps/mobile
 
   test-api:

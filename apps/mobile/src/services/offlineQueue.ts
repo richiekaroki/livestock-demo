@@ -165,7 +165,7 @@ async function tryRefreshToken(): Promise<string | null> {
 }
 
 async function executeItem(item: QueueItem): Promise<void> {
-  let token = await secureStorage.getItem(AUTH_TOKEN_KEY);
+  const token = await secureStorage.getItem(AUTH_TOKEN_KEY);
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),

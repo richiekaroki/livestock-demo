@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from '@/components/Themed';
 import { useColors } from '@/components/Themed';
-import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
+import { spacing, fontSize, fontWeight } from '@/constants/Tokens';
 import { Button } from './Button';
 
 interface EmptyStateProps {

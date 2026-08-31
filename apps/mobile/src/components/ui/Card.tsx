@@ -4,8 +4,6 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-na
 import { useColors } from '@/components/Themed';
 import { spacing, radius, shadows } from '@/constants/Tokens';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 interface CardProps {
   children: ReactNode;
   onPress?: () => void;

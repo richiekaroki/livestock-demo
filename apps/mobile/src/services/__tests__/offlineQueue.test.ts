@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('../offlineQueue', async (importOriginal) => {
   const mod = await importOriginal<typeof import('../offlineQueue')>();
@@ -15,7 +15,7 @@ vi.mock('../offlineQueue', async (importOriginal) => {
   };
 });
 
-import { generateId, enqueue } from '../offlineQueue';
+import { generateId } from '../offlineQueue';
 
 describe('offlineQueue generateId', () => {
   it('generates a string with timestamp and random suffix', () => {

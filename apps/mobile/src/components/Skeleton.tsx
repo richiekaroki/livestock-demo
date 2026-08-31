@@ -6,7 +6,6 @@ import { spacing, radius } from '@/constants/Tokens';
 
 // Suppress TS type incompatibility with Expo SDK 54
 import React from 'react';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const LinearGradientAny = LinearGradient as unknown as React.ComponentType<any>;
 
 interface SkeletonProps {

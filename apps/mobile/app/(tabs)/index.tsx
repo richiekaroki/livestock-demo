@@ -155,7 +155,7 @@ export default function HomeScreen() {
         </View>
       ) : (
         <View style={styles.grid}>
-          {STAT_CONFIG.map(({ key, label, icon }, index) => {
+          {STAT_CONFIG.map(({ key, label: _label, icon }, index) => {
             const value = stats ? (stats as unknown as Record<string, number>)[key] ?? 0 : 0;
             return (
               <Animated.View

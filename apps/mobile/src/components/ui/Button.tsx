@@ -4,8 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, useColors } from '@/components/Themed';
 import { spacing, radius, fontSize, fontWeight, shadows } from '@/constants/Tokens';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 interface ButtonProps {
   title: string;
   onPress: () => void;

@@ -8,7 +8,6 @@ import { impactMedium } from '@/src/services/haptics';
 
 // Suppress TS type incompatibility with react-native-gesture-handler
 import React from 'react';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SwipeableAny = Swipeable as unknown as React.ComponentType<any>;
 
 interface SwipeableRowProps {

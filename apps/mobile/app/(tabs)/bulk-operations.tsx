@@ -19,7 +19,7 @@ export default function BulkOperationsScreen() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState<string>('');
-  const [filterHealth, setFilterHealth] = useState<string>('');
+  const [filterHealth] = useState<string>('');
   const [showHealthPicker, setShowHealthPicker] = useState(false);
 
   const loadData = useCallback(async () => {
