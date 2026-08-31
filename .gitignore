@@ -59,6 +59,7 @@ temp/
 .cache/
 
 # ==================== AGENT / SKILL TOOLING ====================
+eas.json
 .agents/
 .impeccable/
 .playwright-mcp/
