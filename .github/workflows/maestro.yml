@@ -1,0 +1,52 @@
+name: Mobile E2E Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  maestro:
+    name: Maestro E2E
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Expo CLI
+        run: npm install -g expo-cli eas-cli
+
+      - name: Install Maestro
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+
+      - name: Start Metro bundler
+        run: |
+          cd apps/mobile
+          npm install
+          npx expo start --dev-client --no-dev &
+          sleep 30
+
+      - name: Run Maestro tests
+        run: |
+          maestro test .maestro/login.yaml
+          maestro test .maestro/navigation.yaml
+          maestro test .maestro/register-animal.yaml
+          maestro test .maestro/health-assessment.yaml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-results
+          path: |
+            .maestro/output/
+            screenshots/
+          retention-days: 7

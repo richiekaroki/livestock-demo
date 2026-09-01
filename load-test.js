@@ -4,10 +4,12 @@ import { Rate } from 'k6/metrics';
 
 const errorRate = new Rate('errors');
 const API_URL = __ENV.API_URL || 'https://wam-mfugo-demo.onrender.com';
+const VUS = parseInt(__ENV.VUS || '10');
+const DURATION = __ENV.DURATION || '2m';
 
 export const options = {
-  vus: 10,
-  duration: '2m',
+  vus: VUS,
+  duration: DURATION,
   thresholds: {
     http_req_duration: ['p(95)<3000'],
     http_req_failed: ['rate<0.1'],
