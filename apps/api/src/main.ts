@@ -44,7 +44,7 @@ async function bootstrap() {
   app.useStaticAssets(uploadDir, { prefix: '/uploads' });
 
   app.use((req, res, next) => {
-    if (req.path === '/' && req.method === 'GET') {
+    if (req.path === '/' && (req.method === 'GET' || req.method === 'HEAD')) {
       res.json({
         name: 'Wam Mfugo API',
         version: '1.0.0',
