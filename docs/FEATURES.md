@@ -41,12 +41,33 @@
 
 | Feature | Status |
 |---------|--------|
-| CI/CD (GitHub Actions) | ✓ 4 workflows |
+| CI/CD (GitHub Actions) | ✓ 5 workflows |
 | Rate limiting (3 tiers) | ✓ |
 | CORS + HSTS + CSP | ✓ |
 | Structured logging (Winston) | ✓ |
 | DB backups (daily pg_dump) | ✓ |
 | Health check (DB + memory) | ✓ |
+| WebSocket JWT auth | ✓ |
+| JWT audience differentiation | ✓ |
+| Session ownership checks | ✓ |
+| Role guards on all endpoints | ✓ |
+
+## Security
+
+| Feature | Status |
+|---------|--------|
+| Rate limiting (3 tiers) | ✓ |
+| CORS whitelist | ✓ |
+| HSTS + CSP headers | ✓ |
+| JWT + HttpOnly refresh cookie | ✓ |
+| JWT audience (access vs refresh) | ✓ |
+| WebSocket JWT verification | ✓ |
+| OTP never returned in production | ✓ |
+| Session revocation ownership | ✓ |
+| Push token ownership | ✓ |
+| KALRO input sanitization | ✓ |
+| CSV injection prevention | ✓ |
+| Role-based access control | ✓ |
 
 ## UI/UX
 

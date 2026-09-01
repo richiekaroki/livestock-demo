@@ -43,7 +43,7 @@ Demo mode: OTPs print to terminal, no database required.
 
 **Mobile** — Full feature parity, camera integration, background sync, haptic feedback, English/Swahili
 
-**Security** — Rate limiting, CORS whitelist, HSTS, JWT + HttpOnly refresh cookie, CSV injection prevention
+**Security** — Rate limiting, CORS whitelist, HSTS, JWT + HttpOnly refresh cookie, CSV injection prevention, WebSocket auth, JWT audience differentiation
 
 ---
 
