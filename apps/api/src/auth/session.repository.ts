@@ -22,6 +22,7 @@ export interface SessionRepository {
     expiresAt: Date;
   }): Promise<SessionRecord>;
   findByRefreshTokenHash(hash: string): Promise<SessionRecord | null>;
+  findById(id: number): Promise<SessionRecord | null>;
   listByUserId(userId: number): Promise<SessionInfo[]>;
   delete(id: number): Promise<void>;
   deleteByUserId(userId: number): Promise<void>;

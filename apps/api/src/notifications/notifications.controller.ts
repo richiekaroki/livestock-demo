@@ -22,9 +22,10 @@ export class NotificationsController {
 
   @Delete('register')
   async unregister(
+    @CurrentUser() user: { sub: number },
     @Body() body: { token: string },
   ): Promise<{ success: boolean }> {
-    await this.notifications.removePushToken(body.token);
+    await this.notifications.removePushToken(body.token, user.sub);
     return { success: true };
   }
 }

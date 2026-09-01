@@ -16,8 +16,10 @@ export class NotificationsService {
     this.logger.log(`Push token registered for user ${userId}`);
   }
 
-  async removePushToken(token: string): Promise<void> {
-    await this.prisma.pushToken.deleteMany({ where: { token } });
+  async removePushToken(token: string, userId: number): Promise<void> {
+    await this.prisma.pushToken.deleteMany({
+      where: { token, userId },
+    });
   }
 
   async sendPushNotification(

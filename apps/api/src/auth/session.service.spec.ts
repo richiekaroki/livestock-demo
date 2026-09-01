@@ -47,7 +47,7 @@ describe('SessionService', () => {
     const s1 = await service.createSession(1, 'token-1');
     await service.createSession(1, 'token-2');
 
-    await service.revokeSession(s1.id);
+    await service.revokeSession(s1.id, 1);
     const sessions = await service.listSessions(1);
     expect(sessions.length).toBe(1);
   });

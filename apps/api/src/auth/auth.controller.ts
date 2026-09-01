@@ -20,6 +20,8 @@ import { RegisterDto } from './dto/register.dto';
 import { InviteDto } from './dto/invite.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { RolesGuard } from './roles.guard';
+import { Roles } from './roles.decorator';
 import { SessionService } from './session.service';
 
 const REFRESH_COOKIE = 'wam_refresh_token';
@@ -127,6 +129,8 @@ export class AuthController {
     });
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Post('invite')
   async invite(
     @Body() dto: InviteDto,
@@ -245,7 +249,13 @@ export class AuthController {
   async revokeSession(
     @Req() req: { user: { sub: number }; params: { id: string } },
   ): Promise<ApiResponse<{ message: string }>> {
-    await this.sessionService.revokeSession(parseInt(req.params.id, 10));
+    const revoked = await this.sessionService.revokeSession(
+      parseInt(req.params.id, 10),
+      req.user.sub,
+    );
+    if (!revoked) {
+      return { success: true, data: { message: 'Session not found' } };
+    }
     return { success: true, data: { message: 'Session revoked' } };
   }
 

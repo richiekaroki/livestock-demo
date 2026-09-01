@@ -51,6 +51,22 @@ export class PrismaSessionRepository implements SessionRepository {
       : null;
   }
 
+  async findById(id: number): Promise<SessionRecord | null> {
+    const row = await this.prisma.session.findUnique({ where: { id } });
+    return row
+      ? {
+          id: row.id,
+          userId: row.userId,
+          refreshTokenHash: row.refreshTokenHash,
+          device: row.device ?? undefined,
+          ip: row.ip ?? undefined,
+          lastActive: row.lastActive,
+          expiresAt: row.expiresAt,
+          createdAt: row.createdAt,
+        }
+      : null;
+  }
+
   async listByUserId(userId: number): Promise<SessionInfo[]> {
     const rows = await this.prisma.session.findMany({
       where: { userId, expiresAt: { gt: new Date() } },

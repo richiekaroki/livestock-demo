@@ -29,11 +29,15 @@ export class DiseasesController {
   }
 
   @Get('risk')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'field_agent')
   listRisks(@Query() query: GetRiskDto) {
     return this.diseases.getRisks(query);
   }
 
   @Get('risk/:county')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'field_agent')
   getCountyRisk(@Param('county') county: string) {
     return this.diseases.getCountyRiskSummary(county);
   }

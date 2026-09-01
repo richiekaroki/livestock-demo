@@ -35,6 +35,8 @@ export class VaccinationsController {
   ) {}
 
   @Get()
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'field_agent')
   list(@Query() query: VaccinationQueryDto) {
     return this.vaccinations.list(query);
   }
@@ -78,6 +80,8 @@ export class VaccinationsController {
   }
 
   @Get('reminders')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'field_agent')
   getReminders(@Query('daysAhead') daysAhead?: string) {
     const days = daysAhead ? parseInt(daysAhead, 10) : 3;
     return this.vaccinations.findDueReminders(days);

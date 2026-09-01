@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -24,11 +25,15 @@ export class MortalityController {
   constructor(private readonly mortality: MortalityService) {}
 
   @Get()
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'field_agent')
   list(@Query() query: MortalityQueryDto) {
     return this.mortality.list(query);
   }
 
   @Get('stats')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'field_agent')
   getStats() {
     return this.mortality.getStats();
   }
@@ -36,8 +41,11 @@ export class MortalityController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles('admin', 'field_agent')
-  report(@Body() dto: ReportMortalityDto) {
-    return this.mortality.report(dto);
+  report(
+    @Body() dto: ReportMortalityDto,
+    @Req() req: { user: { email: string } },
+  ) {
+    return this.mortality.report({ ...dto, reportedBy: req.user.email });
   }
 
   @Delete(':id')

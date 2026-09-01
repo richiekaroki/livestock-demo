@@ -34,6 +34,11 @@ export class InMemorySessionRepository implements SessionRepository {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
+  async findById(id: number): Promise<SessionRecord | null> {
+    return this.sessions.find((s) => s.id === id) ?? null;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
   async listByUserId(userId: number): Promise<SessionInfo[]> {
     const now = new Date();
     return this.sessions

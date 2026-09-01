@@ -57,13 +57,14 @@ export class AuthService {
       .sendOtpEmail(email, otp, 'login', user?.name)
       .catch(() => {});
 
-    // In demo mode, return the OTP so the frontend can display it
+    // Only return OTP in dev mode (never in production)
+    const isDev = process.env.NODE_ENV !== 'production';
     const isDemo = (process.env.EMAIL_PROVIDER || 'console') === 'console';
     const autoVerify = process.env.DEV_AUTO_VERIFY === 'true';
     return {
       message: 'If an account exists, an OTP has been sent.',
-      ...(isDemo && !autoVerify && { otp }),
-      ...(autoVerify && { otp: '000000', autoVerified: true }),
+      ...(isDev && isDemo && !autoVerify && { otp }),
+      ...(isDev && autoVerify && { otp: '000000', autoVerified: true }),
     };
   }
 
@@ -171,14 +172,14 @@ export class AuthService {
       data.name,
     );
 
-    // In demo mode, return the OTP so the frontend can display it
+    // Only return OTP in dev mode (never in production)
+    const isDev = process.env.NODE_ENV !== 'production';
     const isDemo = (process.env.EMAIL_PROVIDER || 'console') === 'console';
-    // In dev auto-verify mode, skip OTP entirely — user is immediately active
     const autoVerify = process.env.DEV_AUTO_VERIFY === 'true';
     return {
       message: 'Account created. Please verify your email with the OTP sent.',
-      ...(isDemo && !autoVerify && { otp }),
-      ...(autoVerify && { otp: '000000', autoVerified: true }),
+      ...(isDev && isDemo && !autoVerify && { otp }),
+      ...(isDev && autoVerify && { otp: '000000', autoVerified: true }),
     };
   }
 
@@ -220,7 +221,7 @@ export class AuthService {
     }
 
     if (new Date(session.expiresAt) < new Date()) {
-      await this.sessionService.revokeSession(session.id);
+      await this.sessionService.revokeSession(session.id, session.userId);
       throw new UnauthorizedException('Refresh token expired');
     }
 
@@ -272,7 +273,7 @@ export class AuthService {
 
   async logout(userId: number, sessionId?: number, ip?: string): Promise<void> {
     if (sessionId) {
-      await this.sessionService.revokeSession(sessionId);
+      await this.sessionService.revokeSession(sessionId, userId);
     } else {
       await this.sessionService.revokeAllSessions(userId);
     }
@@ -336,12 +337,16 @@ export class AuthService {
     device?: string,
   ): Promise<AuthResponse> {
     const payload: AuthPayload = { sub: userId, email, role: role as UserRole };
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: '15m',
+      audience: 'access',
+    });
     const refreshToken = this.jwtService.sign(
       { sub: userId, type: 'refresh' },
       {
         expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN ||
           '7d') as unknown as number,
+        audience: 'refresh',
       },
     );
 

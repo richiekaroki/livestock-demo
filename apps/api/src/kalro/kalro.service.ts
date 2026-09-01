@@ -6,10 +6,13 @@ export class KalroService {
   async fetchVeterinaryRecord(
     animalId: string,
   ): Promise<ApiResponse<KALROVeterinaryRecord>> {
+    // Sanitize animalId — only allow alphanumeric and hyphens
+    const safeId = animalId.replace(/[^a-zA-Z0-9-]/g, '');
+
     if (process.env.KALRO_API_URL) {
       try {
         const res = await fetch(
-          `${process.env.KALRO_API_URL}/veterinary/${animalId}`,
+          `${process.env.KALRO_API_URL}/veterinary/${safeId}`,
           {
             headers: {
               'X-Client-Id': process.env.KALRO_CLIENT_ID ?? '',

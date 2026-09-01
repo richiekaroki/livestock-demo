@@ -74,8 +74,13 @@ export class SessionService {
     return this.sessionRepo.listByUserId(userId);
   }
 
-  async revokeSession(id: number) {
+  async revokeSession(id: number, userId: number) {
+    const session = await this.sessionRepo.findById(id);
+    if (!session || session.userId !== userId) {
+      return false;
+    }
     await this.sessionRepo.delete(id);
+    return true;
   }
 
   async revokeAllSessions(userId: number) {

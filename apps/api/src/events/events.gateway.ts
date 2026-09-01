@@ -8,6 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
+import * as jwt from 'jsonwebtoken';
 
 export interface StatsUpdate {
   totalAnimals: number;
@@ -65,10 +66,29 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private connectedClients = new Set<string>();
 
   handleConnection(client: Socket) {
-    this.connectedClients.add(client.id);
-    this.logger.log(
-      `Client connected: ${client.id} (total: ${this.connectedClients.size})`,
-    );
+    const token =
+      client.handshake.auth?.token ||
+      client.handshake.query?.token ||
+      client.handshake.headers?.authorization?.replace('Bearer ', '');
+
+    if (!token || typeof token !== 'string') {
+      this.logger.warn(`Client rejected: no token (${client.id})`);
+      client.disconnect();
+      return;
+    }
+
+    try {
+      const secret = process.env.JWT_SECRET;
+      if (!secret) throw new Error('JWT_SECRET not configured');
+      jwt.verify(token, secret);
+      this.connectedClients.add(client.id);
+      this.logger.log(
+        `Client connected: ${client.id} (total: ${this.connectedClients.size})`,
+      );
+    } catch {
+      this.logger.warn(`Client rejected: invalid token (${client.id})`);
+      client.disconnect();
+    }
   }
 
   handleDisconnect(client: Socket) {

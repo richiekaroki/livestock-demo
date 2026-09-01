@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -41,8 +42,14 @@ export class OutbreaksController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles('admin', 'field_agent')
-  async report(@Body() dto: ReportOutbreakDto) {
-    const data = await this.outbreaks.report(dto);
+  async report(
+    @Body() dto: ReportOutbreakDto,
+    @Req() req: { user: { email: string } },
+  ) {
+    const data = await this.outbreaks.report({
+      ...dto,
+      reportedBy: req.user.email,
+    });
     this.events.broadcastOutbreakEvent(
       'reported',
       data as unknown as Record<string, unknown>,
