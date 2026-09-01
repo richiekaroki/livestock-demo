@@ -69,7 +69,21 @@ export class AuthService {
     ip?: string,
     device?: string,
   ): Promise<AuthResponse> {
-    const user = await this.userRepo.findByEmail(email);
+    let user = await this.userRepo.findByEmail(email);
+
+    // In dev auto-verify mode, skip OTP check entirely
+    if (process.env.DEV_AUTO_VERIFY === 'true') {
+      if (!user) {
+        user = await this.userRepo.create({
+          email,
+          name: email.split('@')[0],
+          phone: '',
+          role: 'admin',
+          county: 'Nairobi',
+        });
+      }
+      return this.issueTokens(user.id, user.email, user.role, ip, device);
+    }
 
     if (!user) {
       throw new UnauthorizedException('Invalid email or OTP code');
@@ -83,31 +97,28 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or OTP code');
     }
 
-    // In dev auto-verify mode, skip OTP check entirely
-    if (process.env.DEV_AUTO_VERIFY !== 'true') {
-      const result = await this.otpService.verifyOtp(email, otp, 'login', ip);
+    const result = await this.otpService.verifyOtp(email, otp, 'login', ip);
 
-      if (!result.valid) {
-        const { failedOtpAttempts, lockedUntil } =
-          await this.otpService.incrementFailedAttempts(user.failedOtpAttempts);
+    if (!result.valid) {
+      const { failedOtpAttempts, lockedUntil } =
+        await this.otpService.incrementFailedAttempts(user.failedOtpAttempts);
 
-        await this.userRepo.update(user.id, {
-          failedOtpAttempts,
-          lockedUntil: lockedUntil?.toISOString(),
+      await this.userRepo.update(user.id, {
+        failedOtpAttempts,
+        lockedUntil: lockedUntil?.toISOString(),
+      });
+
+      if (lockedUntil) {
+        await this.auditService.logEvent({
+          event: 'account_locked',
+          email,
+          userId: user.id,
+          ip,
+          metadata: { lockedUntil: lockedUntil.toISOString() },
         });
-
-        if (lockedUntil) {
-          await this.auditService.logEvent({
-            event: 'account_locked',
-            email,
-            userId: user.id,
-            ip,
-            metadata: { lockedUntil: lockedUntil.toISOString() },
-          });
-        }
-
-        throw new UnauthorizedException('Invalid email or OTP code');
       }
+
+      throw new UnauthorizedException('Invalid email or OTP code');
     }
 
     await this.userRepo.update(user.id, {
