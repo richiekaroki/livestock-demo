@@ -141,7 +141,9 @@ export class EmailService {
       });
       console.log(`[SMTP] Sent to ${options.to}: ${info.messageId}`);
     } catch (err) {
-      console.error(`[SMTP] Failed to ${options.to}: ${host}:${port} — ${(err as Error).message}`);
+      console.error(
+        `[SMTP] Failed to ${options.to}: ${host}:${port} — ${(err as Error).message}`,
+      );
     }
   }
 
