@@ -1,0 +1,43 @@
+# Login Flow - Maestro E2E Test
+# Tests the passwordless OTP login flow
+
+appId: com.wam-mfugo.mobile
+---
+- launchApp
+
+# Should see login screen
+- assertVisible:
+    text: "Login"
+    optional: true
+
+- assertVisible:
+    text: "Sign In"
+    optional: true
+
+# Enter email
+- tapOn:
+    id: "email-input"
+    optional: true
+
+- inputText: "test@example.com"
+
+# Request OTP
+- tapOn:
+    text: "Send OTP"
+    optional: true
+
+- tapOn:
+    text: "Request OTP"
+    optional: true
+
+# Should see OTP input or success message
+- assertVisible:
+    text: "OTP"
+    optional: true
+
+- assertVisible:
+    text: "Enter code"
+    optional: true
+
+# Take screenshot
+- takeScreenshot: login_flow

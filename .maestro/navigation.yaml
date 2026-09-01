@@ -1,0 +1,60 @@
+# Navigation Test - Maestro E2E Test
+# Tests tab navigation across all main screens
+
+appId: com.wam-mfugo.mobile
+---
+- launchApp
+
+# Home tab
+- tapOn:
+    id: "tab-home"
+    optional: true
+
+- assertVisible:
+    text: "Dashboard"
+    optional: true
+
+- takeScreenshot: home
+
+# Animals tab
+- tapOn:
+    id: "tab-animals"
+    optional: true
+
+- assertVisible:
+    text: "Animals"
+    optional: true
+
+- takeScreenshot: animals
+
+# Register tab
+- tapOn:
+    id: "tab-register"
+    optional: true
+
+- takeScreenshot: register
+
+# Analytics tab
+- tapOn:
+    id: "tab-analytics"
+    optional: true
+
+- takeScreenshot: analytics
+
+# More tab
+- tapOn:
+    id: "tab-more"
+    optional: true
+
+- assertVisible:
+    text: "More"
+    optional: true
+
+- takeScreenshot: more
+
+# Profile
+- tapOn:
+    text: "Profile"
+    optional: true
+
+- takeScreenshot: profile

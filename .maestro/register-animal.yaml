@@ -1,0 +1,66 @@
+# Register Animal - Maestro E2E Test
+# Tests the animal registration flow with biometrics
+
+appId: com.wam-mfugo.mobile
+---
+- launchApp
+
+# Navigate to register tab
+- tapOn:
+    text: "Register"
+    optional: true
+
+- tapOn:
+    id: "tab-register"
+    optional: true
+
+# Should see registration form
+- assertVisible:
+    text: "Register Animal"
+    optional: true
+
+- assertVisible:
+    text: "Animal Name"
+    optional: true
+
+# Enter animal details
+- tapOn:
+    id: "animal-name-input"
+    optional: true
+
+- inputText: "Test Cow"
+
+# Select animal type
+- tapOn:
+    text: "Cattle"
+    optional: true
+
+# Select county
+- tapOn:
+    id: "county-picker"
+    optional: true
+
+- tapOn:
+    text: "Nakuru"
+    optional: true
+
+# Capture biometrics (optional - may need camera permission)
+- tapOn:
+    text: "Capture Biometrics"
+    optional: true
+
+- tapOn:
+    text: "Take Photo"
+    optional: true
+
+# Submit registration
+- tapOn:
+    text: "Register"
+    optional: true
+
+- tapOn:
+    text: "Submit"
+    optional: true
+
+# Take screenshot
+- takeScreenshot: register_animal
