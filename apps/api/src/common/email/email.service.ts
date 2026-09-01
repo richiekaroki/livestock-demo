@@ -112,32 +112,36 @@ export class EmailService {
   private async sendViaSmtp(options: EmailOptions): Promise<void> {
     const nodemailer = await import('nodemailer').catch(() => null);
     if (!nodemailer) {
-      console.log(`[AUTH] SMTP provider not available. OTP: ${options.to}`);
+      console.error(`[SMTP] nodemailer not available`);
       return;
     }
 
+    const host = process.env.SMTP_HOST || 'smtp-relay.brevo.com';
+    const port = parseInt(process.env.SMTP_PORT || '587', 10);
+
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-      port: parseInt(process.env.SMTP_PORT || '587', 10),
-      secure: false,
+      host,
+      port,
+      secure: port === 465,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
-      connectionTimeout: 5000,
-      greetingTimeout: 5000,
-      socketTimeout: 10000,
+      connectionTimeout: 15000,
+      greetingTimeout: 10000,
+      socketTimeout: 20000,
     });
 
     try {
-      await transporter.sendMail({
+      const info = await transporter.sendMail({
         from: process.env.SMTP_FROM || 'Wam Mfugo <noreply@wamfugo.com>',
         to: options.to,
         subject: options.subject,
         html: options.html,
       });
+      console.log(`[SMTP] Sent to ${options.to}: ${info.messageId}`);
     } catch (err) {
-      console.error(`[AUTH] SMTP send failed: ${(err as Error).message}`);
+      console.error(`[SMTP] Failed to ${options.to}: ${host}:${port} — ${(err as Error).message}`);
     }
   }
 
