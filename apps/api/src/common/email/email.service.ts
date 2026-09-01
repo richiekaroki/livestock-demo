@@ -50,7 +50,7 @@ export class EmailService {
 
     const options: EmailOptions = { to, subject, html };
 
-    if (this.provider === 'smtp') {
+    if (this.provider === 'smtp' || this.provider === 'brevo') {
       await this.sendViaSmtp(options);
     } else {
       console.log(`\n[AUTH] OTP for ${to}: ${code}`);
@@ -60,7 +60,7 @@ export class EmailService {
   }
 
   async sendEmail(options: EmailOptions): Promise<void> {
-    if (this.provider === 'smtp') {
+    if (this.provider === 'smtp' || this.provider === 'brevo') {
       await this.sendViaSmtp(options);
     } else {
       console.log(`\n[EMAIL] To: ${options.to}`);
@@ -100,7 +100,7 @@ export class EmailService {
       html,
     };
 
-    if (this.provider === 'smtp') {
+    if (this.provider === 'smtp' || this.provider === 'brevo') {
       await this.sendViaSmtp(options);
     } else {
       console.log(`\n[AUTH] Invitation for ${to}:`);
@@ -110,39 +110,42 @@ export class EmailService {
   }
 
   private async sendViaSmtp(options: EmailOptions): Promise<void> {
-    const nodemailer = await import('nodemailer').catch(() => null);
-    if (!nodemailer) {
-      console.error(`[SMTP] nodemailer not available`);
+    const apiKey = process.env.BREVO_API_KEY;
+    if (!apiKey) {
+      console.error('[EMAIL] BREVO_API_KEY not set — cannot send email');
       return;
     }
 
-    const host = process.env.SMTP_HOST || 'smtp-relay.brevo.com';
-    const port = parseInt(process.env.SMTP_PORT || '587', 10);
-
-    const transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-      connectionTimeout: 15000,
-      greetingTimeout: 10000,
-      socketTimeout: 20000,
-    });
+    const from = (
+      process.env.SMTP_FROM || 'Wam Mfugo <noreply@wamfugo.com>'
+    ).replace(/.*<(.+?)>.*/, '$1');
 
     try {
-      const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'Wam Mfugo <noreply@wamfugo.com>',
-        to: options.to,
-        subject: options.subject,
-        html: options.html,
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': apiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { email: from, name: 'Wam Mfugo' },
+          to: [{ email: options.to }],
+          subject: options.subject,
+          htmlContent: options.html,
+        }),
       });
-      console.log(`[SMTP] Sent to ${options.to}: ${info.messageId}`);
+
+      if (!res.ok) {
+        const body = await res.text();
+        console.error(
+          `[EMAIL] Brevo API ${res.status}: ${body}`,
+        );
+      } else {
+        console.log(`[EMAIL] Sent to ${options.to}`);
+      }
     } catch (err) {
       console.error(
-        `[SMTP] Failed to ${options.to}: ${host}:${port} — ${(err as Error).message}`,
+        `[EMAIL] Brevo API failed: ${(err as Error).message}`,
       );
     }
   }
