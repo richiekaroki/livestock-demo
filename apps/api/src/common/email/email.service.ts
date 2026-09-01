@@ -137,16 +137,12 @@ export class EmailService {
 
       if (!res.ok) {
         const body = await res.text();
-        console.error(
-          `[EMAIL] Brevo API ${res.status}: ${body}`,
-        );
+        console.error(`[EMAIL] Brevo API ${res.status}: ${body}`);
       } else {
         console.log(`[EMAIL] Sent to ${options.to}`);
       }
     } catch (err) {
-      console.error(
-        `[EMAIL] Brevo API failed: ${(err as Error).message}`,
-      );
+      console.error(`[EMAIL] Brevo API failed: ${(err as Error).message}`);
     }
   }
 

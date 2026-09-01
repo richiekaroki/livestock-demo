@@ -144,7 +144,7 @@ export class AuthService {
 
     // Bootstrap: first user becomes admin automatically
     const userCount = await this.userRepo.count();
-    const role = userCount === 0 ? 'admin' : (data.role || 'farmer');
+    const role = userCount === 0 ? 'admin' : data.role || 'farmer';
 
     const user = await this.userRepo.create({
       email: data.email,
