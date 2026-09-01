@@ -71,6 +71,11 @@ async function bootstrap() {
         },
       },
       frameguard: { action: 'deny' },
+      hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true,
+      },
     }),
   );
   app.use(cookieParser());
