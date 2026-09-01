@@ -42,6 +42,20 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
   const uploadDir = process.env.UPLOAD_DIR || join(process.cwd(), 'uploads');
   app.useStaticAssets(uploadDir, { prefix: '/uploads' });
+
+  app.use((req, res, next) => {
+    if (req.path === '/' && req.method === 'GET') {
+      res.json({
+        name: 'Wam Mfugo API',
+        version: '1.0.0',
+        docs: '/api/docs',
+        health: '/api/health',
+      });
+      return;
+    }
+    next();
+  });
+
   app.use(
     helmet({
       contentSecurityPolicy: {
