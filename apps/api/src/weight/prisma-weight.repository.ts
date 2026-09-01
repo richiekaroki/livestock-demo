@@ -68,7 +68,7 @@ export class PrismaWeightRepository implements WeightRepository {
       skip,
       take,
     });
-    return rows.map((r) => this.toRecord(r));
+    return rows.map((r: any) => this.toRecord(r));
   }
 
   async findByAnimalId(animalId: number): Promise<WeightRecord[]> {
@@ -77,7 +77,7 @@ export class PrismaWeightRepository implements WeightRepository {
       include: { animal: { select: { name: true, type: true, county: true } } },
       orderBy: { recordedAt: 'asc' },
     });
-    return rows.map((r) => this.toRecord(r));
+    return rows.map((r: any) => this.toRecord(r));
   }
 
   async getGainStats(query?: {

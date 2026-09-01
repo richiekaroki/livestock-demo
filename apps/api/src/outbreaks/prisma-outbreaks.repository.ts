@@ -68,7 +68,7 @@ export class PrismaOutbreaksRepository implements OutbreaksRepository {
       skip,
       take,
     });
-    return rows.map((r) => this.toRecord(r));
+    return rows.map((r: any) => this.toRecord(r));
   }
 
   async update(

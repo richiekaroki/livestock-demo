@@ -61,7 +61,7 @@ export class NotificationsService {
     const body = `Animal "${alert.animalName}" in ${alert.county} has been marked as Sick.`;
 
     await Promise.all(
-      tokens.map((t) =>
+      tokens.map((t: any) =>
         this.sendPushNotification(t.token, title, body, {
           type: 'health_alert',
           animalId: alert.animalId,
@@ -83,7 +83,7 @@ export class NotificationsService {
     const body = `${outbreak.diseaseType} outbreak in ${outbreak.county} — ${outbreak.affectedAnimals} animal(s) affected.`;
 
     await Promise.all(
-      tokens.map((t) =>
+      tokens.map((t: any) =>
         this.sendPushNotification(t.token, title, body, {
           type: 'outbreak',
           outbreakId: outbreak.id,
