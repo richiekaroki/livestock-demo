@@ -51,7 +51,11 @@ export class AuthService {
     }
 
     const otp = await this.otpService.createOtp(email, 'login');
-    await this.emailService.sendOtpEmail(email, otp, 'login', user?.name);
+
+    // Send email in background — don't block the response
+    this.emailService
+      .sendOtpEmail(email, otp, 'login', user?.name)
+      .catch(() => {});
 
     // In demo mode, return the OTP so the frontend can display it
     const isDemo = (process.env.EMAIL_PROVIDER || 'console') === 'console';
