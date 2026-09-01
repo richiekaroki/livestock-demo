@@ -1,6 +1,6 @@
 // src/components/alerts/HealthAlerts.tsx
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import type { Livestock } from "@wam-mfugo/shared";
 import { useDelayedUnmount } from '../../hooks/useDelayedUnmount';
 
@@ -302,22 +302,22 @@ export default React.memo(function HealthAlerts({ data }: HealthAlertsProps) {
     return { alerts: activeAlerts, totalAlertCount: generatedAlerts.length };
   }, [data, dismissedAlerts, showDismissed]);
 
-  const dismissAlert = (alertId: string) => {
+  const dismissAlert = useCallback((alertId: string) => {
     setDismissedAlerts(prev => {
       const next = new Set([...prev, alertId]);
       saveDismissed(next);
       return next;
     });
-  };
+  }, []);
 
-  const restoreAlert = (alertId: string) => {
+  const restoreAlert = useCallback((alertId: string) => {
     setDismissedAlerts(prev => {
       const next = new Set(prev);
       next.delete(alertId);
       saveDismissed(next);
       return next;
     });
-  };
+  }, []);
 
   const dismissedCount = totalAlertCount - alerts.length;
 

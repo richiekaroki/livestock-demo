@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
 import { backend } from "../services/backend";
@@ -44,16 +44,19 @@ export default function WeightGainAnalytics() {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    Promise.all([
+  const loadData = useCallback(async () => {
+    const [gainStats, animalsRes] = await Promise.all([
       backend.getWeightGainStats(),
       backend.getAnimals(),
-    ]).then(([gainStats, animalsRes]) => {
-      if (gainStats.success && gainStats.data) setStats(gainStats.data as WeightGainStat[]);
-      if (animalsRes.success && animalsRes.data) setAnimals(animalsRes.data as Livestock[]);
-      setLoading(false);
-    });
+    ]);
+    if (gainStats.success && gainStats.data) setStats(gainStats.data as WeightGainStat[]);
+    if (animalsRes.success && animalsRes.data) setAnimals(animalsRes.data as Livestock[]);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   useEffect(() => {
     if (selectedAnimal) {
@@ -63,7 +66,7 @@ export default function WeightGainAnalytics() {
     }
   }, [selectedAnimal]);
 
-  const handleRecord = async () => {
+  const handleRecord = useCallback(async () => {
     if (!form.animalId || !form.weight) return;
     setSubmitting(true);
     try {
@@ -75,19 +78,18 @@ export default function WeightGainAnalytics() {
       });
       setShowRecord(false);
       setForm({ animalId: "", weight: "", notes: "" });
-      const res = await backend.getWeightGainStats();
-      if (res.success && res.data) setStats(res.data as WeightGainStat[]);
+      await loadData();
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [form, user, loadData]);
 
-  const getGainColor = (pct: number) => {
+  const getGainColor = useCallback((pct: number) => {
     if (pct >= 20) return "#16a34a";
     if (pct >= 5) return "#ca8a04";
     if (pct >= 0) return "#ea580c";
     return "#dc2626";
-  };
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

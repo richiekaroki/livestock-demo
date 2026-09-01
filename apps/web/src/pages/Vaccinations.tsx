@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { apiGet, apiDelete } from "../services/apiClient";
 import VaccinationForm from "../components/vaccinations/VaccinationForm";
@@ -29,11 +29,7 @@ export default function Vaccinations() {
   const [showForm, setShowForm] = useState(false);
   const [editingVaccination, setEditingVaccination] = useState<Vaccination | null>(null);
 
-  useEffect(() => {
-    loadVaccinations();
-  }, []);
-
-  const loadVaccinations = async () => {
+  const loadVaccinations = useCallback(async () => {
     setLoading(true);
     try {
       const res = await apiGet<VaccinationsResponse>("/vaccinations");
@@ -43,14 +39,18 @@ export default function Vaccinations() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleEdit = (vaccination: Vaccination) => {
+  useEffect(() => {
+    loadVaccinations();
+  }, [loadVaccinations]);
+
+  const handleEdit = useCallback((vaccination: Vaccination) => {
     setEditingVaccination(vaccination);
     setShowForm(false);
-  };
+  }, []);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = useCallback(async (id: number) => {
     if (!confirm(t("vaccinations.confirmDelete"))) return;
     try {
       await apiDelete(`/vaccinations/${id}`);
@@ -58,7 +58,7 @@ export default function Vaccinations() {
     } catch {
       // silently fail
     }
-  };
+  }, [t, loadVaccinations]);
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">

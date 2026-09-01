@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { backend } from "../services/backend";
 import type { County } from "@wam-mfugo/shared";
@@ -41,7 +41,7 @@ export default function WhatIfSimulator() {
     });
   }, []);
 
-  const handleSimulate = async () => {
+  const handleSimulate = useCallback(async () => {
     if (!county) return;
     setLoading(true);
     try {
@@ -54,7 +54,7 @@ export default function WhatIfSimulator() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [county, vaccinationIncrease, livestockReduction]);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 pb-24 md:pb-8">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { apiGet, apiPost, apiPatch } from "../services/apiClient";
 
 interface Outbreak {
@@ -40,11 +40,7 @@ export default function Outbreaks() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadOutbreaks();
-  }, []);
-
-  const loadOutbreaks = async () => {
+  const loadOutbreaks = useCallback(async () => {
     setLoading(true);
     try {
       const res = await apiGet<OutbreaksResponse>("/outbreaks");
@@ -54,9 +50,13 @@ export default function Outbreaks() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleReport = async (e: React.FormEvent) => {
+  useEffect(() => {
+    loadOutbreaks();
+  }, [loadOutbreaks]);
+
+  const handleReport = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!diseaseType.trim() || !affectedAnimals || !county.trim() || !reportedBy.trim()) {
       setError("Please fill in all required fields");
@@ -88,16 +88,16 @@ export default function Outbreaks() {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [diseaseType, affectedAnimals, county, reportedBy, symptoms, actionsTaken, loadOutbreaks]);
 
-  const handleStatusUpdate = async (id: number, newStatus: string) => {
+  const handleStatusUpdate = useCallback(async (id: number, newStatus: string) => {
     try {
       await apiPatch(`/outbreaks/${id}`, { status: newStatus });
       loadOutbreaks();
     } catch {
       // silently fail
     }
-  };
+  }, [loadOutbreaks]);
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { backend } from "../services/backend";
 import type { County } from "@wam-mfugo/shared";
@@ -48,7 +48,7 @@ export default function DiseasePrediction() {
     });
   }, []);
 
-  const handlePredict = async () => {
+  const handlePredict = useCallback(async () => {
     if (!selectedCounty) return;
     setLoading(true);
     try {
@@ -61,7 +61,7 @@ export default function DiseasePrediction() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCounty]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

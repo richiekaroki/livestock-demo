@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
 import { backend } from "../services/backend";
@@ -34,18 +34,21 @@ export default function MortalityTracking() {
   const [form, setForm] = useState({ animalId: "", cause: "", diseaseName: "", notes: "" });
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    Promise.all([
+  const loadData = useCallback(async () => {
+    const [mortalities, mortalityStats] = await Promise.all([
       backend.getMortalities(),
       backend.getMortalityStats(),
-    ]).then(([mortalities, mortalityStats]) => {
-      if (mortalities.success && mortalities.data) setRecords(mortalities.data as MortalityRecord[]);
-      if (mortalityStats.success && mortalityStats.data) setStats(mortalityStats.data as MortalityStats);
-      setLoading(false);
-    });
+    ]);
+    if (mortalities.success && mortalities.data) setRecords(mortalities.data as MortalityRecord[]);
+    if (mortalityStats.success && mortalityStats.data) setStats(mortalityStats.data as MortalityStats);
+    setLoading(false);
   }, []);
 
-  const handleReport = async () => {
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleReport = useCallback(async () => {
     if (!form.animalId || !form.cause) return;
     setSubmitting(true);
     try {
@@ -58,16 +61,11 @@ export default function MortalityTracking() {
       });
       setShowReport(false);
       setForm({ animalId: "", cause: "", diseaseName: "", notes: "" });
-      const [mortalities, mortalityStats] = await Promise.all([
-        backend.getMortalities(),
-        backend.getMortalityStats(),
-      ]);
-      if (mortalities.success && mortalities.data) setRecords(mortalities.data as MortalityRecord[]);
-      if (mortalityStats.success && mortalityStats.data) setStats(mortalityStats.data as MortalityStats);
+      await loadData();
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [form, user, loadData]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

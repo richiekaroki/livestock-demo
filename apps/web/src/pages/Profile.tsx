@@ -10,10 +10,10 @@ export default function Profile() {
   const { user, updateProfile } = useAuth();
   const { counties } = useCounties();
   const { t } = useTranslation();
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [county, setCounty] = useState("");
-  const [subCounty, setSubCounty] = useState("");
+  const [name, setName] = useState(user?.name || "");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [county, setCounty] = useState(user?.county || "");
+  const [subCounty, setSubCounty] = useState(user?.subCounty || "");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<"success" | "error">("success");
@@ -30,15 +30,6 @@ export default function Profile() {
   const [notificationPermission, setNotificationPermission] =
     useState<NotificationPermission>("default");
   const [notificationsLoading, setNotificationsLoading] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      setName(user.name || "");
-      setPhone(user.phone || "");
-      setCounty(user.county || "");
-      setSubCounty(user.subCounty || "");
-    }
-  }, [user]);
 
   const fetchSessions = useCallback(async () => {
     setSessionsLoading(true);
