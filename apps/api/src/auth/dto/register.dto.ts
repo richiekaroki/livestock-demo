@@ -2,12 +2,8 @@ import {
   IsEmail,
   IsString,
   IsOptional,
-  IsIn,
   MinLength,
 } from 'class-validator';
-import type { UserRole } from '@wam-mfugo/shared';
-
-const validRoles: UserRole[] = ['admin', 'field_agent', 'farmer'];
 
 export class RegisterDto {
   @IsEmail()
@@ -20,10 +16,6 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   phone?: string;
-
-  @IsOptional()
-  @IsIn(validRoles)
-  role?: UserRole;
 
   @IsString()
   county!: string;

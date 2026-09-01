@@ -142,11 +142,15 @@ export class AuthService {
       throw new ConflictException('An account with this email already exists');
     }
 
+    // Bootstrap: first user becomes admin automatically
+    const userCount = await this.userRepo.count();
+    const role = userCount === 0 ? 'admin' : (data.role || 'farmer');
+
     const user = await this.userRepo.create({
       email: data.email,
       name: data.name,
       phone: data.phone,
-      role: data.role || 'farmer',
+      role,
       county: data.county,
       subCounty: data.subCounty,
     });
