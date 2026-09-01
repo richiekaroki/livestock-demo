@@ -14,11 +14,18 @@ export class HealthCheckController {
   @Get()
   async check() {
     const db = await this.pingDb();
+    const mem = process.memoryUsage();
     return {
       status: db === 'error' ? 'degraded' : 'ok',
       db,
-      uptime: process.uptime(),
+      uptime: Math.round(process.uptime()),
       timestamp: new Date().toISOString(),
+      memory: {
+        heapUsed: Math.round(mem.heapUsed / 1024 / 1024),
+        heapTotal: Math.round(mem.heapTotal / 1024 / 1024),
+        rss: Math.round(mem.rss / 1024 / 1024),
+      },
+      node: process.version,
     };
   }
 
