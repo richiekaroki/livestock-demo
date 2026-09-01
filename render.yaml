@@ -9,7 +9,7 @@ services:
     plan: free
     rootDir: .
     buildCommand: npm install && npm run build:api
-    preDeployCommand: npx prisma db push --schema apps/api/prisma/schema.prisma && npx prisma generate --schema apps/api/prisma/schema.prisma
+    preDeployCommand: npx prisma db push --schema apps/api/prisma/schema.prisma --accept-data-loss && npx prisma generate --schema apps/api/prisma/schema.prisma
     startCommand: node apps/api/dist/main.js
     healthCheckPath: /api/health
     autoDeploy: true
