@@ -126,12 +126,16 @@ export class EmailService {
       },
     });
 
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || 'Wam Mfugo <noreply@wamfugo.com>',
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-    });
+    try {
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || 'Wam Mfugo <noreply@wamfugo.com>',
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+      });
+    } catch (err) {
+      console.error(`[AUTH] SMTP send failed: ${(err as Error).message}`);
+    }
   }
 
   private getFallbackTemplate(
