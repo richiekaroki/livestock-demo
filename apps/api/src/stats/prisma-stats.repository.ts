@@ -123,7 +123,9 @@ export class PrismaStatsRepository implements StatsRepository {
       else if (a.health === 'Recovered') c.recovered++;
       c.types.set(a.type, (c.types.get(a.type) ?? 0) + 1);
     }
-    const animalCounty = new Map<number, string>(animals.map((a: any) => [a.id, a.county]));
+    const animalCounty = new Map<number, string>(
+      animals.map((a: any) => [a.id, a.county]),
+    );
     for (const v of vaccinations) {
       const county = animalCounty.get(v.animalId);
       if (county) countyMap.get(county)?.vaccinated.add(v.animalId);
