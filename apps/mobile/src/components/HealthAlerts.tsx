@@ -71,7 +71,7 @@ export function HealthAlerts({ animals, onDismiss, onRestore, onReport }: Health
     }
 
     return result;
-  }, [animals]);
+  }, [animals, t]);
 
   const handleDismiss = useCallback((id: string) => {
     impactLight();
@@ -105,7 +105,7 @@ export function HealthAlerts({ animals, onDismiss, onRestore, onReport }: Health
         },
       ]
     );
-  }, [onReport]);
+  }, [onReport, t]);
 
   const visibleAlerts = alerts.filter((a) => !dismissedIds.has(a.id));
   const dismissedCount = alerts.filter((a) => dismissedIds.has(a.id)).length;

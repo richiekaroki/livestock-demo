@@ -29,7 +29,7 @@ if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
     tracesSampleRate: process.env.EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE 
       ? parseFloat(process.env.EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE) 
       : 0.1,
-    beforeSend(event, hint) {
+    beforeSend(event, _hint) {
       // Filter out sensitive data
       if (event.request) {
         delete event.request.cookies;

@@ -23,4 +23,4 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - name: Build for iOS and Android
         working-directory: apps/mobile
-        run: eas build --platform all --profile production --non-interactive
+        run: eas build --platform all --profile production --non-interactive --account mr.wam

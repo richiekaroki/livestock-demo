@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '@/components/Themed';
-import { spacing, radius, fontSize, fontWeight, shadows } from '@/constants/Tokens';
+import { spacing, radius, fontSize, fontWeight } from '@/constants/Tokens';
 import { impactLight } from '@/src/services/haptics';
 import { Button } from './ui/Button';
 import type { AnimalType, HealthStatus } from '@wam-mfugo/shared';

@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, View, useColors } from '@/components/Themed';
 import { useAnimals } from '@/src/hooks/useAnimals';
 import { spacing, radius, fontSize, fontWeight, shadows } from '@/constants/Tokens';
-import { selectionChanged, impactLight } from '@/src/services/haptics';
+import { impactLight } from '@/src/services/haptics';
 import { SearchBar } from '@/src/components/SearchBar';
 import { SwipeableRow } from '@/src/components/SwipeableRow';
 import { StaggeredItem } from '@/src/components/StaggeredItem';
