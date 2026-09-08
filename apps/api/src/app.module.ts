@@ -20,6 +20,8 @@ import { DiseasesModule } from './diseases/diseases.module';
 import { MortalityModule } from './mortality/mortality.module';
 import { WeightModule } from './weight/weight.module';
 import { HealthAssessmentModule } from './health-assessment/health-assessment.module';
+import { NewRelicModule } from './common/newrelic.module';
+import { SentryModule } from './common/sentry.module';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { HealthAssessmentModule } from './health-assessment/health-assessment.mo
       { name: 'medium', ttl: 10000, limit: 20 },
       { name: 'long', ttl: 60000, limit: 100 },
     ]),
+    NewRelicModule,
+    SentryModule,
     EventsModule,
     AuthModule,
     AdminModule,

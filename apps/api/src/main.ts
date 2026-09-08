@@ -1,3 +1,8 @@
+// Initialize New Relic first (must be before any other imports)
+if (process.env.NEW_RELIC_ENABLED === 'true') {
+  require('newrelic');
+}
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
