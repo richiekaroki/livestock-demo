@@ -1,6 +1,6 @@
 // Initialize New Relic first (must be before any other imports)
 if (process.env.NEW_RELIC_ENABLED === 'true') {
-  require('newrelic');
+  import('newrelic');
 }
 
 import { NestFactory } from '@nestjs/core';

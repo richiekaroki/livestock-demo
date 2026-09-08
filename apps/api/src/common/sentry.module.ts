@@ -10,10 +10,10 @@ export class SentryModule implements OnModuleInit {
       Sentry.init({
         dsn: process.env.SENTRY_DSN,
         environment: process.env.NODE_ENV || 'development',
-        tracesSampleRate: process.env.SENTRY_TRACES_SAMPLE_RATE 
-          ? parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE) 
+        tracesSampleRate: process.env.SENTRY_TRACES_SAMPLE_RATE
+          ? parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE)
           : 0.1,
-        beforeSend(event, hint) {
+        beforeSend(event, _hint) {
           // Filter out sensitive data
           if (event.request) {
             delete event.request.cookies;
@@ -25,7 +25,9 @@ export class SentryModule implements OnModuleInit {
       });
       this.logger.log('Sentry error tracking enabled');
     } else {
-      this.logger.log('Sentry error tracking disabled (no SENTRY_DSN configured)');
+      this.logger.log(
+        'Sentry error tracking disabled (no SENTRY_DSN configured)',
+      );
     }
   }
 }
