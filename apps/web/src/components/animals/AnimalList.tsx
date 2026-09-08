@@ -35,7 +35,7 @@ const AnimatedAnimalCard = memo(function AnimatedAnimalCard({
   return (
     <div
       ref={cardRef}
-      className={`card hover-lift p-5 transition-opacity transition-transform duration-200 ${
+      className={`card hover-lift p-5 transition-all duration-200 ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       }`}
       style={{
@@ -46,37 +46,37 @@ const AnimatedAnimalCard = memo(function AnimatedAnimalCard({
         <h3 className="text-lg font-bold text-text-primary truncate min-w-0">
           {animal.name}
         </h3>
-        <span className={`badge ${typeBadgeClasses[animal.type]} flex-shrink-0`}>
+        <span className={`badge ${typeBadgeClasses[animal.type]} shrink-0`}>
           {animal.type}
         </span>
       </div>
 
       <div className="space-y-2 mb-4">
         <div className="flex items-center text-sm text-text-secondary min-w-0">
-          <svg className="w-4 h-4 mr-2 text-text-tertiary flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg className="w-4 h-4 mr-2 text-text-tertiary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
             <circle cx="12" cy="10" r="3" />
           </svg>
-          <span className="font-medium mr-1 flex-shrink-0">County:</span>
+          <span className="font-medium mr-1 shrink-0">County:</span>
           <span className="truncate">{animal.county}</span>
         </div>
         {animal.breed && (
           <div className="flex items-center text-sm text-text-secondary min-w-0">
-            <svg className="w-4 h-4 mr-2 text-text-tertiary flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <svg className="w-4 h-4 mr-2 text-text-tertiary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
               <path d="M12 16v-4" />
               <path d="M12 8h.01" />
             </svg>
-            <span className="font-medium mr-1 flex-shrink-0">Breed:</span>
+            <span className="font-medium mr-1 shrink-0">Breed:</span>
             <span className="truncate">{animal.breed}</span>
           </div>
         )}
         <div className="flex items-center text-sm text-text-secondary min-w-0">
-          <svg className="w-4 h-4 mr-2 text-text-tertiary flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg className="w-4 h-4 mr-2 text-text-tertiary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
-          <span className="font-medium mr-1 flex-shrink-0">Owner:</span>
+          <span className="font-medium mr-1 shrink-0">Owner:</span>
           <span className="truncate">{animal.owner}</span>
         </div>
       </div>
@@ -93,7 +93,7 @@ const AnimatedAnimalCard = memo(function AnimatedAnimalCard({
           <span className="text-xs text-text-tertiary font-mono mr-2">#{animal.id}</span>
           <button
             onClick={() => onEdit(animal)}
-            className="p-2.5 text-text-tertiary hover:text-accent transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-accent/10"
+            className="p-2.5 text-text-tertiary hover:text-accent transition-colors cursor-pointer min-w-11 min-h-11 flex items-center justify-center rounded-lg hover:bg-accent/10"
             aria-label={`Edit ${animal.name}`}
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -103,7 +103,7 @@ const AnimatedAnimalCard = memo(function AnimatedAnimalCard({
           </button>
           <button
             onClick={() => onDelete(animal)}
-            className="p-2.5 text-text-tertiary hover:text-error transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-error/10"
+            className="p-2.5 text-text-tertiary hover:text-error transition-colors cursor-pointer min-w-11 min-h-11 flex items-center justify-center rounded-lg hover:bg-error/10"
             aria-label={`Delete ${animal.name}`}
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
