@@ -40,15 +40,18 @@ export default function TabLayout() {
         headerShown: true,
         headerShadowVisible: false,
       }}>
+      {/* Main tabs - simplified to 4 */}
       <Tabs.Screen name="index" options={{ title: t('home'), tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={String(color)} /> }} />
       <Tabs.Screen name="animals" options={{ title: t('animals'), tabBarIcon: ({ color, size }) => <Ionicons name="paw" size={size} color={String(color)} />, tabBarBadge: sickCount > 0 ? sickCount : undefined, tabBarBadgeStyle: { backgroundColor: '#DC2626', fontSize: 10, minWidth: 18, height: 18 } }} />
-      <Tabs.Screen name="register" options={{ title: t('register'), tabBarIcon: ({ color, size }) => <Ionicons name="camera" size={size} color={String(color)} /> }} />
       <Tabs.Screen name="analytics" options={{ title: t('analytics'), tabBarIcon: ({ color, size }) => <Ionicons name="bar-chart" size={size} color={String(color)} /> }} />
-      <Tabs.Screen name="vaccinations" options={{ title: t('vaccinations'), tabBarIcon: ({ color, size }) => <Ionicons name="medkit" size={size} color={String(color)} /> }} />
-      <Tabs.Screen name="outbreaks" options={{ title: t('outbreaks'), tabBarIcon: ({ color, size }) => <Ionicons name="warning" size={size} color={String(color)} /> }} />
-      <Tabs.Screen name="diseases" options={{ title: t('diseases'), tabBarIcon: ({ color, size }) => <Ionicons name="pulse" size={size} color={String(color)} /> }} />
       <Tabs.Screen name="more" options={{ title: t('more'), tabBarIcon: ({ color, size }) => <Ionicons name="ellipsis-horizontal" size={size} color={String(color)} /> }} />
-      <Tabs.Screen name="map" options={{ title: t('map'), tabBarIcon: ({ color, size }) => <Ionicons name="map" size={size} color={String(color)} /> }} />
+      
+      {/* Secondary screens - accessible via More tab */}
+      <Tabs.Screen name="register" options={{ title: t('register'), href: null }} />
+      <Tabs.Screen name="vaccinations" options={{ title: t('vaccinations'), href: null }} />
+      <Tabs.Screen name="outbreaks" options={{ title: t('outbreaks'), href: null }} />
+      <Tabs.Screen name="diseases" options={{ title: t('diseases'), href: null }} />
+      <Tabs.Screen name="map" options={{ title: t('map'), href: null }} />
       <Tabs.Screen name="mortality" options={{ title: t('mortality'), href: null }} />
       <Tabs.Screen name="weight-gain" options={{ title: t('weightGain'), href: null }} />
       <Tabs.Screen name="county-comparison" options={{ title: t('countyComparison'), href: null }} />
@@ -60,7 +63,7 @@ export default function TabLayout() {
       <Tabs.Screen name="kalro-report" options={{ title: t('kalroReport'), href: null }} />
       <Tabs.Screen name="animal-qr" options={{ title: t('qrCodePage'), href: null }} />
       <Tabs.Screen name="sessions" options={{ title: t('sessions'), href: null }} />
-      <Tabs.Screen name="profile" options={{ title: t('profile'), tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={String(color)} /> }} />
+      <Tabs.Screen name="profile" options={{ title: t('profile'), href: null }} />
     </Tabs>
   );
 }

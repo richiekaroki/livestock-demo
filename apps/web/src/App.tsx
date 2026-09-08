@@ -13,6 +13,7 @@ import ProtectedRoute from "./components/layout/ProtectedRoute";
 import RoleRoute from "./components/layout/RoleRoute";
 import { useLiveData } from "./hooks/useLiveData";
 import { useLivestockStore } from "./store/livestockStore";
+import { Onboarding } from "./components/onboarding/Onboarding";
 import "./styles/css/main.css";
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -34,7 +35,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
   }
 }
 
-// Lazy load pages
+// Lazy load pages with code splitting for performance
 const Home = lazy(() => import("./pages/Home"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MapView = lazy(() => import("./pages/MapView"));
@@ -204,6 +205,7 @@ function AppContent() {
         <div className="min-h-screen flex flex-col transition-colors bg-bg-primary text-text-primary">
           <a href="#main-content" className="skip-link">Skip to content</a>
           <OfflineIndicator />
+          <Onboarding />
 
           <div className="hidden md:block">
             <Navbar />

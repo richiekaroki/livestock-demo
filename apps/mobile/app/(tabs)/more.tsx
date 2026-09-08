@@ -8,20 +8,23 @@ import { impactLight } from '@/src/services/haptics';
 import { useI18n } from '@/src/i18n';
 
 const MENU_ITEMS = [
+  { key: 'register', route: '/register', icon: 'camera-outline' as const, colorKey: 'tint' },
+  { key: 'healthAssessment', route: '/health-assessment', icon: 'medical-outline' as const, colorKey: 'tint' },
+  { key: 'vaccinations', route: '/vaccinations', icon: 'medkit-outline' as const, colorKey: 'success' },
+  { key: 'outbreaks', route: '/outbreaks', icon: 'warning-outline' as const, colorKey: 'warning' },
+  { key: 'diseases', route: '/diseases', icon: 'pulse-outline' as const, colorKey: 'tint' },
+  { key: 'map', route: '/map', icon: 'map-outline' as const, colorKey: 'tint' },
   { key: 'mortality', route: '/mortality', icon: 'skull-outline' as const, colorKey: 'destructive' },
   { key: 'weightGain', route: '/weight-gain', icon: 'bar-chart-outline' as const, colorKey: 'tint' },
   { key: 'countyComparison', route: '/county-comparison', icon: 'grid-outline' as const, colorKey: 'tint' },
   { key: 'simulator', route: '/simulator', icon: 'flask-outline' as const, colorKey: 'tint' },
   { key: 'reminders', route: '/reminders', icon: 'calendar-outline' as const, colorKey: 'success' },
-  { key: 'healthAssessment', route: '/health-assessment', icon: 'medical-outline' as const, colorKey: 'tint' },
   { key: 'csvImport', route: '/csv-import', icon: 'document-text-outline' as const, colorKey: 'tint' },
   { key: 'bulkOperations', route: '/bulk-operations', icon: 'swap-horizontal-outline' as const, colorKey: 'warning' },
   { key: 'kalroReport', route: '/kalro-report', icon: 'document-outline' as const, colorKey: 'tint' },
   { key: 'animalQR', route: '/animal-qr', icon: 'qr-code-outline' as const, colorKey: 'tint' },
   { key: 'sessions', route: '/sessions', icon: 'key-outline' as const, colorKey: 'tint' },
-  { key: 'vaccinations', route: '/vaccinations', icon: 'medkit-outline' as const, colorKey: 'success' },
-  { key: 'outbreaks', route: '/outbreaks', icon: 'warning-outline' as const, colorKey: 'warning' },
-  { key: 'diseases', route: '/diseases', icon: 'pulse-outline' as const, colorKey: 'tint' },
+  { key: 'profile', route: '/profile', icon: 'person-outline' as const, colorKey: 'tint' },
 ];
 
 export default function MoreScreen() {

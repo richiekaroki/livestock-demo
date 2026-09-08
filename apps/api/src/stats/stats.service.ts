@@ -19,7 +19,7 @@ export class StatsService {
     @Inject(STATS_REPOSITORY) private readonly repo: StatsRepository,
   ) {}
 
-  get(): Promise<AnimalStats> {
+  async get(): Promise<AnimalStats> {
     return this.animals.getStatistics();
   }
 

@@ -26,6 +26,18 @@ if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
     dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
     environment: __DEV__ ? 'development' : 'production',
     enableInExpoDevelopment: false,
+    tracesSampleRate: process.env.EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE 
+      ? parseFloat(process.env.EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE) 
+      : 0.1,
+    beforeSend(event, hint) {
+      // Filter out sensitive data
+      if (event.request) {
+        delete event.request.cookies;
+        delete event.request.headers?.['authorization'];
+        delete event.request.headers?.['cookie'];
+      }
+      return event;
+    },
   });
 }
 

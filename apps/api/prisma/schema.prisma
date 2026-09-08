@@ -33,6 +33,8 @@ model Farmer {
   animals   Animal[]
   createdAt DateTime @default(now())
 
+  @@index([county])
+  @@index([code])
   @@map("farmers")
 }
 
@@ -55,6 +57,10 @@ model User {
   auditLogs        AuditLog[]
   pushTokens       PushToken[]
 
+  @@index([county])
+  @@index([role])
+  @@index([isActive])
+  @@index([email])
   @@map("users")
 }
 
@@ -67,6 +73,8 @@ model OtpCode {
   purpose   String
   createdAt DateTime @default(now())
 
+  @@index([email, expiresAt])
+  @@index([expiresAt])
   @@map("otp_codes")
 }
 
@@ -81,6 +89,8 @@ model Session {
   createdAt       DateTime @default(now())
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([expiresAt])
   @@map("sessions")
 }
 
@@ -98,6 +108,10 @@ model AuditLog {
   createdAt  DateTime @default(now())
   user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  @@index([userId])
+  @@index([event])
+  @@index([createdAt])
+  @@index([archivedAt])
   @@map("audit_logs")
 }
 
@@ -124,6 +138,14 @@ model Animal {
   mortalities  Mortality[]
   weightRecords WeightRecord[]
 
+  @@index([county])
+  @@index([health])
+  @@index([type])
+  @@index([county, health])
+  @@index([county, type])
+  @@index([userId])
+  @@index([farmerId])
+  @@index([createdAt])
   @@map("animals")
 }
 
@@ -137,6 +159,10 @@ model Vaccination {
   animalId     Int
   animal       Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
 
+  @@index([animalId])
+  @@index([date])
+  @@index([nextDueDate])
+  @@index([type])
   @@map("vaccinations")
 }
 
@@ -167,6 +193,10 @@ model Outbreak {
   symptoms         Json     @default("[]")
   actions          Json     @default("[]")
 
+  @@index([county])
+  @@index([status])
+  @@index([diseaseType])
+  @@index([reportedAt])
   @@map("outbreaks")
 }
 

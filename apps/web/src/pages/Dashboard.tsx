@@ -18,6 +18,7 @@ import { useWebSocket } from "../hooks/useWebSocket";
 import { useLivestockStore } from "../store/livestockStore";
 import type { AnimalStats, Livestock } from "@wam-mfugo/shared";
 import { debounce } from "../utils/debounce";
+import { setPreference, getPreference } from "../utils/preferences";
 
 interface DashboardProps {
   data: Livestock[];
@@ -155,6 +156,19 @@ export default function Dashboard({
     onRefresh: refetch,
     showCountdown: false,
   });
+
+  // Load saved active tab on mount
+  useEffect(() => {
+    const savedTab = getPreference('activeTab');
+    if (savedTab && typeof savedTab === 'string') {
+      setActiveTab(savedTab as Tab);
+    }
+  }, []);
+
+  // Save active tab when it changes
+  useEffect(() => {
+    setPreference('activeTab', activeTab);
+  }, [activeTab]);
 
   const displayData = useMemo(() => {
     if (!debouncedQuery.trim()) return initialFilteredData;

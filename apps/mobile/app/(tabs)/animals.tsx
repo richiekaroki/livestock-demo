@@ -14,6 +14,7 @@ import { exportCSV } from '@/src/services/export';
 import { apiCall } from '@/src/services/api';
 import type { AnimalType, HealthStatus, Livestock } from '@wam-mfugo/shared';
 import { connectSocket, getSocket } from '@/src/services/socket';
+import { FilterModal } from '@/src/components/FilterModal';
 
 const TYPES: (AnimalType | 'All')[] = [
   'All', 'Cattle', 'Goat', 'Sheep', 'Camel', 'Pig', 'Chicken',
@@ -31,6 +32,7 @@ export default function AnimalsScreen() {
   const [county, setCounty] = useState<string>('All');
   const [search, setSearch] = useState('');
   const [selectedAnimal, setSelectedAnimal] = useState<Livestock | null>(null);
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const sheetRef = useRef<AnimalDetailSheetHandle>(null);
   const refreshRef = useRef(refresh);
   refreshRef.current = refresh;
@@ -113,6 +115,13 @@ export default function AnimalsScreen() {
         <View style={styles.searchRow}>
           <SearchBar value={search} onChangeText={setSearch} placeholder="Search by name or owner..." />
           <Pressable
+            onPress={() => { impactLight(); setShowFilterModal(true); }}
+            style={({ pressed }) => [styles.filterBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder, opacity: pressed ? 0.8 : 1 }]}
+            accessibilityLabel="Open filters"
+          >
+            <Ionicons name="filter" size={18} color={colors.tint} />
+          </Pressable>
+          <Pressable
             onPress={() => { impactLight(); exportCSV(filtered); }}
             style={({ pressed }) => [styles.exportBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder, opacity: pressed ? 0.8 : 1 }]}
             accessibilityLabel="Export animals"
@@ -121,93 +130,17 @@ export default function AnimalsScreen() {
           </Pressable>
         </View>
         
-        <Text style={[styles.filterLabel, { color: colors.textSecondary, marginTop: spacing.md }]}>Type</Text>
-        <View style={styles.chipRow}>
-          {TYPES.map((t) => (
-            <Pressable
-              key={t}
-              onPress={() => {
-                selectionChanged();
-                setType(t);
-              }}
-              style={({ pressed }) => [
-                styles.chip,
-                {
-                  backgroundColor: type === t ? colors.tint : colors.card,
-                  borderColor: type === t ? colors.tint : colors.borderLight,
-                  opacity: pressed ? 0.85 : 1,
-                  transform: [{ scale: pressed ? 0.95 : 1 }],
-                },
-              ]}
-              accessibilityLabel={`Filter by ${t}`}
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  { color: type === t ? '#fff' : colors.text },
-                ]}
-              >
-                {t}
-              </Text>
+        {/* Filter summary */}
+        {(type !== 'All' || health !== 'All' || county !== 'All') && (
+          <View style={styles.filterSummary}>
+            <Text style={[styles.filterSummaryText, { color: colors.textSecondary }]}>
+              Filters: {type !== 'All' && ` ${type}`} {health !== 'All' && ` · ${health}`} {county !== 'All' && ` · ${county}`}
+            </Text>
+            <Pressable onPress={() => { impactLight(); setType('All'); setHealth('All'); setCounty('All'); }}>
+              <Text style={[styles.clearFilters, { color: colors.destructive }]}>Clear</Text>
             </Pressable>
-          ))}
-        </View>
-
-        <Text style={[styles.filterLabel, { color: colors.textSecondary, marginTop: spacing.md }]}>
-          Health
-        </Text>
-        <View style={styles.chipRow}>
-          {HEALTH.map((h) => (
-            <Pressable
-              key={h}
-              onPress={() => {
-                selectionChanged();
-                setHealth(h);
-              }}
-              style={({ pressed }) => [
-                styles.chip,
-                {
-                  backgroundColor: health === h ? colors.accent : colors.card,
-                  borderColor: health === h ? colors.accent : colors.borderLight,
-                  opacity: pressed ? 0.85 : 1,
-                  transform: [{ scale: pressed ? 0.95 : 1 }],
-                },
-              ]}
-              accessibilityLabel={`Filter by ${h}`}
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  { color: health === h ? '#fff' : colors.text },
-                ]}
-              >
-                {h}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
-        <Text style={[styles.filterLabel, { color: colors.textSecondary, marginTop: spacing.md }]}>County</Text>
-        <FlatList
-          horizontal
-          data={counties}
-          keyExtractor={(c) => c}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipRow}
-          renderItem={({ item: c }) => (
-            <Pressable
-              onPress={() => { selectionChanged(); setCounty(c); }}
-              style={({ pressed }) => [styles.chip, {
-                backgroundColor: county === c ? colors.tint : colors.card,
-                borderColor: county === c ? colors.tint : colors.borderLight,
-                opacity: pressed ? 0.85 : 1,
-                transform: [{ scale: pressed ? 0.95 : 1 }],
-              }]}
-            >
-              <Text style={[styles.chipText, { color: county === c ? '#fff' : colors.text }]}>{c}</Text>
-            </Pressable>
-          )}
-        />
+          </View>
+        )}
       </View>
 
       <FlatList
@@ -292,6 +225,22 @@ export default function AnimalsScreen() {
         )}
       />
       <AnimalDetailSheet ref={sheetRef} animal={selectedAnimal} onClose={() => setSelectedAnimal(null)} onSaved={() => void refresh()} />
+      
+      <FilterModal
+        visible={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        types={TYPES}
+        health={HEALTH}
+        counties={counties}
+        selectedType={type}
+        selectedHealth={health}
+        selectedCounty={county}
+        onTypeChange={setType}
+        onHealthChange={setHealth}
+        onCountyChange={setCounty}
+        onReset={() => { setType('All'); setHealth('All'); setCounty('All'); }}
+        onApply={() => setShowFilterModal(false)}
+      />
     </View>
   );
 }
@@ -300,16 +249,19 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   filters: { padding: spacing.lg, paddingBottom: spacing.md },
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  filterBtn: { width: 44, height: 44, borderRadius: radius.md, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   exportBtn: { width: 44, height: 44, borderRadius: radius.md, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  filterLabel: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold, textTransform: 'uppercase', letterSpacing: 0.5 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-    borderWidth: 1,
+  filterSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.md,
+    padding: spacing.md,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+    borderRadius: radius.md,
   },
-  chipText: { fontSize: fontSize.sm, fontWeight: fontWeight.medium },
+  filterSummaryText: { fontSize: fontSize.sm, flex: 1 },
+  clearFilters: { fontSize: fontSize.sm, fontWeight: fontWeight.medium },
   list: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxxl,
